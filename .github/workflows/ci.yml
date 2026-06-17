@@ -19,7 +19,7 @@ jobs:
   # Instala, cachea node_modules y valida integridad del lockfile.
   # ────────────────────────────────────────────────────────────
   dependencies:
-    name: 📦 Dependencies
+    name: Dependencies
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
       - name: Validate lockfile integrity
         run: |
           if [ ! -f package-lock.json ]; then
-            echo "❌ package-lock.json no encontrado. Commitea el lockfile."
+            echo "ERROR: package-lock.json no encontrado. Commitea el lockfile."
             exit 1
           fi
 
@@ -53,7 +53,7 @@ jobs:
   # ESLint + Prettier check. Falla rápido antes de ejecutar tests.
   # ────────────────────────────────────────────────────────────
   lint:
-    name: 🔍 Lint & Format
+    name: Lint & Format
     runs-on: ubuntu-latest
     needs: dependencies
 
@@ -83,7 +83,7 @@ jobs:
   # JOB 3 — TypeScript type-check
   # ────────────────────────────────────────────────────────────
   typecheck:
-    name: 🧩 TypeScript
+    name: TypeScript
     runs-on: ubuntu-latest
     needs: dependencies
 
@@ -110,7 +110,7 @@ jobs:
   # JOB 4 — Tests + Coverage (≥ 80%)
   # ────────────────────────────────────────────────────────────
   test:
-    name: 🧪 Tests (coverage ≥ 80%)
+    name: Tests (coverage >= 80%)
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
 
@@ -148,10 +148,10 @@ jobs:
           node -e "
             const pct = parseFloat('${COVERAGE}');
             if (pct < 80) {
-              console.error('❌ Coverage ' + pct + '% < 80% requerido');
+              console.error('FAIL: Coverage ' + pct + '% < 80% requerido');
               process.exit(1);
             }
-            console.log('✅ Coverage ' + pct + '% ≥ 80%');
+            console.log('OK: Coverage ' + pct + '% >= 80%');
           "
 
       - name: Upload coverage report
@@ -168,7 +168,7 @@ jobs:
   # No genera .apk/.ipa (eso es release con EAS Build).
   # ────────────────────────────────────────────────────────────
   build:
-    name: 🏗️ Angular Build
+    name: Angular Build
     runs-on: ubuntu-latest
     needs: test
 
@@ -194,10 +194,10 @@ jobs:
       - name: Verify build output
         run: |
           if [ ! -d dist/ ]; then
-            echo "❌ El build no generó output en dist/"
+            echo "ERROR: El build no genero output en dist/"
             exit 1
           fi
-          echo "✅ Build generado correctamente"
+          echo "OK: Build generado correctamente"
           du -sh dist/
 
   # ────────────────────────────────────────────────────────────
@@ -205,7 +205,7 @@ jobs:
   # Branch protection rules apuntan solo a este job.
   # ────────────────────────────────────────────────────────────
   ci-gate:
-    name: ✅ CI Gate
+    name: CI Gate
     runs-on: ubuntu-latest
     needs: [dependencies, lint, typecheck, test, build]
     if: always()
@@ -216,7 +216,7 @@ jobs:
           JOBS_STATUS="${{ join(needs.*.result, ',') }}"
           echo "Estado de jobs: $JOBS_STATUS"
           if echo "$JOBS_STATUS" | grep -qE '(failure|cancelled)'; then
-            echo "❌ Uno o más jobs fallaron. PR bloqueado."
+            echo "FAIL: Uno o mas jobs fallaron. PR bloqueado."
             exit 1
           fi
-          echo "✅ Todos los jobs pasaron. Listo para merge."
+          echo "OK: Todos los jobs pasaron. Listo para merge."
