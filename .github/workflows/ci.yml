@@ -137,21 +137,16 @@ jobs:
 
       - name: Verify coverage threshold
         run: |
-          COVERAGE=$(cat coverage/coverage-summary.json | \
-            node -e "
-              const d = require('/dev/stdin');
-              const t = d.total;
-              const pct = (t.lines.pct + t.statements.pct + t.functions.pct + t.branches.pct) / 4;
-              process.stdout.write(pct.toFixed(2));
-            ")
-          echo "Coverage promedio: ${COVERAGE}%"
           node -e "
-            const pct = parseFloat('${COVERAGE}');
+            const d = require('./coverage/coverage-summary.json');
+            const t = d.total;
+            const pct = (t.lines.pct + t.statements.pct + t.functions.pct + t.branches.pct) / 4;
+            console.log('Coverage promedio: ' + pct.toFixed(2) + '%');
             if (pct < 80) {
-              console.error('FAIL: Coverage ' + pct + '% < 80% requerido');
+              console.error('FAIL: Coverage ' + pct.toFixed(2) + '% < 80% requerido');
               process.exit(1);
             }
-            console.log('OK: Coverage ' + pct + '% >= 80%');
+            console.log('OK: Coverage ' + pct.toFixed(2) + '% >= 80%');
           "
 
       - name: Upload coverage report
