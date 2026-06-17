@@ -19,7 +19,7 @@ module.exports = {
         'revert',   // revertir commit
       ],
     ],
-    'subject-case': [2, 'always', 'lower-case'],
+    'subject-case': [0],
     'subject-max-length': [2, 'always', 72],
     'body-max-line-length': [1, 'always', 100],
   },

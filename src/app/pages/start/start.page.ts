@@ -164,7 +164,7 @@ import { IonContent } from '@ionic/angular/standalone';
                 class="toggle-password"
                 (click)="showPassword = !showPassword"
                 type="button"
-                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                [attr.aria-label]="showPassword ? 'Show password' : 'Hide password'"
               >
                 @if (showPassword) {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
