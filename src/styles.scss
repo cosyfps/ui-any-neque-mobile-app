@@ -9,9 +9,27 @@
 @import '@ionic/angular/css/flex-utils.css';
 @import '@ionic/angular/css/display.css';
 
+@import './app/shared/theme/palette';
+
 :root {
-  --ion-color-primary: #1e3a5f;
+  --ion-color-primary: var(--nq-primary);
+  --ion-color-primary-rgb: var(--nq-primary-rgb);
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: var(--nq-primary-dark);
+  --ion-color-primary-tint: var(--nq-primary-light);
+
   --ion-color-success: #2e7d32;
   --ion-color-warning: #f57f17;
-  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --ion-font-family: var(--nq-font-family);
+  --ion-background-color: var(--nq-bg);
+  --ion-text-color: var(--nq-text);
+}
+
+body {
+  margin: 0;
+  font-family: var(--nq-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

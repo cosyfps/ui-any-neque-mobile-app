@@ -45,3 +45,5 @@ yarn-error.log*
 # Misc
 *.swp
 *.swo
+
+/.agents
