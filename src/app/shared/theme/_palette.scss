@@ -1,28 +1,68 @@
 :root {
-  --nq-primary: #9c5cbf;
-  --nq-primary-rgb: 156, 92, 191;
-  --nq-primary-light: #c98ee6;
-  --nq-primary-light-rgb: 201, 142, 230;
-  --nq-primary-dark: #6a2d8e;
-  --nq-primary-dark-rgb: 106, 45, 142;
+  // ── Brand ──
+  --nq-primary: #2cb5a0;
+  --nq-primary-rgb: 44, 181, 160;
+  --nq-primary-light: #7eeacc;
+  --nq-primary-light-rgb: 126, 234, 204;
+  --nq-primary-dark: #0d9488;
+  --nq-primary-dark-rgb: 13, 148, 136;
 
-  --nq-gradient-start: #a76bc8;
-  --nq-gradient-mid: #c9a0e0;
-  --nq-gradient-end: #f2ddf0;
+  --nq-gradient-start: #7eeacc;
+  --nq-gradient-mid: #3ec4b4;
+  --nq-gradient-end: #00b4d8;
 
-  --nq-accent: #d4a0e8;
-  --nq-accent-rgb: 212, 160, 232;
+  --nq-accent: #56d1c7;
+  --nq-accent-rgb: 86, 209, 199;
 
+  // ── Surfaces ──
   --nq-bg: #ffffff;
-  --nq-surface: #faf5fc;
-  --nq-text: #2d1b3d;
-  --nq-text-secondary: #6b5a7a;
-  --nq-text-muted: #9e8fb0;
+  --nq-surface: #f7faf9;
+  --nq-surface-2: #eef5f3;
 
+  // ── Text ──
+  --nq-text: #1a2b2a;
+  --nq-text-secondary: #5a706d;
+  --nq-text-muted: #94a8a5;
+  --nq-text-inverse: #ffffff;
+
+  // ── Borders ──
+  --nq-border: rgba(44, 181, 160, 0.1);
+  --nq-border-hover: rgba(44, 181, 160, 0.22);
+  --nq-border-solid: #e2ece9;
+
+  // ── Semantic ──
+  --nq-success: #2e7d32;
+  --nq-success-rgb: 46, 125, 50;
+  --nq-warning: #f59e0b;
+  --nq-warning-rgb: 245, 158, 11;
+  --nq-danger: #ef4444;
+  --nq-danger-rgb: 239, 68, 68;
+
+  // ── Radius ──
+  --nq-radius-xs: 6px;
   --nq-radius-sm: 8px;
   --nq-radius-md: 14px;
-  --nq-radius-lg: 24px;
+  --nq-radius-lg: 20px;
+  --nq-radius-xl: 28px;
   --nq-radius-full: 9999px;
 
+  // ── Shadows ──
+  --nq-shadow-xs: 0 1px 2px rgba(26, 43, 42, 0.04);
+  --nq-shadow-sm: 0 2px 8px rgba(26, 43, 42, 0.06);
+  --nq-shadow: 0 4px 16px rgba(26, 43, 42, 0.08);
+  --nq-shadow-lg: 0 8px 32px rgba(26, 43, 42, 0.1);
+
+  // ── Motion ──
+  --nq-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --nq-transition-slow: 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+
+  // ── Layout ──
+  --nq-header-height: 56px;
+  --nq-tab-height: 60px;
+  --nq-tab-bottom: 16px;
+  --nq-safe-bottom: calc(var(--nq-tab-height) + var(--nq-tab-bottom) + 16px);
+  --nq-page-px: 20px;
+
+  // ── Typography ──
   --nq-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

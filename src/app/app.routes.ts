@@ -5,4 +5,32 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./pages/start/start.page').then(m => m.StartPage),
   },
+  {
+    path: 'trainer',
+    loadComponent: () =>
+      import('./pages/trainer/trainer-layout.page').then(m => m.TrainerLayoutPage),
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+      {
+        path: 'clients',
+        loadComponent: () =>
+          import('./pages/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+      {
+        path: 'routines',
+        loadComponent: () =>
+          import('./pages/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+    ],
+  },
 ];

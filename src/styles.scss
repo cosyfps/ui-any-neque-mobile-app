@@ -10,6 +10,8 @@
 @import '@ionic/angular/css/display.css';
 
 @import './app/shared/theme/palette';
+@import './app/shared/theme/utilities';
+@import './app/shared/theme/components';
 
 :root {
   --ion-color-primary: var(--nq-primary);
@@ -27,9 +29,34 @@
   --ion-text-color: var(--nq-text);
 }
 
+html {
+  overscroll-behavior-x: none;
+}
+
 body {
   margin: 0;
   font-family: var(--nq-font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  touch-action: pan-y;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  ion-app {
+    display: none;
+  }
+  body::after {
+    content: 'Rota tu dispositivo a vertical';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: var(--nq-font-family);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--nq-text-secondary);
+    text-align: center;
+    padding: 24px;
+  }
 }

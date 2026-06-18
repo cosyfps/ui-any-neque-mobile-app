@@ -1,3 +1,28 @@
+@mixin btn-primary {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--nq-font-family);
+  color: #fff;
+  background: linear-gradient(135deg, var(--nq-primary) 0%, var(--nq-primary-light) 100%);
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+  box-shadow: 0 4px 16px rgba(var(--nq-primary-rgb), 0.3);
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
 :host {
   display: block;
   height: 100%;
@@ -74,29 +99,8 @@
 }
 
 .btn-login {
-  width: 100%;
+  @include btn-primary;
   max-width: 300px;
-  padding: 16px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: var(--nq-font-family);
-  color: #fff;
-  background: linear-gradient(135deg, var(--nq-primary) 0%, var(--nq-accent) 100%);
-  border: none;
-  border-radius: var(--nq-radius-full);
-  cursor: pointer;
-  transition:
-    opacity 0.2s ease,
-    transform 0.15s ease;
-  box-shadow: 0 4px 16px rgba(var(--nq-primary-rgb), 0.3);
-
-  &:hover {
-    opacity: 0.92;
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
 }
 
 .help-text {
@@ -155,7 +159,7 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1.5px solid #e6dced;
+  border: 1.5px solid var(--nq-border-solid);
   border-radius: 50%;
   cursor: pointer;
   color: var(--nq-text-secondary);
@@ -187,7 +191,7 @@
   gap: 10px;
   padding: 0 14px;
   height: 52px;
-  border: 1.5px solid #e6dced;
+  border: 1.5px solid var(--nq-border-solid);
   border-radius: var(--nq-radius-md);
   background: var(--nq-bg);
   transition:
@@ -261,28 +265,7 @@ input {
 }
 
 .btn-submit {
-  width: 100%;
-  padding: 16px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: var(--nq-font-family);
-  color: #fff;
-  background: linear-gradient(135deg, var(--nq-primary) 0%, var(--nq-accent) 100%);
-  border: none;
-  border-radius: var(--nq-radius-full);
-  cursor: pointer;
-  transition:
-    opacity 0.2s ease,
-    transform 0.15s ease;
-  box-shadow: 0 4px 16px rgba(var(--nq-primary-rgb), 0.3);
-
-  &:hover {
-    opacity: 0.92;
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
+  @include btn-primary;
 }
 
 .form-help-text {

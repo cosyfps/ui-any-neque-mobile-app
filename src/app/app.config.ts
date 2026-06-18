@@ -5,5 +5,8 @@ import { provideIonicAngular } from '@ionic/angular/standalone';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), provideIonicAngular({})],
+  providers: [
+    provideRouter(routes),
+    provideIonicAngular({ scrollAssist: false, swipeBackEnabled: false }),
+  ],
 };
