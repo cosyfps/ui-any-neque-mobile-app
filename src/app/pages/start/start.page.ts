@@ -116,9 +116,9 @@ import {
           <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
             <!-- Email -->
             <div class="field" [class.has-error]="emailTouched() && emailError()">
-              <label class="field-label" for="email">Email</label>
-              <div class="input-wrapper">
-                <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <label class="nq-field-label" for="email">Email</label>
+              <div class="nq-field-input">
+                <svg class="nq-field-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <rect
                     x="2"
                     y="4"
@@ -149,7 +149,7 @@ import {
                 />
                 @if (emailTouched() && emailError()) {
                   <svg
-                    class="input-error-icon"
+                    class="nq-field-error-icon"
                     lucideCircleAlert
                     [size]="18"
                     [strokeWidth]="1.8"
@@ -157,17 +157,17 @@ import {
                 }
               </div>
               @if (emailTouched() && emailError()) {
-                <span class="field-error" id="email-error">{{ emailError() }}</span>
+                <span class="nq-field-error" id="email-error">{{ emailError() }}</span>
               }
             </div>
 
             <!-- Password -->
             <div class="field" [class.has-error]="passwordTouched() && !passwordValid()">
-              <label class="field-label" for="password">Password</label>
-              <div class="input-wrapper">
+              <label class="nq-field-label" for="password">Password</label>
+              <div class="nq-field-input">
                 @if (passwordValid()) {
                   <svg
-                    class="input-icon valid"
+                    class="nq-field-icon valid"
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
@@ -191,7 +191,7 @@ import {
                     <circle cx="12" cy="16.5" r="1.5" fill="currentColor" />
                   </svg>
                 } @else {
-                  <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <svg class="nq-field-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <rect
                       x="3"
                       y="11"

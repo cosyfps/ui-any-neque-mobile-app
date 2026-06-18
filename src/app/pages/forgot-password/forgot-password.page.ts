@@ -39,8 +39,8 @@ const OTP_LENGTH = 6;
 
             <div class="illustration">
               <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="100" cy="80" r="60" fill="rgba(44,181,160,0.08)" />
-                <circle cx="100" cy="80" r="40" fill="rgba(44,181,160,0.12)" />
+                <circle cx="100" cy="80" r="60" fill="rgba(var(--nq-primary-rgb),0.08)" />
+                <circle cx="100" cy="80" r="40" fill="rgba(var(--nq-primary-rgb),0.12)" />
                 <rect
                   x="78"
                   y="62"
@@ -73,9 +73,9 @@ const OTP_LENGTH = 6;
 
             <form [formGroup]="emailForm" (ngSubmit)="onSendCode()" novalidate class="email-form">
               <div class="field" [class.has-error]="emailTouched() && emailError()">
-                <label class="field-label" for="fp-email">Email</label>
-                <div class="input-wrapper">
-                  <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <label class="nq-field-label" for="fp-email">Email</label>
+                <div class="nq-field-input">
+                  <svg class="nq-field-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <rect
                       x="2"
                       y="4"
@@ -108,7 +108,7 @@ const OTP_LENGTH = 6;
                   />
                   @if (emailTouched() && emailError()) {
                     <svg
-                      class="input-error-icon"
+                      class="nq-field-error-icon"
                       lucideCircleAlert
                       [size]="18"
                       [strokeWidth]="1.8"
@@ -116,7 +116,7 @@ const OTP_LENGTH = 6;
                   }
                 </div>
                 @if (emailTouched() && emailError()) {
-                  <span class="field-error" id="fp-email-error">{{ emailError() }}</span>
+                  <span class="nq-field-error" id="fp-email-error">{{ emailError() }}</span>
                 }
               </div>
 
@@ -137,11 +137,7 @@ const OTP_LENGTH = 6;
         </div>
 
         <!-- Step 2: OTP Verification -->
-        <div
-          class="step"
-          [class.active]="step() === 'otp'"
-          [class.enter-right]="step() === 'email'"
-        >
+        <div class="step" [class.active]="step() === 'otp'">
           <div class="step-inner">
             <button class="nav-back" (click)="backToEmail()" aria-label="Go back">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
@@ -149,8 +145,8 @@ const OTP_LENGTH = 6;
 
             <div class="illustration">
               <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="100" cy="80" r="60" fill="rgba(44,181,160,0.08)" />
-                <circle cx="100" cy="80" r="40" fill="rgba(44,181,160,0.12)" />
+                <circle cx="100" cy="80" r="60" fill="rgba(var(--nq-primary-rgb),0.08)" />
+                <circle cx="100" cy="80" r="40" fill="rgba(var(--nq-primary-rgb),0.12)" />
                 <rect
                   x="75"
                   y="60"
@@ -246,6 +242,7 @@ export class ForgotPasswordPage implements AfterViewInit {
   readonly otpValues = signal<string[]>(Array(OTP_LENGTH).fill(''));
 
   private resendTimer: ReturnType<typeof setInterval> | null = null;
+  private sendCodeTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly emailForm = this.fb.nonNullable.group({
     email: [
@@ -289,6 +286,11 @@ export class ForgotPasswordPage implements AfterViewInit {
     this.emailForm.controls.email.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(v => this._email.set(v));
+
+    this.destroyRef.onDestroy(() => {
+      this.clearResendTimer();
+      if (this.sendCodeTimer) clearTimeout(this.sendCodeTimer);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -313,7 +315,8 @@ export class ForgotPasswordPage implements AfterViewInit {
 
     this.isSending.set(true);
     // TODO: wire to auth service
-    setTimeout(() => {
+    this.sendCodeTimer = setTimeout(() => {
+      this.sendCodeTimer = null;
       this.isSending.set(false);
       this.step.set('otp');
       this.startResendTimer();
@@ -357,15 +360,18 @@ export class ForgotPasswordPage implements AfterViewInit {
     const pasted = (event.clipboardData?.getData('text') || '').replace(/\D/g, '');
     if (!pasted) return;
 
+    const inputs = this.otpInputs.toArray();
+    const focusedIdx = inputs.findIndex(el => el.nativeElement === document.activeElement);
+    const startIdx = focusedIdx >= 0 ? focusedIdx : 0;
+
     const vals = [...this.otpValues()];
-    for (let i = 0; i < this.otpLength; i++) {
-      vals[i] = pasted[i] || '';
+    for (let i = 0; i < pasted.length && startIdx + i < this.otpLength; i++) {
+      vals[startIdx + i] = pasted.charAt(i);
     }
     this.otpValues.set(vals);
 
-    const inputs = this.otpInputs.toArray();
-    const focusIdx = Math.min(pasted.length, this.otpLength - 1);
-    inputs[focusIdx]?.nativeElement.focus();
+    const focusTarget = Math.min(startIdx + pasted.length, this.otpLength - 1);
+    inputs[focusTarget]?.nativeElement.focus();
   }
 
   onOtpFocus(index: number): void {
