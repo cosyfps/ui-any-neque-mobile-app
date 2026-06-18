@@ -1,6 +1,7 @@
 import { Component, computed, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import {
   LucideCircleAlert,
@@ -252,7 +253,9 @@ import {
             </div>
 
             <div class="form-options">
-              <button class="forgot-link" type="button">Forgot Password?</button>
+              <button class="forgot-link" type="button" (click)="goToForgotPassword()">
+                Forgot Password?
+              </button>
             </div>
 
             <button
@@ -284,6 +287,7 @@ export class StartPage {
   showPassword = false;
   passwordFocused = false;
 
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = new FormBuilder();
 
@@ -345,6 +349,10 @@ export class StartPage {
 
   markPasswordTouched(): void {
     this.passwordTouched.set(true);
+  }
+
+  goToForgotPassword(): void {
+    this.router.navigate(['/forgot-password']);
   }
 
   onLogin(): void {
