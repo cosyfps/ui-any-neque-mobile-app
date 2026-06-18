@@ -182,7 +182,7 @@ import {
                       stroke-width="1.5"
                     />
                     <path
-                      d="M17 11V7a5 5 0 00-10 0"
+                      d="M7 11V7a5 5 0 0110 0"
                       stroke="currentColor"
                       stroke-width="1.5"
                       stroke-linecap="round"
