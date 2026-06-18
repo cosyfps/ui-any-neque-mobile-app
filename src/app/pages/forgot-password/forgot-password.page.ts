@@ -177,7 +177,7 @@ const OTP_LENGTH = 6;
               <strong>{{ maskedEmail() }}</strong>
             </p>
 
-            <div class="otp-group">
+            <div class="otp-group" [class.locked]="isVerifying()">
               @for (digit of otpDigits; track $index) {
                 <input
                   #otpInput
@@ -192,6 +192,7 @@ const OTP_LENGTH = 6;
                   (paste)="onOtpPaste($event)"
                   (focus)="onOtpFocus($index)"
                   [class.filled]="otpValues()[$index] !== ''"
+                  [disabled]="isVerifying()"
                 />
               }
             </div>
@@ -322,6 +323,7 @@ export class ForgotPasswordPage implements AfterViewInit {
   backToEmail(): void {
     this.step.set('email');
     this.otpValues.set(Array(this.otpLength).fill(''));
+    this.isVerifying.set(false);
     this.clearResendTimer();
   }
 
