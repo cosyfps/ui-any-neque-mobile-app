@@ -1,4 +1,144 @@
 // ══════════════════════════════════════
+//  SHARED MIXINS
+// ══════════════════════════════════════
+
+@mixin nq-btn-gradient {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--nq-font-family);
+  color: #fff;
+  background: linear-gradient(135deg, var(--nq-primary) 0%, var(--nq-primary-light) 100%);
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+  box-shadow: 0 4px 16px rgba(var(--nq-primary-rgb), 0.3);
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary);
+    outline-offset: 2px;
+  }
+}
+
+@mixin nq-field-base {
+  margin-bottom: 16px;
+
+  &.has-error .nq-field-input {
+    border-color: var(--nq-danger);
+    box-shadow: 0 0 0 3px rgba(var(--nq-danger-rgb), 0.08);
+  }
+
+  &.has-error .nq-field-icon {
+    color: var(--nq-danger);
+  }
+}
+
+@mixin nq-nav-back {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1.5px solid var(--nq-border-solid);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--nq-text-secondary);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--nq-primary-rgb), 0.04);
+  }
+
+  &:active {
+    background: rgba(var(--nq-primary-rgb), 0.06);
+    border-color: var(--nq-primary-light);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary);
+    outline-offset: 2px;
+  }
+}
+
+.nq-field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nq-text-secondary);
+  margin-bottom: 8px;
+}
+
+.nq-field-error {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nq-danger);
+  margin-top: 8px;
+}
+
+.nq-field-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 52px;
+  border: 1.5px solid var(--nq-border-solid);
+  border-radius: var(--nq-radius-md);
+  background: var(--nq-bg);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--nq-primary-light);
+    box-shadow: 0 0 0 3px rgba(var(--nq-primary-rgb), 0.1);
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    font-family: var(--nq-font-family);
+    color: var(--nq-text);
+    min-width: 0;
+
+    &::placeholder {
+      color: var(--nq-text-muted);
+    }
+  }
+}
+
+.nq-field-icon {
+  flex-shrink: 0;
+  color: var(--nq-text-muted);
+  transition: color 0.2s ease;
+}
+
+.nq-field-error-icon {
+  flex-shrink: 0;
+  color: var(--nq-danger);
+}
+
+// ══════════════════════════════════════
 //  BUTTONS
 // ══════════════════════════════════════
 
