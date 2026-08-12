@@ -6,16 +6,16 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '22.x'
 
 jobs:
   validate:
-    name: 🔒 Validate before release
+    name: Validate before release
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
   build-android:
-    name: 📱 Android Build
+    name: Android Build
     runs-on: ubuntu-latest
     needs: validate
     environment: preview
@@ -57,7 +57,7 @@ jobs:
           retention-days: 14
 
   build-ios:
-    name: 🍎 iOS Build
+    name: iOS Build
     runs-on: macos-latest
     needs: validate
     environment: preview
@@ -94,7 +94,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
   release:
-    name: 🚀 Create GitHub Release
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [build-android, build-ios]
     environment: production
