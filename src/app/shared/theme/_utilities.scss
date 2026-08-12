@@ -1,0 +1,250 @@
+// ── Animations ──
+@keyframes nq-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nq-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.nq-ani {
+  animation: nq-fade-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.nq-d1 {
+  animation-delay: 0.04s;
+  opacity: 0;
+}
+.nq-d2 {
+  animation-delay: 0.08s;
+  opacity: 0;
+}
+.nq-d3 {
+  animation-delay: 0.12s;
+  opacity: 0;
+}
+.nq-d4 {
+  animation-delay: 0.16s;
+  opacity: 0;
+}
+
+.nq-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--nq-border-solid);
+  border-top-color: var(--nq-primary);
+  border-radius: 50%;
+  animation: nq-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// ── Skeleton loading ──
+%skeleton-base {
+  background: linear-gradient(
+    90deg,
+    var(--nq-surface) 25%,
+    var(--nq-surface-2) 50%,
+    var(--nq-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: nq-shimmer 1.5s ease infinite;
+  border-radius: var(--nq-radius-sm);
+}
+
+.nq-skeleton-text {
+  @extend %skeleton-base;
+  height: 14px;
+  width: 60%;
+
+  &.sm {
+    width: 40%;
+    height: 12px;
+  }
+  &.lg {
+    width: 80%;
+    height: 18px;
+  }
+  &.full {
+    width: 100%;
+  }
+}
+
+.nq-skeleton-circle {
+  @extend %skeleton-base;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nq-skeleton-card {
+  @extend %skeleton-base;
+  height: 140px;
+  border-radius: var(--nq-radius-md);
+}
+
+// ── Page states ──
+.nq-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 32px;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.nq-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--nq-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nq-text-muted);
+  margin-bottom: 8px;
+}
+
+.nq-state-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--nq-text);
+  letter-spacing: -0.2px;
+}
+
+.nq-state-desc {
+  font-size: 14px;
+  color: var(--nq-text-muted);
+  line-height: 1.5;
+  max-width: 260px;
+}
+
+// ── Layout ──
+.nq-flex {
+  display: flex;
+}
+.nq-fcol {
+  flex-direction: column;
+}
+.nq-aic {
+  align-items: center;
+}
+.nq-jsb {
+  justify-content: space-between;
+}
+
+// ── Spacing ──
+.nq-g4 {
+  gap: 4px;
+}
+.nq-g8 {
+  gap: 8px;
+}
+.nq-g12 {
+  gap: 12px;
+}
+.nq-g16 {
+  gap: 16px;
+}
+.nq-g24 {
+  gap: 24px;
+}
+.nq-p16 {
+  padding: 16px;
+}
+.nq-px {
+  padding-left: var(--nq-page-px);
+  padding-right: var(--nq-page-px);
+}
+.nq-mb8 {
+  margin-bottom: 8px;
+}
+.nq-mb12 {
+  margin-bottom: 12px;
+}
+.nq-mb16 {
+  margin-bottom: 16px;
+}
+.nq-mb24 {
+  margin-bottom: 24px;
+}
+.nq-mb32 {
+  margin-bottom: 32px;
+}
+
+// ── Typography ──
+.nq-h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--nq-text);
+}
+.nq-h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--nq-text);
+}
+.nq-h3 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--nq-text);
+}
+.nq-body {
+  font-size: 15px;
+  color: var(--nq-text);
+}
+.nq-caption {
+  font-size: 12px;
+  color: var(--nq-text-muted);
+}
+.nq-fw5 {
+  font-weight: 500;
+}
+.nq-fw6 {
+  font-weight: 600;
+}
+.nq-fw7 {
+  font-weight: 700;
+}
+
+// ── Misc ──
+.nq-divider {
+  height: 1px;
+  background: var(--nq-border);
+  margin: 12px 0;
+}
+
+.nq-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.nq-scroll-pad {
+  padding-bottom: var(--nq-safe-bottom);
+}

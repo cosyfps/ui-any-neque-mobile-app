@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--nq-surface);
+  position: relative;
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--nq-safe-bottom);
+}
+
+// Floating tab bar
+.tab-bar {
+  position: absolute;
+  bottom: var(--nq-tab-bottom);
+  left: var(--nq-page-px);
+  right: var(--nq-page-px);
+  height: var(--nq-tab-height);
+  background: var(--nq-bg);
+  border-radius: var(--nq-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  z-index: 10;
+  box-shadow: var(--nq-shadow-lg);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--nq-radius-sm);
+  cursor: pointer;
+  color: var(--nq-text-muted);
+  background: none;
+  border: none;
+  transition:
+    color var(--nq-transition),
+    background var(--nq-transition);
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    fill: none;
+    transition: fill var(--nq-transition);
+  }
+
+  &.active {
+    color: var(--nq-primary);
+
+    svg {
+      fill: rgba(var(--nq-primary-rgb), 0.12);
+      stroke: var(--nq-primary);
+    }
+
+    .tab-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+.tab-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--nq-primary);
+  opacity: 0;
+  transform: scale(0);
+  transition:
+    opacity var(--nq-transition),
+    transform var(--nq-transition);
+}
+
+// Profile avatar tab
+.tab-profile {
+  .profile-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--nq-surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nq-text-muted);
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color var(--nq-transition);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  svg {
+    fill: none !important;
+  }
+
+  &.active .profile-avatar {
+    border-color: var(--nq-primary);
+  }
+}
