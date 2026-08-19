@@ -28,8 +28,8 @@ quedó resuelto y con qué ticket.
 | `angular.json` | Conserva el target `test` con builder Karma (muerto; Jest corre por fuera vía script npm). Tampoco declara `fileReplacements`: `environment.prod.ts` es código muerto. | ✅ T-0.2.1 / T-0.3.1 — target Karma eliminado y `fileReplacements` agregado |
 | `commitlint.config.js` | Comentario residual `// Tipos permitidos para FitConnect` — un tercer nombre de proyecto heredado (ni Ñeque ni ningún otro usado en el repo). | ✅ T-0.3.2 — comentario eliminado |
 | `.github/` | No existe `pull_request_template.md`, ni `ISSUE_TEMPLATE/`, ni `CODEOWNERS`. | ✅ T-0.1.3 — plantillas, `ISSUE_TEMPLATE/` y `CODEOWNERS` creados |
-| Git remoto | Solo existe `main` en `origin` (`gh api .../branches`). `develop` no está publicada — sí queda una local, remanente de trabajo previo. | ⬜ T-0.1.1 — pendiente de publicar |
-| Branch protection | No configurada en `main` (`gh api .../branches/main/protection` → `404 Branch not protected`). Ahora es posible: el repositorio se hizo público durante esta sesión (antes daba 403 por plan Free + privado). | ⬜ T-0.1.2 — pendiente de configurar |
+| Git remoto | Solo existe `main` en `origin` (`gh api .../branches`). `develop` no está publicada — sí queda una local, remanente de trabajo previo. | ✅ T-0.1.1 — `develop` publicada en `origin` |
+| Branch protection | No configurada en `main` (`gh api .../branches/main/protection` → `404 Branch not protected`). Ahora es posible: el repositorio se hizo público durante esta sesión (antes daba 403 por plan Free + privado). | ✅ T-0.1.2 — `main` y `develop` protegidas con `ci-gate` |
 | `_components.scss` / `_utilities.scss` | Definen versiones **duplicadas y con valores distintos** de `.nq-state`, `.nq-state-icon`, `.nq-state-title`, `.nq-state-desc` y `.nq-divider`. | ✅ T-0.3.3 — se conserva solo la copia de `_components.scss` |
 | Tipografía | `'Inter'` está en `--nq-font-family` pero nunca se carga — sin `@font-face`, sin `<link>`, `src/assets/` vacío salvo `.gitkeep`. | ✅ T-0.3.4 — Inter self-hosteada en `src/assets/fonts/` |
 | Auth | `StartPage.onLogin()`, los tres handlers de `ForgotPasswordPage` (`onSendCode`/`onVerifyOtp`/`resendCode`) y `DashboardPage.loadData()` tienen `// TODO: wire to (auth) service` — no hay backend conectado. | ⬜ Épica 1 |
@@ -62,8 +62,8 @@ quedó resuelto y con qué ticket.
 > en verde con cobertura real (no `NaN`), cero residuos de Karma/Jasmine ni nombres de
 > proyecto heredados, plantillas de GitHub en su lugar.
 >
-> **Estado:** todo el trabajo sobre archivos está cerrado (ver tablero). Pendiente solo la
-> parte operativa en GitHub: T-0.1.1, T-0.1.2 y T-0.1.7.
+> **Estado:** 15 de 16 tickets cerrados (ver tablero). Pendiente solo T-0.1.7, el PR de
+> bootstrap `develop` → `main`.
 
 ### HU-0.1 — Infraestructura de Gitflow
 
@@ -292,8 +292,10 @@ no por `NaN`.
   **Cerrada en código**: los 13 tickets que tocan archivos están hechos y la secuencia
   `lint → format:check → typecheck → test:coverage → build:prod` pasa limpia, con
   cobertura real de 99.13 / 91.11 / 100 / 100 (statements / branches / functions / lines).
-  Quedan abiertos T-0.1.1, T-0.1.2 y T-0.1.7, que son operaciones de git y GitHub, no
-  cambios de archivos. La Épica 1 se desbloquea al ejecutarlos.
+  `develop` ya está publicada y protegida junto con `main` (required check `ci-gate`,
+  PR obligatorio con 0 aprobaciones, sin force-push ni borrado), y el pipeline corre verde
+  sobre `develop` con cobertura real. Queda abierto solo T-0.1.7, el PR de bootstrap
+  `develop` → `main`; la Épica 1 se desbloquea al mergearlo.
 - **Épica 1**: depende de que cierre la Épica 0 (se necesita CI verde real antes de
   construir sobre él); secuencial 1.1 → 1.2 → 1.3.
 - **Épicas 2 y 3**: dependen de la Épica 1 (necesitan saber qué entrenador está
@@ -327,8 +329,8 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 
 | #   | Ticket  | Rama                                              | Estado |
 | --- | ------- | ------------------------------------------------- | ------ |
-| 01  | T-0.1.1 | _(sin PR)_ recrear/publicar `develop`             | ⬜     |
-| 02  | T-0.1.2 | _(sin PR)_ branch protection                      | ⬜     |
+| 01  | T-0.1.1 | _(sin PR)_ recrear/publicar `develop`             | ✅     |
+| 02  | T-0.1.2 | _(sin PR)_ branch protection                      | ✅     |
 | 03  | T-0.1.3 | `develop` (directo) plantillas GitHub             | ✅     |
 | 04  | T-0.1.4 | `develop` (directo) `CONTRIBUTING.md`             | ✅     |
 | 05  | T-0.1.5 | `develop` (directo) `docs/BACKLOG.md`             | ✅     |

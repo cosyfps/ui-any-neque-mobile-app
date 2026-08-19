@@ -46,10 +46,9 @@ develop ──●───●───●───●───●───●─
 | `release/*` | Corte de versión. Nace de `develop`, mergea a `main` y se tagea. |
 | `hotfix/*`  | Urgencia en producción. **Única rama que nace de `main`.**       |
 
-> **Estado real hoy:** en GitHub solo existe `main` — `develop` no está publicada
-> (verificado con `gh api repos/.../branches`). Localmente sí queda una `develop` de
-> trabajo previo, pero no representa la rama de integración oficial hasta que el ticket
-> T-0.1.1 la recree y publique. Hasta entonces, cualquier ticket parte de `main`.
+> `main` y `develop` existen en GitHub y **ambas están protegidas**: required check
+> `ci-gate`, PR obligatorio y sin force-push ni borrado de rama. Todo ticket parte de
+> `develop`.
 
 ### Nomenclatura
 
@@ -160,11 +159,10 @@ de una sola persona pedir una aprobación bloquearía todos los merges. Lo que p
 verdad es la combinación de PR obligatorio + `ci-gate`. Si más adelante entran
 colaboradores, subir el número es cambiar un campo.
 
-⚠️ **Esto todavía no está exigido técnicamente.** El repositorio se hizo público durante
-esta sesión, lo que ya permite configurar branch protection en el plan Free de GitHub —
-pero la protección real (required check `ci-gate`, PR obligatorio, sin force-push) recién
-se activa cuando cierre el ticket **T-0.1.2**. Hasta entonces, esta sección describe la
-convención a seguir por disciplina, no algo que GitHub bloquee automáticamente.
+Esto **sí está exigido técnicamente**: la branch protection de `main` y `develop` rechaza
+el push directo y el merge sin `ci-gate` en verde. `enforce_admins` queda en `false` a
+propósito, para que el owner pueda commitear directo sobre `develop` los tickets sin
+cambio de lógica (documentación, plantillas, configuración del repo).
 
 ### Sobre el gate de coverage
 
