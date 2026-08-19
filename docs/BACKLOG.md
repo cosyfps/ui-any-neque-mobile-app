@@ -14,28 +14,29 @@ los módulos de clientes, rutinas y perfil son alias temporales al mismo `Dashbo
 ## Diagnóstico verificado (2026-08-17)
 
 Hechos confirmados leyendo el código y ejecutando los comandos reales del repo — no son
-supuestos de diseño, son el estado actual:
+supuestos de diseño. Es la foto que originó la Épica 0; la columna **Estado** indica qué
+quedó resuelto y con qué ticket.
 
-| Área                                   | Hallazgo                                                                                                                                                                                                                                            |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Testing                                | **0 archivos `.spec.ts`** en todo `src/`, pese al `coverageThreshold.global` de 80% en las 4 métricas declarado en el bloque `jest` de `package.json`.                                                                                              |
-| `test:coverage`                        | `npm run test:coverage` → `"No tests found, exiting with code 0"` (pasa por `--passWithNoTests`).                                                                                                                                                   |
-| `coverage-summary.json`                | Con cero specs, las 4 métricas quedan como el string `"Unknown"` (no `0`) — confirmado ejecutando el comando arriba y leyendo el archivo generado.                                                                                                  |
-| `ci.yml` — "Verify coverage threshold" | Promedia las 4 métricas del summary. `"Unknown"` concatenado 4 veces `/ 4` da `NaN`, y `NaN < 80` es `false` en JS → el step imprime `OK` y pasa. **Falso verde activo hoy.**                                                                       |
-| `ci.yml` — `ci-gate`                   | Agrega `needs.*.result` y falla solo si matchea `/failure\|cancelled/` — no contempla `skipped` explícitamente. Hoy no es explotable (el DAG es lineal y cualquier fallo real también aparece como `failure`), pero conviene endurecerlo.           |
-| `tsconfig.spec.json`                   | `"types": ["jasmine"]` aunque el runner real es Jest.                                                                                                                                                                                               |
-| `angular.json`                         | Conserva el target `test` con builder Karma (muerto; Jest corre por fuera vía script npm). Tampoco declara `fileReplacements`: `environment.prod.ts` es código muerto.                                                                              |
-| `commitlint.config.js`                 | Comentario residual `// Tipos permitidos para FitConnect` — un tercer nombre de proyecto heredado (ni Ñeque ni ningún otro usado en el repo).                                                                                                       |
-| `.github/`                             | No existe `pull_request_template.md`, ni `ISSUE_TEMPLATE/`, ni `CODEOWNERS`.                                                                                                                                                                        |
-| Git remoto                             | Solo existe `main` en `origin` (`gh api .../branches`). `develop` no está publicada — sí queda una local, remanente de trabajo previo.                                                                                                              |
-| Branch protection                      | No configurada en `main` (`gh api .../branches/main/protection` → `404 Branch not protected`). Ahora es posible: el repositorio se hizo público durante esta sesión (antes daba 403 por plan Free + privado).                                       |
-| `_components.scss` / `_utilities.scss` | Definen versiones **duplicadas y con valores distintos** de `.nq-state`, `.nq-state-icon`, `.nq-state-title`, `.nq-state-desc` y `.nq-divider`.                                                                                                     |
-| Tipografía                             | `'Inter'` está en `--nq-font-family` pero nunca se carga — sin `@font-face`, sin `<link>`, `src/assets/` vacío salvo `.gitkeep`.                                                                                                                    |
-| Auth                                   | `StartPage.onLogin()`, los tres handlers de `ForgotPasswordPage` (`onSendCode`/`onVerifyOtp`/`resendCode`) y `DashboardPage.loadData()` tienen `// TODO: wire to (auth) service` — no hay backend conectado.                                        |
-| `environments/`                        | `supabaseUrl`/`supabaseAnonKey` declarados y vacíos, sin ningún consumidor — única pista de que Supabase era el backend planeado. `flowApiUrl` (Flow.cl) también declarado y sin uso; no hay evidencia de una feature de pagos más allá de esa URL. |
-| Rutas                                  | `/trainer/clients`, `/trainer/routines` y `/trainer/profile` cargan el mismo `DashboardPage` como placeholder — no son páginas propias todavía.                                                                                                     |
-| Dependencias                           | `@capacitor/camera`, `@capacitor/push-notifications` y `@capacitor/share` están instaladas pero **sin ningún código que las use**.                                                                                                                  |
-| GitHub                                 | 4 PRs ya mergeados (#1–#4, ver tablero), **0 issues** creados.                                                                                                                                                                                      |
+| Área | Hallazgo | | Estado |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | ------ |
+| Testing | **0 archivos `.spec.ts`** en todo `src/`, pese al `coverageThreshold.global` de 80% en las 4 métricas declarado en el bloque `jest` de `package.json`. | ✅ T-0.2.2/0.2.3/0.2.4 — 6 archivos `.spec.ts`, 69 tests |
+| `test:coverage` | `npm run test:coverage` → `"No tests found, exiting with code 0"` (pasa por `--passWithNoTests`). | ✅ T-0.2.1 — corre specs reales |
+| `coverage-summary.json` | Con cero specs, las 4 métricas quedan como el string `"Unknown"` (no `0`) — confirmado ejecutando el comando arriba y leyendo el archivo generado. | ✅ T-0.2.2/0.2.3/0.2.4 — 99.13 / 91.11 / 100 / 100 |
+| `ci.yml` — "Verify coverage threshold" | Promedia las 4 métricas del summary. `"Unknown"` concatenado 4 veces `/ 4` da `NaN`, y `NaN < 80` es `false` en JS → el step imprime `OK` y pasa. **Falso verde activo hoy.** | ✅ T-0.2.5 — compara métrica por métrica y exige valores numéricos |
+| `ci.yml` — `ci-gate` | Agrega `needs.*.result` y falla solo si matchea `/failure\|cancelled/` — no contempla `skipped` explícitamente. Hoy no es explotable (el DAG es lineal y cualquier fallo real también aparece como `failure`), pero conviene endurecerlo. | ✅ T-0.2.5 — `skipped` incluido en el patrón |
+| `tsconfig.spec.json` | `"types": ["jasmine"]` aunque el runner real es Jest. | ✅ T-0.2.1 — `["jest"]` |
+| `angular.json` | Conserva el target `test` con builder Karma (muerto; Jest corre por fuera vía script npm). Tampoco declara `fileReplacements`: `environment.prod.ts` es código muerto. | ✅ T-0.2.1 / T-0.3.1 — target Karma eliminado y `fileReplacements` agregado |
+| `commitlint.config.js` | Comentario residual `// Tipos permitidos para FitConnect` — un tercer nombre de proyecto heredado (ni Ñeque ni ningún otro usado en el repo). | ✅ T-0.3.2 — comentario eliminado |
+| `.github/` | No existe `pull_request_template.md`, ni `ISSUE_TEMPLATE/`, ni `CODEOWNERS`. | ✅ T-0.1.3 — plantillas, `ISSUE_TEMPLATE/` y `CODEOWNERS` creados |
+| Git remoto | Solo existe `main` en `origin` (`gh api .../branches`). `develop` no está publicada — sí queda una local, remanente de trabajo previo. | ⬜ T-0.1.1 — pendiente de publicar |
+| Branch protection | No configurada en `main` (`gh api .../branches/main/protection` → `404 Branch not protected`). Ahora es posible: el repositorio se hizo público durante esta sesión (antes daba 403 por plan Free + privado). | ⬜ T-0.1.2 — pendiente de configurar |
+| `_components.scss` / `_utilities.scss` | Definen versiones **duplicadas y con valores distintos** de `.nq-state`, `.nq-state-icon`, `.nq-state-title`, `.nq-state-desc` y `.nq-divider`. | ✅ T-0.3.3 — se conserva solo la copia de `_components.scss` |
+| Tipografía | `'Inter'` está en `--nq-font-family` pero nunca se carga — sin `@font-face`, sin `<link>`, `src/assets/` vacío salvo `.gitkeep`. | ✅ T-0.3.4 — Inter self-hosteada en `src/assets/fonts/` |
+| Auth | `StartPage.onLogin()`, los tres handlers de `ForgotPasswordPage` (`onSendCode`/`onVerifyOtp`/`resendCode`) y `DashboardPage.loadData()` tienen `// TODO: wire to (auth) service` — no hay backend conectado. | ⬜ Épica 1 |
+| `environments/` | `supabaseUrl`/`supabaseAnonKey` declarados y vacíos, sin ningún consumidor — única pista de que Supabase era el backend planeado. `flowApiUrl` (Flow.cl) también declarado y sin uso; no hay evidencia de una feature de pagos más allá de esa URL. | ➡️ `fileReplacements` ya conectado (T-0.3.1); las claves siguen vacías hasta la Épica 1 |
+| Rutas | `/trainer/clients`, `/trainer/routines` y `/trainer/profile` cargan el mismo `DashboardPage` como placeholder — no son páginas propias todavía. | ⬜ Épicas 2–4 |
+| Dependencias | `@capacitor/camera`, `@capacitor/push-notifications` y `@capacitor/share` están instaladas pero **sin ningún código que las use**. | ⬜ Fuera de alcance por ahora |
+| GitHub | 4 PRs ya mergeados (#1–#4, ver tablero), **0 issues** creados. | ⬜ Sin cambios |
 
 ### Decisiones tomadas
 
@@ -60,6 +61,9 @@ supuestos de diseño, son el estado actual:
 > **Definición de terminado:** `develop` publicada y protegida junto con `main`, `ci-gate`
 > en verde con cobertura real (no `NaN`), cero residuos de Karma/Jasmine ni nombres de
 > proyecto heredados, plantillas de GitHub en su lugar.
+>
+> **Estado:** todo el trabajo sobre archivos está cerrado (ver tablero). Pendiente solo la
+> parte operativa en GitHub: T-0.1.1, T-0.1.2 y T-0.1.7.
 
 ### HU-0.1 — Infraestructura de Gitflow
 
@@ -285,6 +289,11 @@ no por `NaN`.
 ### Orden de ejecución
 
 - **Épica 0**: secuencial por historia (0.1 → 0.2 → 0.3). Bloquea a todas las demás.
+  **Cerrada en código**: los 13 tickets que tocan archivos están hechos y la secuencia
+  `lint → format:check → typecheck → test:coverage → build:prod` pasa limpia, con
+  cobertura real de 99.13 / 91.11 / 100 / 100 (statements / branches / functions / lines).
+  Quedan abiertos T-0.1.1, T-0.1.2 y T-0.1.7, que son operaciones de git y GitHub, no
+  cambios de archivos. La Épica 1 se desbloquea al ejecutarlos.
 - **Épica 1**: depende de que cierre la Épica 0 (se necesita CI verde real antes de
   construir sobre él); secuencial 1.1 → 1.2 → 1.3.
 - **Épicas 2 y 3**: dependen de la Épica 1 (necesitan saber qué entrenador está
@@ -316,24 +325,24 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 
 ### Épica 0 — Fundación
 
-| #   | Ticket  | Rama                                              | Estado                             |
-| --- | ------- | ------------------------------------------------- | ---------------------------------- |
-| 01  | T-0.1.1 | _(sin PR)_ recrear/publicar `develop`             | ⬜                                 |
-| 02  | T-0.1.2 | _(sin PR)_ branch protection                      | ⬜                                 |
-| 03  | T-0.1.3 | `develop` (directo) plantillas GitHub             | ⬜                                 |
-| 04  | T-0.1.4 | `develop` (directo) `CONTRIBUTING.md`             | 🔄 en curso — este mismo documento |
-| 05  | T-0.1.5 | `develop` (directo) `docs/BACKLOG.md`             | 🔄 en curso — este mismo documento |
-| 06  | T-0.1.6 | `develop` (directo) `README.md`                   | 🔄 en curso — este mismo documento |
-| 07  | T-0.1.7 | PR `develop` → `main`                             | ⬜                                 |
-| 08  | T-0.2.1 | `ci/NEQUE-0.2.1-jest-config-fix`                  | ⬜                                 |
-| 09  | T-0.2.2 | `test/NEQUE-0.2.2-start-page-specs`               | ⬜                                 |
-| 10  | T-0.2.3 | `test/NEQUE-0.2.3-forgot-password-specs`          | ⬜                                 |
-| 11  | T-0.2.4 | `test/NEQUE-0.2.4-trainer-layout-dashboard-specs` | ⬜                                 |
-| 12  | T-0.2.5 | `ci/NEQUE-0.2.5-harden-ci-gate`                   | ⬜                                 |
-| 13  | T-0.3.1 | `chore/NEQUE-0.3.1-add-file-replacements`         | ⬜                                 |
-| 14  | T-0.3.2 | `chore/NEQUE-0.3.2-commitlint-cleanup`            | ⬜                                 |
-| 15  | T-0.3.3 | `fix/NEQUE-0.3.3-dedupe-state-divider-classes`    | ⬜                                 |
-| 16  | T-0.3.4 | `feat/NEQUE-0.3.4-self-host-inter-font`           | ⬜                                 |
+| #   | Ticket  | Rama                                              | Estado |
+| --- | ------- | ------------------------------------------------- | ------ |
+| 01  | T-0.1.1 | _(sin PR)_ recrear/publicar `develop`             | ⬜     |
+| 02  | T-0.1.2 | _(sin PR)_ branch protection                      | ⬜     |
+| 03  | T-0.1.3 | `develop` (directo) plantillas GitHub             | ✅     |
+| 04  | T-0.1.4 | `develop` (directo) `CONTRIBUTING.md`             | ✅     |
+| 05  | T-0.1.5 | `develop` (directo) `docs/BACKLOG.md`             | ✅     |
+| 06  | T-0.1.6 | `develop` (directo) `README.md`                   | ✅     |
+| 07  | T-0.1.7 | PR `develop` → `main`                             | ⬜     |
+| 08  | T-0.2.1 | `ci/NEQUE-0.2.1-jest-config-fix`                  | ✅     |
+| 09  | T-0.2.2 | `test/NEQUE-0.2.2-start-page-specs`               | ✅     |
+| 10  | T-0.2.3 | `test/NEQUE-0.2.3-forgot-password-specs`          | ✅     |
+| 11  | T-0.2.4 | `test/NEQUE-0.2.4-trainer-layout-dashboard-specs` | ✅     |
+| 12  | T-0.2.5 | `ci/NEQUE-0.2.5-harden-ci-gate`                   | ✅     |
+| 13  | T-0.3.1 | `chore/NEQUE-0.3.1-add-file-replacements`         | ✅     |
+| 14  | T-0.3.2 | `chore/NEQUE-0.3.2-commitlint-cleanup`            | ✅     |
+| 15  | T-0.3.3 | `fix/NEQUE-0.3.3-dedupe-state-divider-classes`    | ✅     |
+| 16  | T-0.3.4 | `feat/NEQUE-0.3.4-self-host-inter-font`           | ✅     |
 
 ### Épica 1 — Autenticación real
 
