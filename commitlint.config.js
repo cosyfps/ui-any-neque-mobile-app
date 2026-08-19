@@ -2,7 +2,6 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    // Tipos permitidos para FitConnect
     'type-enum': [
       2,
       'always',
