@@ -83,7 +83,7 @@ Conventional Commits, validados por `commitlint` en el hook `commit-msg`.
 - Varios commits por ticket están bien y son deseables: cuentan la historia del cambio.
 
 ```
-feat(auth): conectar login a Supabase Auth
+feat(auth): conectar login al BFF
 fix(dashboard): liberar el temporizador de reintento en ngOnDestroy
 test(start): cubrir las reglas de validación de password
 ```
@@ -113,7 +113,7 @@ git push -u origin feat/NEQUE-1.2.1-wire-start-page-login
 ```
 
 ```bash
-gh pr create --base develop --title "feat(auth): conectar login a Supabase Auth"
+gh pr create --base develop --title "feat(auth): conectar login al BFF"
 ```
 
 El cuerpo del PR se rellena solo con `.github/pull_request_template.md`; completa sus

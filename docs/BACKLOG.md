@@ -33,7 +33,7 @@ quedó resuelto y con qué ticket.
 | `_components.scss` / `_utilities.scss` | Definen versiones **duplicadas y con valores distintos** de `.nq-state`, `.nq-state-icon`, `.nq-state-title`, `.nq-state-desc` y `.nq-divider`. | ✅ T-0.3.3 — se conserva solo la copia de `_components.scss` |
 | Tipografía | `'Inter'` está en `--nq-font-family` pero nunca se carga — sin `@font-face`, sin `<link>`, `src/assets/` vacío salvo `.gitkeep`. | ✅ T-0.3.4 — Inter self-hosteada en `src/assets/fonts/` |
 | Auth | `StartPage.onLogin()`, los tres handlers de `ForgotPasswordPage` (`onSendCode`/`onVerifyOtp`/`resendCode`) y `DashboardPage.loadData()` tienen `// TODO: wire to (auth) service` — no hay backend conectado. | ⬜ Épica 1 |
-| `environments/` | `supabaseUrl`/`supabaseAnonKey` declarados y vacíos, sin ningún consumidor — única pista de que Supabase era el backend planeado. `flowApiUrl` (Flow.cl) también declarado y sin uso; no hay evidencia de una feature de pagos más allá de esa URL. | ➡️ `fileReplacements` ya conectado (T-0.3.1); las claves siguen vacías hasta la Épica 1 |
+| `environments/` | `supabaseUrl`/`supabaseAnonKey` declarados y vacíos, sin ningún consumidor — única pista de que Supabase era el backend planeado. `flowApiUrl` (Flow.cl) también declarado y sin uso; no hay evidencia de una feature de pagos más allá de esa URL. | ➡️ `fileReplacements` conectado (T-0.3.1); las tres claves se eliminan en T-1.1.1 y se reemplazan por `apiBaseUrl` |
 | Rutas | `/trainer/clients`, `/trainer/routines` y `/trainer/profile` cargan el mismo `DashboardPage` como placeholder — no son páginas propias todavía. | ⬜ Épicas 2–4 |
 | Dependencias | `@capacitor/camera`, `@capacitor/push-notifications` y `@capacitor/share` están instaladas pero **sin ningún código que las use**. | ⬜ Fuera de alcance por ahora |
 | GitHub | 4 PRs ya mergeados (#1–#4, ver tablero), **0 issues** creados. | ⬜ Sin cambios |
@@ -46,6 +46,11 @@ quedó resuelto y con qué ticket.
   arriba) y luego un **roadmap de producto inferido** de las rutas placeholder existentes
   (Épicas 1–5). Las épicas 1–5 son una propuesta a confirmar/ajustar, no un alcance ya
   validado — cada una lo indica explícitamente.
+- **La app es solo cliente (2026-08-19).** Se descartó que hablara directo con Supabase.
+  Todo pasa por un **BFF NestJS propio**, que aporta dos cosas que el acceso directo no
+  da: lógica de negocio propia y la posibilidad de agregar varias APIs (Supabase, Flow.cl,
+  lo que venga) detrás de un solo contrato. Consecuencia para este repo: no entra ningún
+  SDK de proveedor como dependencia — solo `HttpClient`.
 - Prefijo de ticket: **`NEQUE-<épica>.<historia>.<ticket>`**.
 - Sin automatización de creación de issues por script: el backlog vive solo como este
   documento Markdown, sin `scripts/create-issues.sh` ni equivalente.
@@ -120,52 +125,93 @@ no por `NaN`.
 
 ---
 
-## ÉPICA 1 — Autenticación real (Supabase)
+## ÉPICA 1 — Autenticación real (contra el BFF)
 
-> _Roadmap inferido de los `// TODO: wire to auth service` existentes y del scaffolding
-> vacío de `supabaseUrl`/`supabaseAnonKey` en `environments/`. Ajustar historias y
-> tickets cuando confirmes el alcance funcional exacto — por ejemplo, quién crea las
-> cuentas de entrenador, dado que `StartPage` dice hoy "This is an invitation-only app."_
+> **Arquitectura decidida (2026-08-19).** Esta app es **solo cliente**. No habla con
+> Supabase, con Flow.cl ni con ningún tercero: habla únicamente con un **BFF NestJS
+> propio** (repo aparte, arquitectura hexagonal), que agrega esos servicios detrás de una
+> sola API. Las credenciales sensibles — `service_role` de Supabase, llaves de Flow —
+> viven en el BFF y **nunca** se empaquetan en el binario de la app, de donde serían
+> extraíbles.
+>
+> ```
+> App Ñeque ──HTTP + JWT──> BFF NestJS ──service_role──> Supabase
+>                                      └──────────────> Flow.cl u otras APIs
+> ```
+>
+> **Dependencia externa:** el BFF no existe todavía. Los tickets marcados 🔗 quedan
+> bloqueados hasta que exponga el endpoint correspondiente. El alta de cuentas de
+> entrenador (la app es invitation-only) es responsabilidad del BFF o de la consola de
+> administración: **no se implementa en este repo en ninguna épica**.
 >
 > **Definición de terminado:** `StartPage.onLogin()` y el flujo completo de
-> `ForgotPasswordPage` llaman a un servicio de auth real; `/trainer` está protegido por
-> un guard que redirige a `/` si no hay sesión.
+> `ForgotPasswordPage` llaman al BFF vía `AuthService`; el token se persiste entre
+> arranques de la app; `/trainer` está protegido por un guard que redirige a `/` si no hay
+> sesión.
 
-### HU-1.1 — Cliente Supabase y AuthService
+### Contrato HTTP que asume la app
 
-| Ticket  | Rama                                        | Qué hace                                                                                                                                           |
-| ------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T-1.1.1 | `chore/NEQUE-1.1.1-add-supabase-dependency` | `npm i @supabase/supabase-js`; completar `supabaseUrl`/`supabaseAnonKey` en `environments/`. **No commitear claves de producción.**                |
-| T-1.1.2 | `feat/NEQUE-1.1.2-auth-service`             | `AuthService` (`providedIn: 'root'`) con `login(email, password)`, `sendPasswordReset(email)`, `verifyOtp(email, token)`, `signOut()`. **+ spec.** |
+Propuesta a validar contra el BFF cuando exista. Si cambia, cambia solo el interior de
+`AuthService` — ninguna página se entera.
+
+| Método | Endpoint                | Body                  | Respuesta                                |
+| ------ | ----------------------- | --------------------- | ---------------------------------------- |
+| `POST` | `/auth/login`           | `{ email, password }` | `{ accessToken, refreshToken, trainer }` |
+| `POST` | `/auth/password/forgot` | `{ email }`           | `204`                                    |
+| `POST` | `/auth/password/verify` | `{ email, code }`     | `{ accessToken, refreshToken, trainer }` |
+| `POST` | `/auth/refresh`         | `{ refreshToken }`    | `{ accessToken, refreshToken }`          |
+| `POST` | `/auth/logout`          | —                     | `204`                                    |
+
+Errores en formato uniforme (`{ statusCode, message }`); `401` en credenciales inválidas y
+en token expirado. El BFF debe permitir CORS desde los orígenes del WebView de Capacitor
+(`capacitor://localhost`, `http://localhost`) además de `http://localhost:4200` en
+desarrollo.
+
+### HU-1.1 — Capa de acceso al BFF
+
+| Ticket  | Rama                                  | Qué hace                                                                                                                                                                                                            |
+| ------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-1.1.1 | `chore/NEQUE-1.1.1-http-client-setup` | `provideHttpClient()` en `app.config.ts`. En `environments/`: **eliminar** `supabaseUrl`, `supabaseAnonKey` y `flowApiUrl` (pasan a ser problema del BFF) y dejar un único `apiBaseUrl`.                            |
+| T-1.1.2 | `feat/NEQUE-1.1.2-token-storage`      | `TokenStorage` sobre `@capacitor/preferences` (agregar dependencia): `get()`, `set()`, `clear()` del par access/refresh. Async, porque la API nativa lo es. **+ spec con el plugin mockeado.**                      |
+| T-1.1.3 | `feat/NEQUE-1.1.3-auth-service`       | 🔗 `AuthService` (`providedIn: 'root'`) contra el contrato de arriba: `login()`, `sendResetCode()`, `verifyCode()`, `refresh()`, `signOut()`. Expone la sesión como signal. **+ spec con `HttpTestingController`.** |
+| T-1.1.4 | `feat/NEQUE-1.1.4-auth-interceptor`   | 🔗 Interceptor funcional: agrega `Authorization: Bearer`, y ante un `401` intenta `refresh()` una vez antes de desloguear. **+ spec.**                                                                              |
+
+**Orden:** T-1.1.1 → T-1.1.2 → T-1.1.3 → T-1.1.4. Los dos primeros no dependen del BFF y
+se pueden cerrar desde ya.
 
 ### HU-1.2 — Login real
 
-| Ticket  | Rama                                     | Qué hace                                                                                                                                                                               |
-| ------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T-1.2.1 | `feat/NEQUE-1.2.1-wire-start-page-login` | Reemplazar el `TODO` de `onLogin()` por `AuthService.login()`; manejo de error (credenciales inválidas) reusando `.nq-field-error`; `isSubmitting` real. **+ spec del caso de error.** |
-| T-1.2.2 | `feat/NEQUE-1.2.2-trainer-route-guard`   | Guard funcional en `/trainer` que redirige a `/` si no hay sesión activa. **+ spec.**                                                                                                  |
+| Ticket  | Rama                                     | Qué hace                                                                                                                                                                           |
+| ------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-1.2.1 | `feat/NEQUE-1.2.1-wire-start-page-login` | 🔗 Reemplazar el `TODO` de `onLogin()` por `AuthService.login()`; manejo de error (credenciales inválidas, red caída) reusando `.nq-field-error`; `isSubmitting` real. **+ spec.** |
+| T-1.2.2 | `feat/NEQUE-1.2.2-trainer-route-guard`   | Guard funcional en `/trainer` que redirige a `/` si no hay sesión activa. **+ spec.**                                                                                              |
 
 ### HU-1.3 — Recuperación de contraseña real
 
-| Ticket  | Rama                                         | Qué hace                                                                                                                |
-| ------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | `onSendCode`/`onVerifyOtp`/`resendCode` contra `AuthService` en vez de los `setTimeout` simulados actuales. **+ spec.** |
+| Ticket  | Rama                                         | Qué hace                                                                                                                   |
+| ------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | 🔗 `onSendCode`/`onVerifyOtp`/`resendCode` contra `AuthService` en vez de los `setTimeout` simulados actuales. **+ spec.** |
 
 ---
 
 ## ÉPICA 2 — Módulo Clientes
 
-> _Roadmap inferido — mismo disclaimer que la Épica 1._
+> _Roadmap inferido — mismo disclaimer que la Épica 1. Todo el acceso a datos pasa por el
+> BFF; la app no conoce la base de datos._
 >
 > **Definición de terminado:** `/trainer/clients` deja de ser un alias a `DashboardPage`
 > y lista, crea, edita y muestra el detalle de clientes reales del entrenador autenticado.
+>
+> **Contrato esperado:** `GET /clients`, `GET /clients/:id`, `POST /clients`,
+> `PATCH /clients/:id`. El BFF filtra por el entrenador del JWT — la app **no** manda
+> `trainerId` en ningún request.
 
 ### HU-2.1 — Modelo y servicio
 
-| Ticket  | Rama                              | Qué hace                                                                                                   |
-| ------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| T-2.1.1 | `feat/NEQUE-2.1.1-client-model`   | `src/app/shared/models/client.model.ts`.                                                                   |
-| T-2.1.2 | `feat/NEQUE-2.1.2-client-service` | `ClientService` sobre una tabla `clients` de Supabase, filtrada por el entrenador autenticado. **+ spec.** |
+| Ticket  | Rama                              | Qué hace                                                                                               |
+| ------- | --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| T-2.1.1 | `feat/NEQUE-2.1.1-client-model`   | `src/app/shared/models/client.model.ts` — refleja el DTO que devuelve el BFF.                          |
+| T-2.1.2 | `feat/NEQUE-2.1.2-client-service` | 🔗 `ClientService` con `HttpClient` contra `/clients` del BFF. **+ spec con `HttpTestingController`.** |
 
 ### HU-2.2 — Listado
 
@@ -185,17 +231,21 @@ no por `NaN`.
 
 ## ÉPICA 3 — Módulo Rutinas
 
-> _Roadmap inferido — mismo disclaimer que la Épica 1._
+> _Roadmap inferido — mismo disclaimer que la Épica 1. Todo el acceso a datos pasa por el
+> BFF._
 >
 > **Definición de terminado:** `/trainer/routines` deja de ser un alias, lista/crea/edita
 > rutinas y permite asignarlas a un cliente de la Épica 2.
+>
+> **Contrato esperado:** `GET|POST /routines`, `PATCH /routines/:id` y
+> `POST /routines/:id/assign` con `{ clientId }`.
 
 ### HU-3.1 — Modelo y servicio
 
-| Ticket  | Rama                               | Qué hace                                     |
-| ------- | ---------------------------------- | -------------------------------------------- |
-| T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`   | `src/app/shared/models/routine.model.ts`.    |
-| T-3.1.2 | `feat/NEQUE-3.1.2-routine-service` | `RoutineService` sobre Supabase. **+ spec.** |
+| Ticket  | Rama                               | Qué hace                                                                     |
+| ------- | ---------------------------------- | ---------------------------------------------------------------------------- |
+| T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`   | `src/app/shared/models/routine.model.ts`.                                    |
+| T-3.1.2 | `feat/NEQUE-3.1.2-routine-service` | 🔗 `RoutineService` con `HttpClient` contra `/routines` del BFF. **+ spec.** |
 
 ### HU-3.2 — Listado
 
@@ -219,13 +269,16 @@ no por `NaN`.
 >
 > **Definición de terminado:** `/trainer/profile` deja de ser un alias, muestra los datos
 > del entrenador autenticado y permite cerrar sesión.
+>
+> **Contrato esperado:** `GET /me` para el perfil; el logout usa `POST /auth/logout` y
+> limpia el `TokenStorage` local.
 
 ### HU-4.1 — Página de perfil
 
-| Ticket  | Rama                                     | Qué hace                                                             |
-| ------- | ---------------------------------------- | -------------------------------------------------------------------- |
-| T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | `ProfilePage` standalone, reemplaza el alias en la ruta. **+ spec.** |
-| T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | Botón de cerrar sesión usando `AuthService.signOut()` de la Épica 1. |
+| Ticket  | Rama                                     | Qué hace                                                                              |
+| ------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | `ProfilePage` standalone, reemplaza el alias en la ruta. **+ spec.**                  |
+| T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | Botón de cerrar sesión: `AuthService.signOut()`, limpieza del token y redirect a `/`. |
 
 ---
 
@@ -278,13 +331,13 @@ no por `NaN`.
 | Épica                          | Historias | Tickets | PRs                                   |
 | ------------------------------ | --------- | ------- | ------------------------------------- |
 | 0 — Fundación y CI real        | 3         | 16      | 10 (2 sin PR, 4 directo en `develop`) |
-| 1 — Autenticación real         | 3         | 5       | 5                                     |
+| 1 — Autenticación real (BFF)   | 3         | 7       | 7                                     |
 | 2 — Módulo Clientes            | 3         | 6       | 6                                     |
 | 3 — Módulo Rutinas             | 3         | 6       | 6                                     |
 | 4 — Perfil del Entrenador      | 1         | 2       | 2                                     |
 | 5 — Dashboard con datos reales | 1         | 1       | 1                                     |
 | 6 — Release v1.0.0             | 3         | 6       | 6 (5 a `develop` + 1 a `main`)        |
-| **Total**                      | **17**    | **42**  | **36 (34 a `develop` + 2 a `main`)**  |
+| **Total**                      | **17**    | **44**  | **38 (36 a `develop` + 2 a `main`)**  |
 
 ### Orden de ejecución
 
@@ -297,7 +350,11 @@ no por `NaN`.
   sobre `develop` con cobertura real. Queda abierto solo T-0.1.7, el PR de bootstrap
   `develop` → `main`; la Épica 1 se desbloquea al mergearlo.
 - **Épica 1**: depende de que cierre la Épica 0 (se necesita CI verde real antes de
-  construir sobre él); secuencial 1.1 → 1.2 → 1.3.
+  construir sobre él); secuencial 1.1 → 1.2 → 1.3. Los tickets 🔗 dependen además de que
+  el **BFF** exponga sus endpoints: T-1.1.1 y T-1.1.2 avanzan sin él, el resto no.
+- **Dependencia externa a todo el roadmap de producto:** el repo del BFF NestJS. Las
+  Épicas 2–5 consumen sus endpoints; sin BFF solo se pueden construir las pantallas
+  contra datos de prueba, no cerrarse.
 - **Épicas 2 y 3**: dependen de la Épica 1 (necesitan saber qué entrenador está
   autenticado), pero pueden avanzar en paralelo entre sí.
 - **Épica 4**: depende solo de la Épica 1.
@@ -348,59 +405,61 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 
 ### Épica 1 — Autenticación real
 
-| #   | Ticket  | Rama                                         | Estado |
-| --- | ------- | -------------------------------------------- | ------ |
-| 17  | T-1.1.1 | `chore/NEQUE-1.1.1-add-supabase-dependency`  | ⬜     |
-| 18  | T-1.1.2 | `feat/NEQUE-1.1.2-auth-service`              | ⬜     |
-| 19  | T-1.2.1 | `feat/NEQUE-1.2.1-wire-start-page-login`     | ⬜     |
-| 20  | T-1.2.2 | `feat/NEQUE-1.2.2-trainer-route-guard`       | ⬜     |
-| 21  | T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | ⬜     |
+| #   | Ticket  | Rama                                         | Estado    |
+| --- | ------- | -------------------------------------------- | --------- |
+| 17  | T-1.1.1 | `chore/NEQUE-1.1.1-http-client-setup`        | ⬜        |
+| 18  | T-1.1.2 | `feat/NEQUE-1.1.2-token-storage`             | ⬜        |
+| 19  | T-1.1.3 | `feat/NEQUE-1.1.3-auth-service`              | ⬜ 🔗 BFF |
+| 20  | T-1.1.4 | `feat/NEQUE-1.1.4-auth-interceptor`          | ⬜ 🔗 BFF |
+| 21  | T-1.2.1 | `feat/NEQUE-1.2.1-wire-start-page-login`     | ⬜ 🔗 BFF |
+| 22  | T-1.2.2 | `feat/NEQUE-1.2.2-trainer-route-guard`       | ⬜        |
+| 23  | T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | ⬜ 🔗 BFF |
 
 ### Épica 2 — Módulo Clientes
 
 | #   | Ticket  | Rama                                     | Estado |
 | --- | ------- | ---------------------------------------- | ------ |
-| 22  | T-2.1.1 | `feat/NEQUE-2.1.1-client-model`          | ⬜     |
-| 23  | T-2.1.2 | `feat/NEQUE-2.1.2-client-service`        | ⬜     |
-| 24  | T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold` | ⬜     |
-| 25  | T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`   | ⬜     |
-| 26  | T-2.3.1 | `feat/NEQUE-2.3.1-client-form-sheet`     | ⬜     |
-| 27  | T-2.3.2 | `feat/NEQUE-2.3.2-client-detail-view`    | ⬜     |
+| 24  | T-2.1.1 | `feat/NEQUE-2.1.1-client-model`          | ⬜     |
+| 25  | T-2.1.2 | `feat/NEQUE-2.1.2-client-service`        | ⬜     |
+| 26  | T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold` | ⬜     |
+| 27  | T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`   | ⬜     |
+| 28  | T-2.3.1 | `feat/NEQUE-2.3.1-client-form-sheet`     | ⬜     |
+| 29  | T-2.3.2 | `feat/NEQUE-2.3.2-client-detail-view`    | ⬜     |
 
 ### Épica 3 — Módulo Rutinas
 
 | #   | Ticket  | Rama                                        | Estado |
 | --- | ------- | ------------------------------------------- | ------ |
-| 28  | T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`            | ⬜     |
-| 29  | T-3.1.2 | `feat/NEQUE-3.1.2-routine-service`          | ⬜     |
-| 30  | T-3.2.1 | `feat/NEQUE-3.2.1-routines-page-scaffold`   | ⬜     |
-| 31  | T-3.2.2 | `feat/NEQUE-3.2.2-routines-list-states`     | ⬜     |
-| 32  | T-3.3.1 | `feat/NEQUE-3.3.1-routine-form`             | ⬜     |
-| 33  | T-3.3.2 | `feat/NEQUE-3.3.2-assign-routine-to-client` | ⬜     |
+| 30  | T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`            | ⬜     |
+| 31  | T-3.1.2 | `feat/NEQUE-3.1.2-routine-service`          | ⬜     |
+| 32  | T-3.2.1 | `feat/NEQUE-3.2.1-routines-page-scaffold`   | ⬜     |
+| 33  | T-3.2.2 | `feat/NEQUE-3.2.2-routines-list-states`     | ⬜     |
+| 34  | T-3.3.1 | `feat/NEQUE-3.3.1-routine-form`             | ⬜     |
+| 35  | T-3.3.2 | `feat/NEQUE-3.3.2-assign-routine-to-client` | ⬜     |
 
 ### Épica 4 — Perfil del Entrenador
 
 | #   | Ticket  | Rama                                     | Estado |
 | --- | ------- | ---------------------------------------- | ------ |
-| 34  | T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | ⬜     |
-| 35  | T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | ⬜     |
+| 36  | T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | ⬜     |
+| 37  | T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | ⬜     |
 
 ### Épica 5 — Dashboard con datos reales
 
 | #   | Ticket  | Rama                                      | Estado |
 | --- | ------- | ----------------------------------------- | ------ |
-| 36  | T-5.1.1 | `feat/NEQUE-5.1.1-wire-dashboard-metrics` | ⬜     |
+| 38  | T-5.1.1 | `feat/NEQUE-5.1.1-wire-dashboard-metrics` | ⬜     |
 
 ### Épica 6 — Release v1.0.0
 
 | #   | Ticket  | Rama                                          | Estado |
 | --- | ------- | --------------------------------------------- | ------ |
-| 37  | T-6.1.1 | `test/NEQUE-6.1.1-integration-qa-checklist`   | ⬜     |
-| 38  | T-6.2.1 | `chore/NEQUE-6.2.1-capacitor-add-android`     | ⬜     |
-| 39  | T-6.2.2 | `chore/NEQUE-6.2.2-capacitor-add-ios`         | ⬜     |
-| 40  | T-6.2.3 | `ci/NEQUE-6.2.3-fix-release-workflow-signing` | ⬜     |
-| 41  | T-6.3.1 | `chore/NEQUE-6.3.1-version-bump-changelog`    | ⬜     |
-| 42  | T-6.3.2 | `release/1.0.0` → `main` + tag `v1.0.0`       | ⬜     |
+| 39  | T-6.1.1 | `test/NEQUE-6.1.1-integration-qa-checklist`   | ⬜     |
+| 40  | T-6.2.1 | `chore/NEQUE-6.2.1-capacitor-add-android`     | ⬜     |
+| 41  | T-6.2.2 | `chore/NEQUE-6.2.2-capacitor-add-ios`         | ⬜     |
+| 42  | T-6.2.3 | `ci/NEQUE-6.2.3-fix-release-workflow-signing` | ⬜     |
+| 43  | T-6.3.1 | `chore/NEQUE-6.3.1-version-bump-changelog`    | ⬜     |
+| 44  | T-6.3.2 | `release/1.0.0` → `main` + tag `v1.0.0`       | ⬜     |
 
 ---
 
@@ -417,8 +476,9 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 
 ## Fuera de alcance por ahora
 
-- **Pagos vía Flow.cl** — solo hay una URL declarada en `environments/` sin ningún
-  consumidor; no se planifica una épica de pagos hasta confirmar la necesidad real.
+- **Pagos vía Flow.cl** — la URL declarada en `environments/` se elimina en T-1.1.1. Si
+  entran pagos, la integración vive en el BFF; en esta app sería a lo sumo una pantalla
+  que consume un endpoint propio. Nunca se firma una transacción desde el cliente.
 - **Push notifications** — `@capacitor/push-notifications` está instalado pero sin
   ningún código que lo use.
 - **Compartir contenido** — `@capacitor/share` instalado, sin uso.
