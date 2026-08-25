@@ -106,7 +106,7 @@ git checkout -b feat/NEQUE-1.2.1-wire-start-page-login
 Trabaja, commitea las veces que haga falta, y antes de abrir el PR:
 
 ```bash
-npm run lint && npm run typecheck && npm run test:coverage && npm run build:prod
+npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build:prod
 ```
 
 ```bash
@@ -114,8 +114,12 @@ git push -u origin feat/NEQUE-1.2.1-wire-start-page-login
 ```
 
 ```bash
-gh pr create --base develop --title "feat(auth): conectar login a Supabase Auth" --body "Closes #NN"
+gh pr create --base develop --title "feat(auth): conectar login a Supabase Auth"
 ```
+
+El cuerpo del PR se rellena solo con `.github/pull_request_template.md`; completa sus
+secciones y marca las validaciones que corriste. Los issues se abren desde las plantillas
+de `.github/ISSUE_TEMPLATE/` (bug, feature o tarea de backlog).
 
 ---
 
@@ -134,8 +138,8 @@ merges de PR.
 ### Bootstrap del gitflow
 
 El primer PR real del proyecto es **`develop` → `main`** (ticket T-0.1.7) y lleva la
-infraestructura del flujo: plantillas de GitHub, `CODEOWNERS`, `CONTRIBUTING.md` y
-`docs/BACKLOG.md`. Sirve para dejar ambas ramas alineadas y validar que `ci-gate` corre y
+infraestructura del flujo: plantillas de GitHub, `CODEOWNERS`, `CONTRIBUTING.md`,
+`README.md` y `docs/BACKLOG.md`. Sirve para dejar ambas ramas alineadas y validar que `ci-gate` corre y
 bloquea correctamente antes de que entre trabajo de producto. A partir de ahí, `main`
 solo recibe merges desde `release/*` o `hotfix/*`.
 
@@ -147,8 +151,9 @@ Un PR puede mergear cuando:
 
 1. El check **`ci-gate`** está en verde. Es el único required check pensado para branch
    protection: agrega `dependencies`, `lint`, `typecheck`, `test` y `build`, y falla si
-   cualquiera de ellos termina en `failure` o `cancelled`.
-2. El cuerpo del PR cierra su issue (`Closes #NN`) y adjunta evidencia si toca UI.
+   cualquiera de ellos termina en `failure`, `cancelled` o `skipped`.
+2. El PR usa la plantilla de `.github/pull_request_template.md`, cierra su issue
+   (`Closes #NN`) y adjunta evidencia si toca UI.
 
 **No se exigen aprobaciones.** GitHub no permite aprobar tu propio PR, así que en un repo
 de una sola persona pedir una aprobación bloquearía todos los merges. Lo que protege de
@@ -167,14 +172,13 @@ El threshold es **80% en cada una de las 4 métricas** (líneas, statements, fun
 ramas), no en su promedio: `coverageThreshold.global` de Jest hace fallar
 `npm run test:coverage` si cualquiera se queda corta.
 
-El paso "Verify coverage threshold" de `ci.yml`, en cambio, sí calcula un promedio de las
-4 métricas — y hoy, con cero specs, ese cálculo da `NaN` y pasa igual (ver
-[`README.md`](README.md#cicd)). Es un bug activo, no una descripción de diseño; lo arregla
-el ticket **T-0.2.5**. Hasta que cierre, no confíes en que `ci-gate` en verde signifique
-cobertura real — revisa el resumen de `npm run test:coverage` a ojo.
+El paso "Verify coverage threshold" de `ci.yml` aplica el mismo criterio: lee
+`coverage/coverage-summary.json`, verifica que cada métrica sea un número finito y compara
+**una por una** contra el 80%. Si el reporte trae valores no numéricos — es lo que emite
+Istanbul cuando no hay ni un spec — el paso falla en vez de dejarlo pasar.
 
-La consecuencia práctica una vez esté arreglado: un ticket que agrega código **no puede
-dejar su spec para después** — el gate lo rechazaría. Por eso no hay tickets sueltos de
+La consecuencia práctica: un ticket que agrega código **no puede dejar su spec para
+después** — el gate lo rechazaría. Por eso no hay tickets sueltos de
 "escribir tests"; el `.spec.ts` es parte del Definition of Done de cada ticket de código.
 
 ---
@@ -235,14 +239,18 @@ que se procesan en runtime.
   `setup-jest.ts`.
 - Los specs viven junto al archivo que prueban: `start.page.spec.ts` al lado de
   `start.page.ts`.
-- `@testing-library/angular` es la vía preferida para tests de componentes.
 - Prueba comportamiento observable — signals computados, salida del template, handlers —,
   no detalles internos de implementación.
 - Los nombres de tests van sin tildes (ver normalización de strings, arriba).
-- **Hoy no existe ningún spec.** Los primeros los agregan T-0.2.2 (`StartPage`), T-0.2.3
-  (`ForgotPasswordPage`) y T-0.2.4 (`TrainerLayoutPage` + `DashboardPage`) — antes de eso,
-  no hay un patrón real en el repo para copiar; usa `@testing-library/angular` como
-  referencia.
+- **Patrón por defecto: unit de clase.** Las páginas se instancian con
+  `TestBed.runInInjectionContext(() => new XPage())`, sin renderizar la plantilla. Evita
+  montar los custom elements de Ionic en jsdom y deja los tests rápidos y estables.
+  `start.page.spec.ts` y `forgot-password.page.spec.ts` son la referencia a copiar.
+- Renderiza con `TestBed.createComponent` solo cuando el test necesite el DOM — por
+  ejemplo `page-state.component.spec.ts`. `@testing-library/angular` está disponible para
+  esos casos.
+- Para timers (countdown de reenvío, `new Date()` en constructores) usa
+  `jest.useFakeTimers()` y devuelve el control con `jest.useRealTimers()` en `afterEach`.
 
 ```bash
 npm run test:coverage

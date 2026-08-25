@@ -1,0 +1,5 @@
+# Config local de herramientas (no versionada)
+.claude/
+
+# Fuentes y binarios
+src/assets/fonts/
