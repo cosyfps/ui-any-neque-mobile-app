@@ -153,33 +153,100 @@ no por `NaN`.
 
 ---
 
-## ÉPICA 2 — Módulo Clientes
+## ÉPICA 2 — Gestión de Alumnos
 
-> _Roadmap inferido — mismo disclaimer que la Épica 1._
+> **Definición de terminado:** `/trainer/clients` deja de ser un alias a
+> `DashboardPage` y permite al entrenador autenticado registrar, listar, buscar,
+> consultar, editar y desactivar alumnos. También permite registrar su anamnesis y
+> evaluaciones físicas. Cada entrenador solo puede acceder a los alumnos vinculados a
+> su cuenta y la desactivación conserva su historial.
 >
-> **Definición de terminado:** `/trainer/clients` deja de ser un alias a `DashboardPage`
-> y lista, crea, edita y muestra el detalle de clientes reales del entrenador autenticado.
+> En la interfaz se utiliza el término **alumno**. Los nombres técnicos existentes
+> mantienen `Client` y `/trainer/clients` hasta que el líder técnico determine si
+> corresponde realizar un cambio global de nomenclatura.
 
-### HU-2.1 — Modelo y servicio
+### HU-2.1 — Modelo y servicio de alumnos
 
-| Ticket  | Rama                              | Qué hace                                                                                                   |
-| ------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| T-2.1.1 | `feat/NEQUE-2.1.1-client-model`   | `src/app/shared/models/client.model.ts`.                                                                   |
-| T-2.1.2 | `feat/NEQUE-2.1.2-client-service` | `ClientService` sobre una tabla `clients` de Supabase, filtrada por el entrenador autenticado. **+ spec.** |
+> _Historia habilitadora técnica. La estructura del modelo, las tablas y las políticas
+> de acceso deben validarse con el líder técnico antes de crear los issues._
 
-### HU-2.2 — Listado
+| Ticket  | Rama                              | Qué hace                                                                                                                                                                          |
+| ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-2.1.1 | `feat/NEQUE-2.1.1-client-model`   | Define el modelo de alumno con identificación, datos personales, información de contacto, estado y vínculo con el entrenador.                                                     |
+| T-2.1.2 | `feat/NEQUE-2.1.2-client-service` | Implementa `ClientService` sobre Supabase para administrar alumnos del entrenador autenticado e impedir el acceso a alumnos no vinculados. **+ spec.**                            |
 
-| Ticket  | Rama                                     | Qué hace                                                                                                 |
-| ------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold` | `ClientsPage` standalone en `src/app/pages/trainer/clients/`, reemplaza el alias en la ruta. **+ spec.** |
-| T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`   | Estados `loading/error/empty/success` reusando `<nq-page-state>`.                                        |
+### HU-2.2 — Listar y buscar alumnos
 
-### HU-2.3 — Alta, edición y detalle
+> Como entrenador, quiero consultar y buscar a mis alumnos para acceder rápidamente a
+> la persona que necesito gestionar.
 
-| Ticket  | Rama                                  | Qué hace                                                       |
-| ------- | ------------------------------------- | -------------------------------------------------------------- |
-| T-2.3.1 | `feat/NEQUE-2.3.1-client-form-sheet`  | Formulario de alta/edición reusando `.nq-sheet`/`.nq-field-*`. |
-| T-2.3.2 | `feat/NEQUE-2.3.2-client-detail-view` | Vista de detalle de un cliente.                                |
+| Ticket  | Rama                                      | Qué hace                                                                                                                                                               |
+| ------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold` | Crea `ClientsPage` standalone y reemplaza el alias a `DashboardPage` en `/trainer/clients`. **+ spec.**                                                                |
+| T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`   | Lista los alumnos vinculados al entrenador y contempla estados `loading/error/empty/success`, reutilizando `<nq-page-state>`. **+ spec.**                               |
+| T-2.2.3 | `feat/NEQUE-2.2.3-clients-search`        | Permite buscar alumnos por nombre o correo dentro de la cartera del entrenador. **+ spec.**                                                                            |
+
+### HU-2.3 — Registrar alumno
+
+> Como entrenador, quiero registrar un alumno para incorporarlo a mi cartera y
+> posteriormente asignarle una planificación.
+
+| Ticket  | Rama                                    | Qué hace                                                                                                                                                           |
+| ------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T-2.3.1 | `feat/NEQUE-2.3.1-client-create-form`   | Implementa el formulario de registro con los datos personales y de contacto definidos para el MVP, reutilizando `.nq-sheet` y `.nq-field-*`. **+ spec.**            |
+| T-2.3.2 | `feat/NEQUE-2.3.2-client-create-submit` | Conecta el formulario con `ClientService`, valida los campos obligatorios y evita duplicados dentro de la cartera del entrenador. **+ spec.**                        |
+
+### HU-2.4 — Consultar ficha del alumno
+
+> Como entrenador, quiero consultar la ficha de un alumno para acceder a sus
+> antecedentes, evaluaciones, planificación e historial.
+
+| Ticket  | Rama                                      | Qué hace                                                                                                                                                           |
+| ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T-2.4.1 | `feat/NEQUE-2.4.1-client-detail-page`     | Implementa la vista de detalle del alumno y restringe su acceso al entrenador vinculado. **+ spec.**                                                               |
+| T-2.4.2 | `feat/NEQUE-2.4.2-client-detail-sections` | Organiza la ficha en secciones de información personal, anamnesis, evaluaciones y planificación, mostrando estados vacíos cuando aún no existen registros. **+ spec.** |
+
+### HU-2.5 — Editar datos del alumno
+
+> Como entrenador, quiero actualizar los datos de un alumno para mantener su ficha
+> vigente.
+
+| Ticket  | Rama                                  | Qué hace                                                                                                                                             |
+| ------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-2.5.1 | `feat/NEQUE-2.5.1-client-edit-form`   | Permite editar los datos personales y de contacto reutilizando el formulario de registro. **+ spec.**                                                |
+| T-2.5.2 | `feat/NEQUE-2.5.2-client-edit-submit` | Guarda los cambios mediante `ClientService` sin alterar el vínculo ni el historial del alumno. **+ spec.**                                           |
+
+### HU-2.6 — Registrar anamnesis
+
+> Como entrenador, quiero registrar la anamnesis de un alumno para considerar sus
+> antecedentes al momento de planificar sus entrenamientos.
+
+| Ticket  | Rama                                        | Qué hace                                                                                                                                                                 |
+| ------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T-2.6.1 | `feat/NEQUE-2.6.1-anamnesis-model-service` | Define el modelo de anamnesis y las operaciones para registrar y consultar los antecedentes del alumno, restringiendo el acceso al entrenador vinculado. **+ spec.**      |
+| T-2.6.2 | `feat/NEQUE-2.6.2-anamnesis-form`          | Implementa el formulario de anamnesis dentro de la ficha del alumno con los campos y validaciones definidos para el MVP. **+ spec.**                                     |
+| T-2.6.3 | `feat/NEQUE-2.6.3-anamnesis-detail`        | Muestra la anamnesis registrada y permite actualizarla sin modificar el resto de la ficha. **+ spec.**                                                                   |
+
+### HU-2.7 — Registrar evaluación física
+
+> Como entrenador, quiero registrar evaluaciones físicas para mantener un historial de
+> la condición y evolución del alumno.
+
+| Ticket  | Rama                                         | Qué hace                                                                                                                                             |
+| ------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-2.7.1 | `feat/NEQUE-2.7.1-assessment-model-service` | Define el modelo de evaluación física y las operaciones para registrar y consultar evaluaciones del alumno. **+ spec.**                              |
+| T-2.7.2 | `feat/NEQUE-2.7.2-assessment-form`          | Implementa el formulario de evaluación física con fecha, mediciones y observaciones definidas para el MVP. **+ spec.**                               |
+| T-2.7.3 | `feat/NEQUE-2.7.3-assessment-history`       | Muestra el historial cronológico de evaluaciones físicas del alumno. **+ spec.**                                                                      |
+
+### HU-2.8 — Desactivar alumno
+
+> Como entrenador, quiero desactivar a un alumno que ya no atiendo para mantener
+> organizada mi cartera sin eliminar su historial.
+
+| Ticket  | Rama                                      | Qué hace                                                                                                                                             |
+| ------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-2.8.1 | `feat/NEQUE-2.8.1-client-deactivation`    | Permite desactivar un alumno mediante confirmación y conserva su ficha, evaluaciones, rutinas e historial. **+ spec.**                                |
+| T-2.8.2 | `feat/NEQUE-2.8.2-inactive-client-filter` | Oculta por defecto los alumnos inactivos y permite consultarlos mediante un filtro. **+ spec.**                                                       |
 
 ---
 
@@ -279,12 +346,12 @@ no por `NaN`.
 | ------------------------------ | --------- | ------- | ------------------------------------- |
 | 0 — Fundación y CI real        | 3         | 16      | 10 (2 sin PR, 4 directo en `develop`) |
 | 1 — Autenticación real         | 3         | 5       | 5                                     |
-| 2 — Módulo Clientes            | 3         | 6       | 6                                     |
+| 2 — Gestión de Alumnos         | 8         | 19      | 19                                    |
 | 3 — Módulo Rutinas             | 3         | 6       | 6                                     |
 | 4 — Perfil del Entrenador      | 1         | 2       | 2                                     |
 | 5 — Dashboard con datos reales | 1         | 1       | 1                                     |
 | 6 — Release v1.0.0             | 3         | 6       | 6 (5 a `develop` + 1 a `main`)        |
-| **Total**                      | **17**    | **42**  | **36 (34 a `develop` + 2 a `main`)**  |
+| **Total**                      | **22**    | **55**  | **49 (47 a `develop` + 2 a `main`)**  |
 
 ### Orden de ejecución
 
@@ -297,7 +364,10 @@ no por `NaN`.
 - **Épica 1**: depende de que cierre la Épica 0 (se necesita CI verde real antes de
   construir sobre él); secuencial 1.1 → 1.2 → 1.3.
 - **Épicas 2 y 3**: dependen de la Épica 1 (necesitan saber qué entrenador está
-  autenticado), pero pueden avanzar en paralelo entre sí.
+  autenticado), pero pueden avanzar en paralelo entre sí. Dentro de la Épica 2, la
+  secuencia inicial es 2.1 → 2.2 → 2.3 → 2.4. Con la ficha disponible, 2.5, 2.6 y 2.7
+  pueden avanzar de manera independiente. La HU-2.8 queda al final para garantizar que
+  la desactivación conserve correctamente toda la información relacionada.
 - **Épica 4**: depende solo de la Épica 1.
 - **Épica 5**: depende de que las Épicas 2 y 3 tengan sus servicios listos (consume
   ambos).
@@ -354,51 +424,64 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 | 20  | T-1.2.2 | `feat/NEQUE-1.2.2-trainer-route-guard`       | ⬜     |
 | 21  | T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | ⬜     |
 
-### Épica 2 — Módulo Clientes
+### Épica 2 — Gestión de Alumnos
 
-| #   | Ticket  | Rama                                     | Estado |
-| --- | ------- | ---------------------------------------- | ------ |
-| 22  | T-2.1.1 | `feat/NEQUE-2.1.1-client-model`          | ⬜     |
-| 23  | T-2.1.2 | `feat/NEQUE-2.1.2-client-service`        | ⬜     |
-| 24  | T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold` | ⬜     |
-| 25  | T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`   | ⬜     |
-| 26  | T-2.3.1 | `feat/NEQUE-2.3.1-client-form-sheet`     | ⬜     |
-| 27  | T-2.3.2 | `feat/NEQUE-2.3.2-client-detail-view`    | ⬜     |
+| #   | Ticket  | Rama                                         | Estado |
+| --- | ------- | -------------------------------------------- | ------ |
+| 22  | T-2.1.1 | `feat/NEQUE-2.1.1-client-model`              | ⬜     |
+| 23  | T-2.1.2 | `feat/NEQUE-2.1.2-client-service`            | ⬜     |
+| 24  | T-2.2.1 | `feat/NEQUE-2.2.1-clients-page-scaffold`     | ⬜     |
+| 25  | T-2.2.2 | `feat/NEQUE-2.2.2-clients-list-states`       | ⬜     |
+| 26  | T-2.2.3 | `feat/NEQUE-2.2.3-clients-search`            | ⬜     |
+| 27  | T-2.3.1 | `feat/NEQUE-2.3.1-client-create-form`        | ⬜     |
+| 28  | T-2.3.2 | `feat/NEQUE-2.3.2-client-create-submit`      | ⬜     |
+| 29  | T-2.4.1 | `feat/NEQUE-2.4.1-client-detail-page`        | ⬜     |
+| 30  | T-2.4.2 | `feat/NEQUE-2.4.2-client-detail-sections`    | ⬜     |
+| 31  | T-2.5.1 | `feat/NEQUE-2.5.1-client-edit-form`          | ⬜     |
+| 32  | T-2.5.2 | `feat/NEQUE-2.5.2-client-edit-submit`        | ⬜     |
+| 33  | T-2.6.1 | `feat/NEQUE-2.6.1-anamnesis-model-service`   | ⬜     |
+| 34  | T-2.6.2 | `feat/NEQUE-2.6.2-anamnesis-form`            | ⬜     |
+| 35  | T-2.6.3 | `feat/NEQUE-2.6.3-anamnesis-detail`          | ⬜     |
+| 36  | T-2.7.1 | `feat/NEQUE-2.7.1-assessment-model-service`  | ⬜     |
+| 37  | T-2.7.2 | `feat/NEQUE-2.7.2-assessment-form`           | ⬜     |
+| 38  | T-2.7.3 | `feat/NEQUE-2.7.3-assessment-history`        | ⬜     |
+| 39  | T-2.8.1 | `feat/NEQUE-2.8.1-client-deactivation`       | ⬜     |
+| 40  | T-2.8.2 | `feat/NEQUE-2.8.2-inactive-client-filter`    | ⬜     |
 
 ### Épica 3 — Módulo Rutinas
 
 | #   | Ticket  | Rama                                        | Estado |
 | --- | ------- | ------------------------------------------- | ------ |
-| 28  | T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`            | ⬜     |
-| 29  | T-3.1.2 | `feat/NEQUE-3.1.2-routine-service`          | ⬜     |
-| 30  | T-3.2.1 | `feat/NEQUE-3.2.1-routines-page-scaffold`   | ⬜     |
-| 31  | T-3.2.2 | `feat/NEQUE-3.2.2-routines-list-states`     | ⬜     |
-| 32  | T-3.3.1 | `feat/NEQUE-3.3.1-routine-form`             | ⬜     |
-| 33  | T-3.3.2 | `feat/NEQUE-3.3.2-assign-routine-to-client` | ⬜     |
+| 41  | T-3.1.1 | `feat/NEQUE-3.1.1-routine-model`            | ⬜     |
+| 42  | T-3.1.2 | `feat/NEQUE-3.1.2-routine-service`          | ⬜     |
+| 43  | T-3.2.1 | `feat/NEQUE-3.2.1-routines-page-scaffold`   | ⬜     |
+| 44  | T-3.2.2 | `feat/NEQUE-3.2.2-routines-list-states`     | ⬜     |
+| 45  | T-3.3.1 | `feat/NEQUE-3.3.1-routine-form`             | ⬜     |
+| 46  | T-3.3.2 | `feat/NEQUE-3.3.2-assign-routine-to-client` | ⬜     |
 
 ### Épica 4 — Perfil del Entrenador
 
 | #   | Ticket  | Rama                                     | Estado |
 | --- | ------- | ---------------------------------------- | ------ |
-| 34  | T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | ⬜     |
-| 35  | T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | ⬜     |
+| 47  | T-4.1.1 | `feat/NEQUE-4.1.1-profile-page-scaffold` | ⬜     |
+| 48  | T-4.1.2 | `feat/NEQUE-4.1.2-profile-logout`        | ⬜     |
 
 ### Épica 5 — Dashboard con datos reales
 
 | #   | Ticket  | Rama                                      | Estado |
 | --- | ------- | ----------------------------------------- | ------ |
-| 36  | T-5.1.1 | `feat/NEQUE-5.1.1-wire-dashboard-metrics` | ⬜     |
+| 49  | T-5.1.1 | `feat/NEQUE-5.1.1-wire-dashboard-metrics` | ⬜     |
 
 ### Épica 6 — Release v1.0.0
 
 | #   | Ticket  | Rama                                          | Estado |
 | --- | ------- | --------------------------------------------- | ------ |
-| 37  | T-6.1.1 | `test/NEQUE-6.1.1-integration-qa-checklist`   | ⬜     |
-| 38  | T-6.2.1 | `chore/NEQUE-6.2.1-capacitor-add-android`     | ⬜     |
-| 39  | T-6.2.2 | `chore/NEQUE-6.2.2-capacitor-add-ios`         | ⬜     |
-| 40  | T-6.2.3 | `ci/NEQUE-6.2.3-fix-release-workflow-signing` | ⬜     |
-| 41  | T-6.3.1 | `chore/NEQUE-6.3.1-version-bump-changelog`    | ⬜     |
-| 42  | T-6.3.2 | `release/1.0.0` → `main` + tag `v1.0.0`       | ⬜     |
+| 50  | T-6.1.1 | `test/NEQUE-6.1.1-integration-qa-checklist`   | ⬜     |
+| 51  | T-6.2.1 | `chore/NEQUE-6.2.1-capacitor-add-android`     | ⬜     |
+| 52  | T-6.2.2 | `chore/NEQUE-6.2.2-capacitor-add-ios`         | ⬜     |
+| 53  | T-6.2.3 | `ci/NEQUE-6.2.3-fix-release-workflow-signing` | ⬜     |
+| 54  | T-6.3.1 | `chore/NEQUE-6.3.1-version-bump-changelog`    | ⬜     |
+| 55  | T-6.3.2 | `release/1.0.0` → `main` + tag `v1.0.0`       | ⬜     |
 
 ---
 
