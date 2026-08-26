@@ -9,6 +9,8 @@ plantillas, configuración del repo), que se trabajan directo sobre `develop`
 recuperación de contraseña (simulada) y un dashboard de entrenador con datos placeholder;
 los módulos de clientes, rutinas y perfil son alias temporales al mismo `DashboardPage`.
 
+BENJA CHUPALO
+
 ---
 
 ## Diagnóstico verificado (2026-08-17)
