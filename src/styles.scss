@@ -9,10 +9,10 @@
 @import '@ionic/angular/css/flex-utils.css';
 @import '@ionic/angular/css/display.css';
 
-@import './app/shared/theme/fonts';
-@import './app/shared/theme/palette';
-@import './app/shared/theme/utilities';
-@import './app/shared/theme/components';
+@import './app/ui/shared/theme/fonts';
+@import './app/ui/shared/theme/palette';
+@import './app/ui/shared/theme/utilities';
+@import './app/ui/shared/theme/components';
 
 :root {
   --ion-color-primary: var(--nq-primary);

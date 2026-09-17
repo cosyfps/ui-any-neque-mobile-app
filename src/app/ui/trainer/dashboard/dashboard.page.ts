@@ -7,7 +7,7 @@ import {
   LucideTrendingUp,
 } from '@lucide/angular';
 
-import { PageStateComponent } from '../../../shared/components/page-state.component';
+import { PageStateComponent } from '@shared/components/page-state.component';
 
 type ViewState = 'loading' | 'error' | 'empty' | 'success';
 
