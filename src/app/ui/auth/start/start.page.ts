@@ -3,13 +3,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
-import {
-  LucideCircleAlert,
-  LucideCheck,
-  LucideEye,
-  LucideEyeOff,
-  LucideLoaderCircle,
-} from '@lucide/angular';
+import { LucideCircleAlert, LucideEye, LucideEyeOff, LucideLoaderCircle } from '@lucide/angular';
+
+import { SessionFacade } from '@app/application/auth/session.facade';
 
 @Component({
   selector: 'app-start',
@@ -18,7 +14,6 @@ import {
     IonContent,
     ReactiveFormsModule,
     LucideCircleAlert,
-    LucideCheck,
     LucideEye,
     LucideEyeOff,
     LucideLoaderCircle,
@@ -162,10 +157,10 @@ import {
             </div>
 
             <!-- Password -->
-            <div class="field" [class.has-error]="passwordTouched() && !passwordValid()">
+            <div class="field" [class.has-error]="passwordError() !== null">
               <label class="nq-field-label" for="password">Password</label>
               <div class="nq-field-input">
-                @if (passwordValid()) {
+                @if (passwordFilled()) {
                   <svg
                     class="nq-field-icon valid"
                     width="20"
@@ -217,16 +212,14 @@ import {
                   placeholder="Enter your password"
                   autocomplete="current-password"
                   enterkeyhint="done"
-                  [attr.aria-describedby]="
-                    passwordTouched() && !passwordValid() ? 'pwd-reqs' : null
-                  "
-                  (focus)="passwordFocused = true"
-                  (blur)="passwordFocused = false; markPasswordTouched()"
+                  [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+                  (blur)="markPasswordTouched()"
                 />
                 <button
                   class="toggle-password"
-                  (click)="showPassword = !showPassword"
                   type="button"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                  (click)="showPassword = !showPassword"
                 >
                   @if (showPassword) {
                     <svg lucideEye [size]="20" [strokeWidth]="1.5"></svg>
@@ -236,21 +229,22 @@ import {
                 </button>
               </div>
 
-              @if (passwordFocused || (passwordTouched() && !passwordValid())) {
-                <ul class="pwd-requirements" id="pwd-reqs">
-                  @for (req of pwdRequirements(); track req.label) {
-                    <li [class.met]="req.met">
-                      @if (req.met) {
-                        <svg lucideCheck [size]="14" [strokeWidth]="2.5"></svg>
-                      } @else {
-                        <svg lucideCircleAlert [size]="14" [strokeWidth]="1.8"></svg>
-                      }
-                      {{ req.label }}
-                    </li>
-                  }
-                </ul>
+              @if (passwordError(); as error) {
+                <span class="nq-field-error" id="password-error">{{ error }}</span>
               }
             </div>
+
+            @if (loginError(); as error) {
+              <p class="nq-field-error login-error" role="alert">
+                <svg
+                  class="nq-field-error-icon"
+                  lucideCircleAlert
+                  [size]="14"
+                  [strokeWidth]="2"
+                ></svg>
+                {{ error }}
+              </p>
+            }
 
             <div class="form-options">
               <button class="forgot-link" type="button" (click)="goToForgotPassword()">
@@ -280,16 +274,22 @@ import {
       </div>
     </ion-content>
   `,
+  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
+  // router-outlet de Angular nadie la agrega, asi que la pone el host.
+  host: { class: 'ion-page' },
   styleUrl: './start.page.scss',
 })
 export class StartPage {
   showLogin = false;
   showPassword = false;
-  passwordFocused = false;
 
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly session = inject(SessionFacade);
   private readonly fb = new FormBuilder();
+
+  /** Error de credenciales devuelto por el backend, para `.nq-field-error`. */
+  readonly loginError = computed(() => this.session.loginError()?.message ?? null);
 
   readonly form = this.fb.nonNullable.group({
     email: [
@@ -320,27 +320,40 @@ export class StartPage {
 
   readonly passwordValue = this._password.asReadonly();
 
-  readonly pwdRequirements = computed(() => {
-    const v = this._password();
-    return [
-      { label: '8+ characters', met: v.length >= 8 },
-      { label: 'One uppercase letter', met: /[A-Z]/.test(v) },
-      { label: 'One number', met: /\d/.test(v) },
-      { label: 'One special character', met: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]/.test(v) },
-    ];
+  readonly passwordFilled = computed(() => this._password() !== '');
+
+  /**
+   * El login NO valida composicion de contrasena: la de un alumno puede ser
+   * anterior a las reglas vigentes y bloquearle el boton lo dejaria fuera de
+   * su propia cuenta. Quien decide si la credencial sirve es el backend. Las
+   * reglas viven donde se crea una contrasena nueva: /invite y recuperacion.
+   */
+  readonly passwordError = computed((): string | null => {
+    this._password();
+    if (!this.passwordTouched()) return null;
+    const ctrl = this.form.controls.password;
+    if (ctrl.hasError('required')) return 'Password is required';
+    if (ctrl.hasError('minlength')) return 'Password must be at least 8 characters';
+    return null;
   });
 
-  readonly passwordValid = computed(() => this.pwdRequirements().every(r => r.met));
-  readonly formValid = computed(() => this._emailValid() && this.passwordValid());
+  private readonly _passwordValid = signal(false);
+
+  readonly formValid = computed(() => this._emailValid() && this._passwordValid());
 
   constructor() {
     this.form.controls.email.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(v => {
       this._email.set(v);
       this._emailValid.set(this.form.controls.email.valid);
+      this.session.clearError();
     });
     this.form.controls.password.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(v => this._password.set(v));
+      .subscribe(v => {
+        this._password.set(v);
+        this._passwordValid.set(this.form.controls.password.valid);
+        this.session.clearError();
+      });
   }
 
   markEmailTouched(): void {
@@ -355,15 +368,23 @@ export class StartPage {
     this.router.navigate(['/forgot-password']);
   }
 
-  onLogin(): void {
+  async onLogin(): Promise<void> {
     if (!this.formValid() || this.isSubmitting()) return;
 
     this.emailTouched.set(true);
     this.passwordTouched.set(true);
 
-    if (!this.formValid()) return;
-
     this.isSubmitting.set(true);
-    // TODO: wire to auth service — call this.isSubmitting.set(false) on complete/error
+
+    const route = await this.session.login({
+      email: this.form.controls.email.value,
+      password: this.form.controls.password.value,
+    });
+
+    this.isSubmitting.set(false);
+
+    if (route !== null) {
+      await this.router.navigate([route]);
+    }
   }
 }

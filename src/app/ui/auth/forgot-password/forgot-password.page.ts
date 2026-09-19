@@ -13,7 +13,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
-import { LucideCircleAlert, LucideLoaderCircle, LucideArrowLeft } from '@lucide/angular';
+import {
+  LucideCircleAlert,
+  LucideLoaderCircle,
+  LucideArrowLeft,
+  LucideCheck,
+  LucideEye,
+  LucideEyeOff,
+} from '@lucide/angular';
+
+import { SessionFacade } from '@app/application/auth/session.facade';
+import { PasswordResetTicket } from '@app/domain/auth/model/auth-user.model';
+import { AUTH_PORT } from '@app/domain/auth/port/auth.port';
+import { toDomainError } from '@app/domain/shared/model/app-error';
+import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/password-rules';
 
 const OTP_LENGTH = 6;
 
@@ -26,12 +39,19 @@ const OTP_LENGTH = 6;
     LucideCircleAlert,
     LucideLoaderCircle,
     LucideArrowLeft,
+    LucideCheck,
+    LucideEye,
+    LucideEyeOff,
   ],
   template: `
     <ion-content [fullscreen]="true" [scrollY]="false">
       <div class="fp-container">
         <!-- Step 1: Email -->
-        <div class="step" [class.active]="step() === 'email'" [class.exit-left]="step() === 'otp'">
+        <div
+          class="step"
+          [class.active]="step() === 'email'"
+          [class.exit-left]="step() !== 'email'"
+        >
           <div class="step-inner">
             <button class="nav-back" (click)="goBack()" aria-label="Go back">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
@@ -120,6 +140,10 @@ const OTP_LENGTH = 6;
                 }
               </div>
 
+              @if (requestError(); as error) {
+                <p class="nq-field-error request-error" role="alert">{{ error }}</p>
+              }
+
               <button
                 class="btn-submit"
                 type="submit"
@@ -137,7 +161,11 @@ const OTP_LENGTH = 6;
         </div>
 
         <!-- Step 2: OTP Verification -->
-        <div class="step" [class.active]="step() === 'otp'">
+        <div
+          class="step"
+          [class.active]="step() === 'otp'"
+          [class.exit-left]="step() === 'password'"
+        >
           <div class="step-inner">
             <button class="nav-back" (click)="backToEmail()" aria-label="Go back">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
@@ -193,6 +221,10 @@ const OTP_LENGTH = 6;
               }
             </div>
 
+            @if (requestError(); as error) {
+              <p class="nq-field-error request-error" role="alert">{{ error }}</p>
+            }
+
             <div class="resend-row">
               <span class="resend-label">Didn't get it?</span>
               @if (canResend()) {
@@ -218,9 +250,135 @@ const OTP_LENGTH = 6;
             </button>
           </div>
         </div>
+
+        <!-- Step 3: New password. Verificar el codigo no abre sesion: recien
+             aqui, con la contrasena cambiada, el backend devuelve una. -->
+        <div class="step" [class.active]="step() === 'password'">
+          <div class="step-inner">
+            <button class="nav-back" (click)="backToOtp()" aria-label="Go back">
+              <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
+            </button>
+
+            <div class="illustration">
+              <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="80" r="60" fill="rgba(var(--nq-primary-rgb),0.08)" />
+                <circle cx="100" cy="80" r="40" fill="rgba(var(--nq-primary-rgb),0.12)" />
+                <rect
+                  x="80"
+                  y="76"
+                  width="40"
+                  height="28"
+                  rx="4"
+                  fill="none"
+                  stroke="var(--nq-primary-strong)"
+                  stroke-width="2"
+                />
+                <path
+                  d="M88 76v-8a12 12 0 0124 0v8"
+                  fill="none"
+                  stroke="var(--nq-primary-strong)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <circle cx="100" cy="90" r="3.5" fill="var(--nq-primary-strong)" />
+              </svg>
+            </div>
+
+            <h1 class="step-title">New Password</h1>
+            <p class="step-desc">
+              Choose a new password for <strong>{{ maskedEmail() }}</strong>
+            </p>
+
+            <form
+              class="email-form"
+              [formGroup]="passwordForm"
+              (ngSubmit)="onSetPassword()"
+              novalidate
+            >
+              <div class="field">
+                <label class="nq-field-label" for="fp-password">New password</label>
+                <div class="nq-field-input">
+                  <input
+                    id="fp-password"
+                    formControlName="password"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    enterkeyhint="next"
+                    placeholder="Your new password"
+                    aria-describedby="fp-pwd-rules"
+                  />
+                  <button
+                    class="toggle-visibility"
+                    type="button"
+                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                    (click)="togglePassword()"
+                  >
+                    @if (showPassword()) {
+                      <svg lucideEyeOff [size]="18" [strokeWidth]="1.8"></svg>
+                    } @else {
+                      <svg lucideEye [size]="18" [strokeWidth]="1.8"></svg>
+                    }
+                  </button>
+                </div>
+              </div>
+
+              <ul class="pwd-rules" id="fp-pwd-rules">
+                @for (rule of rules(); track rule.label) {
+                  <li class="pwd-rule" [class.met]="rule.met">
+                    <span class="pwd-rule-dot">
+                      @if (rule.met) {
+                        <svg lucideCheck [size]="12" [strokeWidth]="3"></svg>
+                      }
+                    </span>
+                    {{ rule.label }}
+                  </li>
+                }
+              </ul>
+
+              <div class="field" [class.has-error]="confirmError() !== null">
+                <label class="nq-field-label" for="fp-confirm">Repeat password</label>
+                <div class="nq-field-input">
+                  <input
+                    id="fp-confirm"
+                    formControlName="confirm"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    enterkeyhint="done"
+                    placeholder="Confirm it"
+                    [attr.aria-describedby]="confirmError() ? 'fp-confirm-error' : null"
+                    (blur)="markConfirmTouched()"
+                  />
+                </div>
+                @if (confirmError(); as error) {
+                  <span class="nq-field-error" id="fp-confirm-error">{{ error }}</span>
+                }
+              </div>
+
+              @if (requestError(); as error) {
+                <p class="nq-field-error request-error" role="alert">{{ error }}</p>
+              }
+
+              <button
+                class="btn-submit"
+                type="submit"
+                [class.disabled]="!passwordValid() || isSaving()"
+                [disabled]="!passwordValid() || isSaving()"
+              >
+                @if (isSaving()) {
+                  <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
+                } @else {
+                  Save Password
+                }
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </ion-content>
   `,
+  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
+  // router-outlet de Angular nadie la agrega, asi que la pone el host.
+  host: { class: 'ion-page' },
   styleUrl: './forgot-password.page.scss',
 })
 export class ForgotPasswordPage implements AfterViewInit {
@@ -233,16 +391,18 @@ export class ForgotPasswordPage implements AfterViewInit {
   readonly otpLength = OTP_LENGTH;
   readonly otpDigits = Array.from({ length: OTP_LENGTH });
 
-  readonly step = signal<'email' | 'otp'>('email');
+  readonly step = signal<'email' | 'otp' | 'password'>('email');
   readonly emailTouched = signal(false);
   readonly isSending = signal(false);
   readonly isVerifying = signal(false);
   readonly canResend = signal(false);
+  readonly isSaving = signal(false);
+  readonly showPassword = signal(false);
+  readonly confirmTouched = signal(false);
   readonly resendCountdown = signal(60);
   readonly otpValues = signal<string[]>(Array(OTP_LENGTH).fill(''));
 
   private resendTimer: ReturnType<typeof setInterval> | null = null;
-  private sendCodeTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly emailForm = this.fb.nonNullable.group({
     email: [
@@ -254,7 +414,20 @@ export class ForgotPasswordPage implements AfterViewInit {
     ],
   });
 
+  readonly passwordForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    confirm: ['', [Validators.required]],
+  });
+
   private readonly _email = signal('');
+  private readonly _password = signal('');
+  private readonly _confirm = signal('');
+  private readonly _ticket = signal<PasswordResetTicket | null>(null);
+  private readonly auth = inject(AUTH_PORT);
+  private readonly session = inject(SessionFacade);
+
+  /** Error del backend en cualquiera de los dos pasos. */
+  readonly requestError = signal<string | null>(null);
 
   readonly emailError = computed((): string | null => {
     this._email();
@@ -282,14 +455,39 @@ export class ForgotPasswordPage implements AfterViewInit {
 
   readonly otpComplete = computed(() => this.otpValues().every(d => d !== ''));
 
+  readonly rules = computed(() => passwordRules(this._password()));
+  readonly confirmsMatch = computed(() => this._password() === this._confirm());
+  readonly passwordValid = computed(
+    () => isPasswordValid(this._password()) && this.confirmsMatch(),
+  );
+
+  readonly confirmError = computed((): string | null => {
+    if (!this.confirmTouched() || this._confirm() === '') {
+      return null;
+    }
+    return this.confirmsMatch() ? null : 'Passwords do not match';
+  });
+
   constructor() {
     this.emailForm.controls.email.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(v => this._email.set(v));
 
+    this.passwordForm.controls.password.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(v => {
+        this._password.set(v);
+        this.requestError.set(null);
+      });
+    this.passwordForm.controls.confirm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(v => {
+        this._confirm.set(v);
+        this.requestError.set(null);
+      });
+
     this.destroyRef.onDestroy(() => {
       this.clearResendTimer();
-      if (this.sendCodeTimer) clearTimeout(this.sendCodeTimer);
     });
   }
 
@@ -314,20 +512,43 @@ export class ForgotPasswordPage implements AfterViewInit {
     if (!this.emailValid() || this.isSending()) return;
 
     this.isSending.set(true);
-    // TODO: wire to auth service
-    this.sendCodeTimer = setTimeout(() => {
-      this.sendCodeTimer = null;
-      this.isSending.set(false);
-      this.step.set('otp');
-      this.startResendTimer();
-    }, 1200);
+    this.requestError.set(null);
+
+    this.auth
+      .requestPasswordReset(this.emailForm.controls.email.value)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSending.set(false);
+          this.step.set('otp');
+          this.startResendTimer();
+        },
+        error: (cause: unknown) => {
+          this.isSending.set(false);
+          this.requestError.set(toDomainError(cause).message);
+        },
+      });
   }
 
   backToEmail(): void {
     this.step.set('email');
     this.otpValues.set(Array(this.otpLength).fill(''));
     this.isVerifying.set(false);
+    this._ticket.set(null);
     this.clearResendTimer();
+  }
+
+  backToOtp(): void {
+    this.step.set('otp');
+    this.requestError.set(null);
+  }
+
+  togglePassword(): void {
+    this.showPassword.update(value => !value);
+  }
+
+  markConfirmTouched(): void {
+    this.confirmTouched.set(true);
   }
 
   // ── OTP input handling ──
@@ -381,15 +602,65 @@ export class ForgotPasswordPage implements AfterViewInit {
 
   onVerifyOtp(): void {
     if (!this.otpComplete() || this.isVerifying()) return;
+
     this.isVerifying.set(true);
-    // TODO: wire to auth service — verify OTP code
+    this.requestError.set(null);
+
+    this.auth
+      .verifyOtp(this.emailForm.controls.email.value, this.otpValues().join(''))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ticket => {
+          this.isVerifying.set(false);
+          // Verificar el codigo ya no abre sesion: habilita el paso 3.
+          this._ticket.set(ticket);
+          this.step.set('password');
+          this.clearResendTimer();
+        },
+        error: (cause: unknown) => {
+          this.isVerifying.set(false);
+          this.requestError.set(toDomainError(cause).message);
+        },
+      });
+  }
+
+  onSetPassword(): void {
+    const ticket = this._ticket();
+    if (ticket === null || !this.passwordValid() || this.isSaving()) {
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.requestError.set(null);
+
+    this.auth
+      .resetPassword(ticket, this.passwordForm.controls.password.value)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: session => {
+          this.isSaving.set(false);
+          this.router.navigate([this.session.adopt(session)]);
+        },
+        error: (cause: unknown) => {
+          this.isSaving.set(false);
+          this.requestError.set(toDomainError(cause).message);
+        },
+      });
   }
 
   resendCode(): void {
     if (!this.canResend()) return;
+
     this.canResend.set(false);
+    this.requestError.set(null);
     this.startResendTimer();
-    // TODO: wire to auth service — resend code
+
+    this.auth
+      .requestPasswordReset(this.emailForm.controls.email.value)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: (cause: unknown) => this.requestError.set(toDomainError(cause).message),
+      });
   }
 
   private startResendTimer(): void {

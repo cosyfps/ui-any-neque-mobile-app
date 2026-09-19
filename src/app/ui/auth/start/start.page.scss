@@ -24,7 +24,7 @@
     var(--nq-gradient-mid) 55%,
     var(--nq-gradient-end) 100%
   );
-  padding: 100px 20px 60px;
+  padding: calc(100px + env(safe-area-inset-top, 0px)) 20px 60px;
 }
 
 .lotus {
@@ -88,8 +88,11 @@
 
 // ── Login sliding panel ──
 
+// `fixed` y no `absolute`: `.start-container` crece con su contenido hasta
+// pasar de los 700px, asi que el 50% se calculaba contra el contenedor y el
+// panel arrancaba por debajo del pliegue.
 .login-panel {
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
@@ -102,16 +105,26 @@
   &.open {
     transform: translateY(0);
   }
+
+  // En pantallas bajas el formulario no cabe en la mitad inferior: el panel
+  // toma la pantalla completa en vez de obligar a desplazarlo.
+  @media (max-height: 700px) {
+    top: 0;
+  }
 }
 
 // ── Form ──
 
 .form-section {
   height: 100%;
-  padding: 24px 24px 32px;
+  // Scroll propio: `ion-content` va con `scrollY=false` porque el hero y el
+  // panel son fijos, y con `overflow: hidden` el boton "Log In" y el texto de
+  // ayuda quedaban fuera de pantalla en un iPhone SE (568px de alto).
+  padding: 24px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--nq-bg);
   border-radius: 32px 32px 0 0;
-  overflow: hidden;
 }
 
 .form-header {
@@ -158,36 +171,8 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--nq-primary);
+    outline: 2px solid var(--nq-primary-strong);
     outline-offset: 2px;
-  }
-}
-
-// Password requirements
-.pwd-requirements {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--nq-danger);
-    transition: color 0.2s ease;
-
-    svg {
-      flex-shrink: 0;
-    }
-
-    &.met {
-      color: var(--nq-success);
-    }
   }
 }
 
@@ -198,10 +183,13 @@
 }
 
 .forgot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 500;
   font-family: var(--nq-font-family);
-  color: var(--nq-primary);
+  color: var(--nq-primary-strong);
   background: none;
   border: none;
   cursor: pointer;
@@ -213,7 +201,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--nq-primary);
+    outline: 2px solid var(--nq-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -243,4 +231,8 @@
   line-height: 1.5;
   color: var(--nq-text-muted);
   margin: 28px 0 0;
+}
+
+.login-error {
+  margin: 0 0 4px;
 }

@@ -1,13 +1,38 @@
 import { ElementRef, QueryList } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { Subject, of, throwError } from 'rxjs';
+
+import { AuthSession, PasswordResetTicket } from '@app/domain/auth/model/auth-user.model';
+import { AUTH_PORT } from '@app/domain/auth/port/auth.port';
+import { SESSION_STORAGE_PORT } from '@app/domain/auth/port/session-storage.port';
+import { domainError } from '@app/domain/shared/model/app-error';
+import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { ForgotPasswordPage } from './forgot-password.page';
+
+const STUDENT_SESSION: AuthSession = {
+  user: {
+    id: 'usr-1',
+    email: 'kelvin@duocuc.cl',
+    role: 'student',
+    displayName: 'Ana Rojas',
+    avatarUrl: null,
+    profileId: 'std-001',
+  },
+  token: 'token',
+  expiresAt: '2026-12-31T00:00:00.000Z',
+};
+
+const TICKET: PasswordResetTicket = { email: 'kelvin@duocuc.cl', token: 'reset-1' };
 
 describe('ForgotPasswordPage', () => {
   let page: ForgotPasswordPage;
   let router: Router;
   let inputs: HTMLInputElement[];
+  let requestPasswordReset: jest.Mock;
+  let verifyOtp: jest.Mock;
+  let resetPassword: jest.Mock;
 
   /** Sustituye el @ViewChildren('otpInput') por inputs reales de jsdom. */
   const attachOtpInputs = (): void => {
@@ -28,8 +53,33 @@ describe('ForgotPasswordPage', () => {
   };
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    requestPasswordReset = jest.fn().mockReturnValue(of(undefined));
+    verifyOtp = jest.fn().mockReturnValue(of(TICKET));
+    resetPassword = jest.fn().mockReturnValue(of(STUDENT_SESSION));
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: CLOCK, useValue: { now: () => new Date('2026-09-17T10:00:00.000Z') } },
+        {
+          provide: AUTH_PORT,
+          useValue: {
+            login: () => of(STUDENT_SESSION),
+            signOut: () => of(undefined),
+            requestPasswordReset,
+            verifyOtp,
+            resetPassword,
+          },
+        },
+        {
+          provide: SESSION_STORAGE_PORT,
+          useValue: { read: () => null, write: jest.fn(), clear: jest.fn() },
+        },
+      ],
+    });
     router = TestBed.inject(Router);
+    // Ninguna prueba debe navegar de verdad: el router de prueba no declara rutas.
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
     page = TestBed.runInInjectionContext(() => new ForgotPasswordPage());
     attachOtpInputs();
   });
@@ -105,12 +155,14 @@ describe('ForgotPasswordPage', () => {
     });
 
     it('pasa al paso OTP y arranca el countdown tras el envio', () => {
+      const pending = new Subject<void>();
+      requestPasswordReset.mockReturnValue(pending);
       page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
 
       page.onSendCode();
       expect(page.isSending()).toBe(true);
 
-      jest.advanceTimersByTime(1200);
+      pending.next();
 
       expect(page.isSending()).toBe(false);
       expect(page.step()).toBe('otp');
@@ -118,14 +170,33 @@ describe('ForgotPasswordPage', () => {
       expect(page.canResend()).toBe(false);
     });
 
+    it('llama al puerto con el correo ingresado', () => {
+      page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
+
+      page.onSendCode();
+
+      expect(requestPasswordReset).toHaveBeenCalledWith('kelvin@duocuc.cl');
+    });
+
     it('ignora un segundo envio mientras hay uno en curso', () => {
+      requestPasswordReset.mockReturnValue(new Subject<void>());
       page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
       page.onSendCode();
 
       page.onSendCode();
-      jest.advanceTimersByTime(1200);
 
-      expect(page.step()).toBe('otp');
+      expect(requestPasswordReset).toHaveBeenCalledTimes(1);
+    });
+
+    it('expone el error del backend sin avanzar de paso', () => {
+      requestPasswordReset.mockReturnValue(throwError(() => domainError('not_found')));
+      page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
+
+      page.onSendCode();
+
+      expect(page.isSending()).toBe(false);
+      expect(page.step()).toBe('email');
+      expect(page.requestError()).toBe('No encontramos lo que buscabas.');
     });
   });
 
@@ -218,14 +289,153 @@ describe('ForgotPasswordPage', () => {
       page.onVerifyOtp();
 
       expect(page.isVerifying()).toBe(false);
+      expect(verifyOtp).not.toHaveBeenCalled();
     });
 
     it('entra en verificacion con el codigo completo', () => {
+      verifyOtp.mockReturnValue(new Subject<AuthSession>());
       page.otpValues.set(['1', '2', '3', '4', '5', '6']);
 
       page.onVerifyOtp();
 
       expect(page.isVerifying()).toBe(true);
+    });
+
+    it('envia el codigo concatenado junto al correo', () => {
+      page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
+      page.otpValues.set(['1', '2', '3', '4', '5', '6']);
+
+      page.onVerifyOtp();
+
+      expect(verifyOtp).toHaveBeenCalledWith('kelvin@duocuc.cl', '123456');
+    });
+
+    // Verificar el codigo ya no abre sesion: un OTP no puede valer lo mismo
+    // que la contrasena.
+    it('pasa al paso de contrasena nueva sin navegar ni abrir sesion', () => {
+      page.otpValues.set(['1', '2', '3', '4', '5', '6']);
+
+      page.onVerifyOtp();
+
+      expect(page.isVerifying()).toBe(false);
+      expect(page.step()).toBe('password');
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('expone el error de un codigo invalido', () => {
+      verifyOtp.mockReturnValue(throwError(() => domainError('invalid_credentials')));
+      page.otpValues.set(['0', '0', '0', '0', '0', '0']);
+
+      page.onVerifyOtp();
+
+      expect(page.isVerifying()).toBe(false);
+      expect(page.requestError()).toBe('Correo o contraseña incorrectos.');
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onSetPassword()', () => {
+    const reachPasswordStep = (): void => {
+      page.otpValues.set(['1', '2', '3', '4', '5', '6']);
+      page.onVerifyOtp();
+    };
+
+    const fillPassword = (password: string, confirm = password): void => {
+      page.passwordForm.controls.password.setValue(password);
+      page.passwordForm.controls.confirm.setValue(confirm);
+    };
+
+    it('no guarda sin haber verificado el codigo', () => {
+      fillPassword('Abcdefg1!');
+
+      page.onSetPassword();
+
+      expect(resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('no guarda con una contrasena que no cumple las reglas', () => {
+      reachPasswordStep();
+      fillPassword('corta');
+
+      page.onSetPassword();
+
+      expect(resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('no guarda si la confirmacion no coincide', () => {
+      reachPasswordStep();
+      fillPassword('Abcdefg1!', 'Otra1234!');
+
+      page.onSetPassword();
+
+      expect(page.confirmsMatch()).toBe(false);
+      expect(resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('avisa de la confirmacion distinta una vez tocado el campo', () => {
+      reachPasswordStep();
+      fillPassword('Abcdefg1!', 'Otra1234!');
+      page.markConfirmTouched();
+
+      expect(page.confirmError()).toBe('Passwords do not match');
+    });
+
+    it('no avisa antes de tocar el campo', () => {
+      reachPasswordStep();
+      fillPassword('Abcdefg1!', 'Otra1234!');
+
+      expect(page.confirmError()).toBeNull();
+    });
+
+    it('guarda la contrasena y navega al home del rol', () => {
+      reachPasswordStep();
+      fillPassword('Abcdefg1!');
+
+      page.onSetPassword();
+
+      expect(resetPassword).toHaveBeenCalledWith(TICKET, 'Abcdefg1!');
+      expect(page.isSaving()).toBe(false);
+      expect(router.navigate).toHaveBeenCalledWith(['/student/home']);
+    });
+
+    it('ignora el segundo envio mientras guarda', () => {
+      resetPassword.mockReturnValue(new Subject<AuthSession>());
+      reachPasswordStep();
+      fillPassword('Abcdefg1!');
+
+      page.onSetPassword();
+      page.onSetPassword();
+
+      expect(resetPassword).toHaveBeenCalledTimes(1);
+      expect(page.isSaving()).toBe(true);
+    });
+
+    it('expone el error de un ticket ya usado', () => {
+      resetPassword.mockReturnValue(throwError(() => domainError('unauthorized')));
+      reachPasswordStep();
+      fillPassword('Abcdefg1!');
+
+      page.onSetPassword();
+
+      expect(page.isSaving()).toBe(false);
+      expect(page.requestError()).not.toBeNull();
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('vuelve al paso del codigo sin perder el ticket', () => {
+      reachPasswordStep();
+
+      page.backToOtp();
+
+      expect(page.step()).toBe('otp');
+    });
+
+    it('alterna la visibilidad de la contrasena', () => {
+      expect(page.showPassword()).toBe(false);
+
+      page.togglePassword();
+
+      expect(page.showPassword()).toBe(true);
     });
   });
 
@@ -241,7 +451,6 @@ describe('ForgotPasswordPage', () => {
     it('descuenta un segundo por tick y habilita el reenvio al llegar a cero', () => {
       page.emailForm.controls.email.setValue('kelvin@duocuc.cl');
       page.onSendCode();
-      jest.advanceTimersByTime(1200);
 
       jest.advanceTimersByTime(1000);
       expect(page.resendCountdown()).toBe(59);
