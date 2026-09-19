@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { LucideHouse, LucideUsers, LucideClipboardList } from '@lucide/angular';
 import { filter, map } from 'rxjs/operators';
 
@@ -14,10 +14,13 @@ import { filter, map } from 'rxjs/operators';
         <router-outlet />
       </div>
 
-      <nav class="tab-bar">
+      <nav class="tab-bar" aria-label="Navegación principal">
         <button
           class="tab"
+          type="button"
+          aria-label="Inicio"
           [class.active]="isActive('/trainer/dashboard')"
+          [attr.aria-current]="isActive('/trainer/dashboard') ? 'page' : null"
           (click)="navigate('/trainer/dashboard')"
         >
           <svg lucideHouse [size]="22" [strokeWidth]="1.8"></svg>
@@ -26,7 +29,10 @@ import { filter, map } from 'rxjs/operators';
 
         <button
           class="tab"
+          type="button"
+          aria-label="Clientes"
           [class.active]="isActive('/trainer/clients')"
+          [attr.aria-current]="isActive('/trainer/clients') ? 'page' : null"
           (click)="navigate('/trainer/clients')"
         >
           <svg lucideUsers [size]="22" [strokeWidth]="1.8"></svg>
@@ -35,7 +41,10 @@ import { filter, map } from 'rxjs/operators';
 
         <button
           class="tab"
+          type="button"
+          aria-label="Rutinas"
           [class.active]="isActive('/trainer/routines')"
+          [attr.aria-current]="isActive('/trainer/routines') ? 'page' : null"
           (click)="navigate('/trainer/routines')"
         >
           <svg lucideClipboardList [size]="22" [strokeWidth]="1.8"></svg>
@@ -44,7 +53,10 @@ import { filter, map } from 'rxjs/operators';
 
         <button
           class="tab tab-profile"
+          type="button"
+          aria-label="Perfil"
           [class.active]="isActive('/trainer/profile')"
+          [attr.aria-current]="isActive('/trainer/profile') ? 'page' : null"
           (click)="navigate('/trainer/profile')"
         >
           <div class="profile-avatar">

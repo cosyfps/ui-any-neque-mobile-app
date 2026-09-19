@@ -112,6 +112,9 @@ type ViewState = 'loading' | 'error' | 'empty' | 'success';
       }
     }
   `,
+  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
+  // router-outlet de Angular nadie la agrega, asi que la pone el host.
+  host: { class: 'ion-page' },
   styleUrl: './dashboard.page.scss',
 })
 export class DashboardPage {
