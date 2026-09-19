@@ -1,0 +1,104 @@
+// ══════════════════════════════════════
+//  SHELL CON TAB BAR FLOTANTE
+//  Lo comparten los layouts de entrenador y alumno. Es un mixin y no una
+//  clase global para que el CSS viaje en los chunks lazy de cada shell
+//  y no en el bundle inicial.
+// ══════════════════════════════════════
+
+@mixin nq-shell {
+  :host {
+    display: block;
+    height: 100%;
+  }
+
+  .layout {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    // `viewport-fit=cover` esta declarado en index.html: sin esto el saludo
+    // del Home y el titulo de cada pantalla quedan bajo la barra de estado
+    // en un dispositivo con notch.
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--nq-surface);
+  }
+
+  .layout-content {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: var(--nq-safe-bottom);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-bar {
+    position: absolute;
+    bottom: var(--nq-tab-bottom);
+    left: var(--nq-page-px);
+    right: var(--nq-page-px);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: var(--nq-tab-height);
+    padding: 0 8px;
+    background: var(--nq-bg);
+    border-radius: var(--nq-radius-lg);
+    box-shadow: var(--nq-shadow-lg);
+  }
+
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 48px;
+    height: 48px;
+    color: var(--nq-text-muted);
+    background: none;
+    border: none;
+    border-radius: var(--nq-radius-sm);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color var(--nq-transition),
+      background var(--nq-transition);
+
+    svg {
+      fill: none;
+      transition: fill var(--nq-transition);
+    }
+
+    &.active {
+      color: var(--nq-primary-strong);
+
+      svg {
+        fill: rgba(var(--nq-primary-rgb), 0.12);
+        stroke: var(--nq-primary-strong);
+      }
+
+      .tab-dot {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--nq-primary-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  .tab-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--nq-primary-strong);
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0);
+    transition:
+      opacity var(--nq-transition),
+      transform var(--nq-transition);
+  }
+}

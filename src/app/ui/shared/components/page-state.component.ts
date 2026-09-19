@@ -10,26 +10,29 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
   template: `
     @switch (type) {
       @case ('loading') {
-        <div class="state">
+        <!-- role=status para que el lector de pantalla anuncie la carga: sin
+             el, el cambio de estado es completamente mudo. Los backticks no
+             caben aqui, romperian el template literal de TypeScript. -->
+        <div class="state" role="status" aria-live="polite" [attr.aria-label]="loadingLabel">
           <div class="skeleton-group">
             <div class="skeleton-header">
-              <div class="nq-skeleton-circle" style="width:44px;height:44px"></div>
-              <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+              <div class="nq-skeleton-circle skeleton-avatar"></div>
+              <div class="skeleton-lines">
                 <div class="nq-skeleton-text lg"></div>
                 <div class="nq-skeleton-text sm"></div>
               </div>
             </div>
             <div class="nq-skeleton-card"></div>
             <div class="skeleton-row">
-              <div class="nq-skeleton-card" style="height:100px"></div>
-              <div class="nq-skeleton-card" style="height:100px"></div>
+              <div class="nq-skeleton-card skeleton-tile"></div>
+              <div class="nq-skeleton-card skeleton-tile"></div>
             </div>
-            <div class="nq-skeleton-card" style="height:80px"></div>
+            <div class="nq-skeleton-card skeleton-strip"></div>
           </div>
         </div>
       }
       @case ('error') {
-        <div class="nq-state">
+        <div class="nq-state" role="alert">
           <div class="nq-state-icon error">
             <svg lucideAlertCircle [size]="24" [strokeWidth]="1.5"></svg>
           </div>
@@ -38,7 +41,7 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
             message || 'No pudimos cargar la información. Intenta de nuevo.'
           }}</span>
           @if (showRetry) {
-            <button class="retry-btn" (click)="onRetry()">
+            <button class="retry-btn" type="button" (click)="onRetry()">
               <svg lucideRefreshCw [size]="16" [strokeWidth]="2"></svg>
               Reintentar
             </button>
@@ -46,7 +49,7 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
         </div>
       }
       @case ('empty') {
-        <div class="nq-state">
+        <div class="nq-state" role="status">
           <div class="nq-state-icon">
             <svg lucideInbox [size]="24" [strokeWidth]="1.5"></svg>
           </div>
@@ -55,14 +58,14 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
         </div>
       }
       @case ('offline') {
-        <div class="nq-state">
+        <div class="nq-state" role="alert">
           <div class="nq-state-icon warning">
             <svg lucideWifi [size]="24" [strokeWidth]="1.5"></svg>
           </div>
           <span class="nq-state-title">Sin conexión</span>
           <span class="nq-state-desc">Revisa tu conexión a internet e intenta de nuevo.</span>
           @if (showRetry) {
-            <button class="retry-btn" (click)="onRetry()">
+            <button class="retry-btn" type="button" (click)="onRetry()">
               <svg lucideRefreshCw [size]="16" [strokeWidth]="2"></svg>
               Reintentar
             </button>
@@ -91,6 +94,22 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
+      .skeleton-avatar {
+        width: 44px;
+        height: 44px;
+      }
+      .skeleton-lines {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .skeleton-tile {
+        height: 100px;
+      }
+      .skeleton-strip {
+        height: 80px;
+      }
       .error {
         background: rgba(var(--nq-danger-rgb), 0.06);
         color: var(--nq-danger);
@@ -103,6 +122,7 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        min-height: 44px;
         padding: 10px 20px;
         border-radius: var(--nq-radius-sm);
         background: var(--nq-surface);
@@ -118,6 +138,10 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
       .retry-btn:active {
         background: var(--nq-surface-2);
       }
+      .retry-btn:focus-visible {
+        outline: 2px solid var(--nq-primary-strong);
+        outline-offset: 2px;
+      }
     `,
   ],
 })
@@ -126,6 +150,8 @@ export class PageStateComponent {
   @Input() title = '';
   @Input() message = '';
   @Input() showRetry = true;
+  /** Texto que anuncia el lector de pantalla mientras carga. */
+  @Input() loadingLabel = 'Cargando';
   @Input() retry?: () => void;
 
   onRetry(): void {

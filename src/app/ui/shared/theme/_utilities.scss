@@ -45,14 +45,28 @@
   opacity: 0;
 }
 
-.nq-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2.5px solid var(--nq-border-solid);
-  border-top-color: var(--nq-primary);
-  border-radius: 50%;
-  animation: nq-spin 0.7s linear infinite;
-  flex-shrink: 0;
+// Respeta "reducir movimiento" del sistema: la app entra con fade-up en cada
+// pantalla, los sheets deslizan y los skeletons hacen shimmer infinito.
+// `.nq-d1`–`.nq-d4` arrancan en `opacity: 0`, asi que hay que devolverlas a 1
+// o el contenido escalonado no aparece nunca.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .nq-ani,
+  .nq-d1,
+  .nq-d2,
+  .nq-d3,
+  .nq-d4 {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 // ── Skeleton loading ──
@@ -98,59 +112,6 @@
   border-radius: var(--nq-radius-md);
 }
 
-// ── Layout ──
-.nq-flex {
-  display: flex;
-}
-.nq-fcol {
-  flex-direction: column;
-}
-.nq-aic {
-  align-items: center;
-}
-.nq-jsb {
-  justify-content: space-between;
-}
-
-// ── Spacing ──
-.nq-g4 {
-  gap: 4px;
-}
-.nq-g8 {
-  gap: 8px;
-}
-.nq-g12 {
-  gap: 12px;
-}
-.nq-g16 {
-  gap: 16px;
-}
-.nq-g24 {
-  gap: 24px;
-}
-.nq-p16 {
-  padding: 16px;
-}
-.nq-px {
-  padding-left: var(--nq-page-px);
-  padding-right: var(--nq-page-px);
-}
-.nq-mb8 {
-  margin-bottom: 8px;
-}
-.nq-mb12 {
-  margin-bottom: 12px;
-}
-.nq-mb16 {
-  margin-bottom: 16px;
-}
-.nq-mb24 {
-  margin-bottom: 24px;
-}
-.nq-mb32 {
-  margin-bottom: 32px;
-}
-
 // ── Typography ──
 .nq-h1 {
   font-size: 28px;
@@ -164,43 +125,8 @@
   letter-spacing: -0.3px;
   color: var(--nq-text);
 }
-.nq-h3 {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  color: var(--nq-text);
-}
-.nq-body {
-  font-size: 15px;
-  color: var(--nq-text);
-}
-.nq-caption {
-  font-size: 12px;
-  color: var(--nq-text-muted);
-}
-.nq-fw5 {
-  font-weight: 500;
-}
-.nq-fw6 {
-  font-weight: 600;
-}
-.nq-fw7 {
-  font-weight: 700;
-}
 
 // ── Misc ──
-.nq-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 .nq-scroll-pad {
   padding-bottom: var(--nq-safe-bottom);
 }

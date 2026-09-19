@@ -4,6 +4,18 @@
 //  y solo debe importarse UNA vez, desde styles.scss.
 // ══════════════════════════════════════
 
+// ══════════════════════════════════════
+//  FOCO DE TECLADO
+// ══════════════════════════════════════
+
+// Indicador por defecto para TODO control enfocable. Las reglas especificas
+// de abajo lo repiten donde conviene ajustarlo, pero con esta ningun boton,
+// enlace o celda queda sin foco visible aunque se olvide en su `.scss`.
+:focus-visible {
+  outline: 2px solid var(--nq-primary-strong);
+  outline-offset: 2px;
+}
+
 .nq-field-label {
   display: block;
   font-size: 13px;
@@ -33,13 +45,20 @@
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 
+  // El input interior lleva `outline: none`, asi que el indicador de foco de
+  // teclado lo pone el contenedor. `--nq-primary-light` solo no basta: da
+  // 1.2:1 contra el borde y es invisible.
   &:focus-within {
-    border-color: var(--nq-primary-light);
-    box-shadow: 0 0 0 3px rgba(var(--nq-primary-rgb), 0.1);
+    border-color: var(--nq-primary-strong);
+    box-shadow: 0 0 0 3px rgba(var(--nq-primary-strong-rgb), 0.18);
   }
 
   input {
     flex: 1;
+    // `stretch` y no el `center` del contenedor: el input mide 21px de alto
+    // por si solo, asi que tocar el borde del campo —que se ve de 52px— no
+    // enfocaba nada. Estirado, toda la caja visible es zona de toque.
+    align-self: stretch;
     border: none;
     outline: none;
     background: transparent;
@@ -86,6 +105,7 @@
     transform 0.15s ease,
     box-shadow var(--nq-transition);
   width: 100%;
+  min-height: 44px;
   -webkit-tap-highlight-color: transparent;
 
   &:active {
@@ -96,15 +116,19 @@
     cursor: not-allowed;
     pointer-events: none;
   }
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
 .nq-btn-primary {
   color: var(--nq-text-inverse);
-  background: var(--nq-primary);
-  box-shadow: 0 2px 12px rgba(var(--nq-primary-rgb), 0.2);
+  background: var(--nq-primary-strong);
+  box-shadow: 0 2px 12px rgba(var(--nq-primary-strong-rgb), 0.2);
 
   &:hover:not(:disabled) {
-    box-shadow: 0 4px 20px rgba(var(--nq-primary-rgb), 0.3);
+    box-shadow: 0 4px 20px rgba(var(--nq-primary-strong-rgb), 0.3);
   }
 }
 
@@ -120,32 +144,8 @@
 
 .nq-btn-ghost {
   background: transparent;
-  color: var(--nq-primary);
+  color: var(--nq-primary-strong);
   padding: 12px 24px;
-}
-
-.nq-btn-sm {
-  padding: 10px 20px;
-  font-size: 13px;
-}
-
-.nq-btn-icon {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border-radius: var(--nq-radius-sm);
-  background: var(--nq-surface);
-  color: var(--nq-text-secondary);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--nq-transition);
-
-  &:active {
-    background: var(--nq-surface-2);
-  }
 }
 
 // ══════════════════════════════════════
@@ -158,62 +158,6 @@
   padding: 20px;
   box-shadow: var(--nq-shadow-xs);
   border: 1px solid var(--nq-border);
-}
-
-.nq-card-interactive {
-  @extend .nq-card;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow var(--nq-transition);
-  -webkit-tap-highlight-color: transparent;
-
-  &:active {
-    transform: scale(0.98);
-    box-shadow: var(--nq-shadow-sm);
-  }
-}
-
-// ══════════════════════════════════════
-//  INPUTS
-// ══════════════════════════════════════
-
-.nq-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.nq-input-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--nq-text-secondary);
-}
-
-.nq-input {
-  width: 100%;
-  padding: 14px 16px;
-  background: var(--nq-surface);
-  border: 1.5px solid transparent;
-  border-radius: var(--nq-radius-sm);
-  color: var(--nq-text);
-  font-family: var(--nq-font-family);
-  font-size: 15px;
-  outline: none;
-  transition:
-    border-color var(--nq-transition),
-    box-shadow var(--nq-transition),
-    background var(--nq-transition);
-
-  &::placeholder {
-    color: var(--nq-text-muted);
-  }
-
-  &:focus {
-    background: var(--nq-bg);
-    border-color: var(--nq-primary);
-    box-shadow: 0 0 0 3px rgba(var(--nq-primary-rgb), 0.08);
-  }
 }
 
 // ══════════════════════════════════════
@@ -249,7 +193,7 @@
 
 .nq-badge-primary {
   background: rgba(var(--nq-primary-rgb), 0.08);
-  color: var(--nq-primary);
+  color: var(--nq-primary-strong);
 }
 
 // ══════════════════════════════════════
@@ -309,19 +253,22 @@
     transform: scale(0.98);
     background: var(--nq-surface);
   }
-}
 
-.nq-list-item-bordered {
-  @extend .nq-list-item;
-  border: 1px solid var(--nq-border);
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
 // ══════════════════════════════════════
 //  SECTION
 // ══════════════════════════════════════
 
+// Sin padding lateral: las secciones viven dentro de `.page`, que ya aplica
+// `var(--nq-page-px)`. Con el suyo propio quedaban a 40px del borde mientras
+// el resto de la pantalla quedaba a 20px.
 .nq-section {
-  padding: 0 var(--nq-page-px);
+  padding: 0;
 }
 
 .nq-section-header {
@@ -332,6 +279,8 @@
 }
 
 .nq-section-title {
+  // `h2` trae margenes del user-agent que el `span` anterior no tenia.
+  margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: var(--nq-text);
@@ -339,46 +288,25 @@
 }
 
 .nq-section-action {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--nq-primary);
+  color: var(--nq-primary-strong);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
   font-family: var(--nq-font-family);
-}
+  -webkit-tap-highlight-color: transparent;
 
-// ══════════════════════════════════════
-//  SEARCH
-// ══════════════════════════════════════
-
-.nq-search {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--nq-surface);
-  border-radius: var(--nq-radius-sm);
-  padding: 12px 16px;
-  margin: 0 var(--nq-page-px);
-
-  svg {
-    color: var(--nq-text-muted);
-    flex-shrink: 0;
-  }
-
-  input {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--nq-text);
-    font-family: var(--nq-font-family);
-    font-size: 15px;
-
-    &::placeholder {
-      color: var(--nq-text-muted);
-    }
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
   }
 }
 
@@ -386,10 +314,13 @@
 //  FILTER TABS
 // ══════════════════════════════════════
 
+// Sin padding lateral, por lo mismo que `.nq-section`: vive dentro de `.page`.
+// Con el suyo propio la fila de dias quedaba 40px mas angosta y el domingo
+// caia fuera de pantalla.
 .nq-tabs {
   display: flex;
   gap: 8px;
-  padding: 0 var(--nq-page-px);
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
 
@@ -399,7 +330,12 @@
 }
 
 .nq-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 16px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--nq-radius-full);
   font-size: 14px;
   font-weight: 500;
@@ -419,12 +355,21 @@
     background: var(--nq-text);
     color: var(--nq-text-inverse);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
 // ══════════════════════════════════════
 //  MODAL
 // ══════════════════════════════════════
 
+// `visibility: hidden` ademas de `opacity` y `pointer-events`: sin ella los
+// botones del sheet cerrado siguen en el arbol de accesibilidad y se alcanzan
+// con Tab, invisibles. En Perfil eso significaba poder activar "Cerrar sesion"
+// sin verlo.
 .nq-overlay {
   position: fixed;
   inset: 0;
@@ -434,12 +379,22 @@
   display: flex;
   align-items: flex-end;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--nq-transition);
+  // `visibility` en 0s con retardo al cerrar y sin retardo al abrir: asi el
+  // sheet es enfocable en el instante en que se abre —el focus trap necesita
+  // que ya sea visible— y al cerrar espera a que termine el fundido.
+  transition:
+    opacity var(--nq-transition),
+    visibility 0s linear 0.2s;
 
   &.open {
     opacity: 1;
+    visibility: visible;
     pointer-events: all;
+    transition:
+      opacity var(--nq-transition),
+      visibility 0s;
 
     .nq-sheet {
       transform: translateY(0);
@@ -510,51 +465,20 @@
 }
 
 // ══════════════════════════════════════
-//  DIVIDER
+//  UTILIDAD DE ACCESIBILIDAD
 // ══════════════════════════════════════
 
-.nq-divider {
+/// Oculta visualmente sin sacar del orden de tabulacion ni del arbol de
+/// accesibilidad. `display: none` haria ambas cosas.
+.nq-visually-hidden {
+  position: absolute;
+  width: 1px;
   height: 1px;
-  background: var(--nq-border);
-  margin: 0;
-}
-
-// ══════════════════════════════════════
-//  METRIC CARD
-// ══════════════════════════════════════
-
-.nq-metric {
-  background: var(--nq-bg);
-  border-radius: var(--nq-radius-md);
-  padding: 20px;
-  box-shadow: var(--nq-shadow-xs);
-  border: 1px solid var(--nq-border);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.nq-metric-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--nq-radius-sm);
-  background: rgba(var(--nq-primary-rgb), 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--nq-primary);
-}
-
-.nq-metric-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--nq-text);
-  line-height: 1;
-  letter-spacing: -0.5px;
-}
-
-.nq-metric-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--nq-text-muted);
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

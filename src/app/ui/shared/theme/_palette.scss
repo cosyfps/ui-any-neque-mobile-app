@@ -7,9 +7,23 @@
   --nq-primary-dark: #0d9488;
   --nq-primary-dark-rgb: 13, 148, 136;
 
+  // Teal accesible: 5.50:1 contra blanco, en ambos sentidos. Se usa SOLO
+  // donde el color lleva contenido encima o es contenido el mismo —texto,
+  // enlaces, fondos de boton con label blanco—. Los tonos de arriba siguen
+  // siendo la marca y viven en fondos, graficos y tintes decorativos.
+  --nq-primary-strong: #0f766e;
+  --nq-primary-strong-rgb: 15, 118, 110;
+
+  // Degradado de marca. Es decorativo: NO lleva texto encima. El tramo claro
+  // da 1.45:1 contra blanco.
   --nq-gradient-start: #7eeacc;
   --nq-gradient-mid: #3ec4b4;
   --nq-gradient-end: #00b4d8;
+
+  // Version accesible del mismo degradado, para superficies que si llevan
+  // texto blanco encima (tarjeta de IMC). 5.50:1 y 5.41:1 en los extremos.
+  --nq-gradient-strong-start: #0f766e;
+  --nq-gradient-strong-end: #0e7490;
 
   --nq-accent: #56d1c7;
   --nq-accent-rgb: 86, 209, 199;
@@ -22,7 +36,10 @@
   // ── Text ──
   --nq-text: #1a2b2a;
   --nq-text-secondary: #5a706d;
-  --nq-text-muted: #94a8a5;
+  // 4.73:1 sobre `--nq-surface`, que es el fondo real de las pantallas del
+  // alumno y no el blanco puro. El #94a8a5 anterior daba 2.50:1; medido
+  // contra la superficie, un #647976 se quedaba en 4.41:1.
+  --nq-text-muted: #5f7472;
   --nq-text-inverse: #ffffff;
 
   // ── Borders ──
@@ -33,10 +50,12 @@
   // ── Semantic ──
   --nq-success: #2e7d32;
   --nq-success-rgb: 46, 125, 50;
-  --nq-warning: #f59e0b;
-  --nq-warning-rgb: 245, 158, 11;
-  --nq-danger: #ef4444;
-  --nq-danger-rgb: 239, 68, 68;
+  // 5.05:1 — el #f59e0b anterior daba 2.15:1 en el badge "pendiente".
+  --nq-warning: #b45309;
+  --nq-warning-rgb: 180, 83, 9;
+  // 5.58:1 — el #ef4444 anterior daba 3.76:1 en todos los errores de formulario.
+  --nq-danger: #c62828;
+  --nq-danger-rgb: 198, 40, 40;
 
   // ── Radius ──
   --nq-radius-xs: 6px;
