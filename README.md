@@ -1,23 +1,35 @@
 # Ñeque
 
-App móvil para **entrenadores personales**: una sola herramienta para llevar a sus
-clientes, armar rutinas y revisar su día de trabajo desde el teléfono.
+App móvil para **entrenadores personales y sus alumnos**: el entrenador arma rutinas y
+lleva su cartera; el alumno entrena, registra su avance y sigue su progreso.
 
 Es una aplicación híbrida — Angular + Ionic empaquetada con Capacitor — así que el mismo
 código corre en el navegador, en Android y en iOS.
 
 ## Qué hace
 
-- **Acceso por invitación.** No hay registro público: el entrenador entra con credenciales
-  asignadas por un administrador.
-- **Recuperación de contraseña en dos pasos.** Se pide el correo y se valida con un código
-  OTP de 6 dígitos enviado a esa dirección.
-- **Panel del entrenador.** Un shell con barra de pestañas inferior que agrupa las cuatro
-  áreas de trabajo:
-  - **Dashboard** — saludo según la hora, métricas del día y accesos rápidos.
-  - **Clientes** — alta, edición y ficha de cada persona a cargo.
-  - **Rutinas** — creación de rutinas y asignación a clientes.
-  - **Perfil** — datos del entrenador y cierre de sesión.
+**Acceso** — invitation-only, sin registro público. Un login único resuelve el rol y
+redirige al shell que corresponde. Incluye recuperación de contraseña en dos pasos con
+OTP de 6 dígitos, y `/invite/:token` para que un alumno invitado cree su contraseña.
+
+**App del alumno** — completa y navegable, con estados de carga, error y vacío en cada
+pantalla:
+
+- **Inicio** — IMC de la última evaluación, sesión de hoy, progreso semanal en barras y
+  último/próximos entrenamientos.
+- **Mi rutina** — selector de día, ejercicios con series, repeticiones, peso y descanso,
+  check individual y cierre de sesión con modal de celebración.
+- **Ejecutar sesión** — pantalla completa que guía serie por serie, con temporizador de
+  descanso, y resumen final de duración, ejercicios y series.
+- **Progreso** — evolución de peso e IMC en gráfico de línea, historial de evaluaciones,
+  y fotos con comparador antes/después.
+- **Agenda y notificaciones** — calendario mensual con las citas del entrenador, y avisos
+  agrupados por antigüedad.
+- **Perfil** — datos, entrenador asignado y cierre de sesión.
+
+**App del entrenador** — el shell y el dashboard existen; clientes, rutinas y perfil
+siguen siendo alias temporales al dashboard. Es el alcance de la Épica 9, ver
+[`docs/BACKLOG.md`](docs/BACKLOG.md).
 
 ## Stack
 
@@ -57,23 +69,54 @@ Genera el bundle de producción y lo copia a las plataformas nativas. Las carpet
 
 ## Estructura
 
+El código sigue **arquitectura hexagonal organizada por `{capa}/{feature}`**, no por
+vertical slicing:
+
 ```
 src/
 ├── app/
-│   ├── pages/            # una carpeta por página (componente + estilos)
-│   │   ├── start/            # landing + panel de login
-│   │   ├── forgot-password/  # recuperación en 2 pasos
-│   │   └── trainer/          # shell con tabs + subpáginas del panel
-│   ├── shared/
-│   │   ├── components/   # componentes reutilizables (nq-page-state)
-│   │   └── theme/        # design system en SCSS
-│   ├── app.config.ts     # providers de la aplicación
+│   ├── domain/           # modelos y puertos — no depende de nada
+│   │   ├── shared/           # ids, fechas, errores, puerto CLOCK
+│   │   ├── auth/ students/ routines/ workouts/
+│   │   └── progress/ schedule/ notifications/
+│   ├── application/      # facades con signals (casos de uso)
+│   │   └── shared/           # AsyncState: loading/error/empty en un solo lugar
+│   ├── infrastructure/   # adapters mock + semillas (hoy), HTTP-BFF (mañana)
+│   ├── ui/               # páginas y componentes
+│   │   ├── auth/             # login, recuperación, invitación
+│   │   ├── student/          # app del alumno: home, rutina, runner, progreso…
+│   │   ├── trainer/          # shell del entrenador
+│   │   └── shared/           # theme, componentes, guards, validators
+│   ├── app.config.ts     # providers raíz
 │   └── app.routes.ts     # rutas, todas lazy con loadComponent
 ├── assets/               # imágenes y fuentes (Inter self-hosted)
 └── environments/         # configuración por entorno
 ```
 
-Alias de importación disponibles: `@app/*`, `@shared/*` y `@env/*`.
+Alias de importación: `@app/*`, `@shared/*` (→ `src/app/ui/shared/*`) y `@env/*`.
+
+**Por qué esta división.** Un caso de uso puede componer puertos de varias features
+—el progreso del alumno combina evaluaciones, fotos y sesiones— sin que ninguna feature
+conozca a otra ni se duplique código. La regla de dependencias entre capas está en
+[`CONTRIBUTING.md`](CONTRIBUTING.md#arquitectura-hexagonal-por-capafeature).
+
+### Datos: mock hoy, BFF después
+
+La app no habla con ningún backend todavía. Cada puerto tiene un **adapter mock en
+memoria** con datos semilla y latencia simulada. Conectar el BFF será reemplazar
+`provideMockData()` y `provideStudentMockData()` por sus equivalentes HTTP: **ningún
+archivo de `domain/`, `application/` ni `ui/` cambia**. Ese es el criterio de aceptación
+de la Épica 10.
+
+Cuentas de prueba:
+
+| Rol        | Correo            | Contraseña     |
+| ---------- | ----------------- | -------------- |
+| Alumno     | `ana@neque.cl`    | `Alumno1234!`  |
+| Entrenador | `kelvin@neque.cl` | `Entrenador1!` |
+
+Código OTP de recuperación: `123456`. Invitaciones de prueba: `/invite/inv-valida`,
+`/invite/inv-expirada`, `/invite/inv-usada`.
 
 ## Scripts
 
@@ -92,14 +135,24 @@ Alias de importación disponibles: `@app/*`, `@shared/*` y `@env/*`.
 
 ## Sistema visual
 
-El diseño vive en `src/app/shared/theme/` y se compone de cuatro parciales:
+El diseño vive en `src/app/ui/shared/theme/`:
 
 | Parcial            | Contenido                                                        |
 | ------------------ | ---------------------------------------------------------------- |
 | `_fonts.scss`      | `@font-face` de Inter (self-hosted, licencia OFL)                |
 | `_palette.scss`    | Tokens `--nq-*`: colores, radios, sombras, tipografía, espaciado |
 | `_utilities.scss`  | Animaciones, skeletons y clases utilitarias                      |
-| `_components.scss` | Mixins y clases de botones, tarjetas, inputs, badges, hojas…     |
+| `_components.scss` | Clases globales: botones, tarjetas, inputs, badges, hojas…       |
+| `_mixins.scss`     | Solo mixins: `nq-btn-gradient`, `nq-field-base`, `nq-nav-back`   |
+| `_shell.scss`      | Mixin `nq-shell`: layout y tab bar flotante de los dos shells    |
+
+`_components.scss` emite CSS, así que lo importa **solo** `styles.scss`. Una página que
+lo haga `@use` duplica ese CSS en su estilo scopeado: usa `_mixins.scss`.
+
+Componentes compartidos en `src/app/ui/shared/components/`: `nq-page-state`
+(loading/error/empty/offline), `nq-workout-card` y los gráficos SVG inline
+`nq-bar-chart`, `nq-line-chart` y `nq-ring-progress` — sin librerías de charts, con la
+matemática aislada en `chart/chart-math.ts`.
 
 El color primario es `#2cb5a0` y la tipografía es Inter. **Todo se declara con tokens
 `--nq-*`**: si necesitas un color, una sombra o un radio, tómalo del token; no escribas el
