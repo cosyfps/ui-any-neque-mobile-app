@@ -1,0 +1,305 @@
+:host {
+  display: block;
+}
+
+.page {
+  padding: 24px var(--nq-page-px) 0;
+}
+
+.head {
+  margin-bottom: 16px;
+}
+
+.nq-tabs {
+  margin-bottom: 20px;
+}
+
+// ── Mediciones ──
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 10px;
+  text-align: center;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+}
+
+.metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.metric-label {
+  font-size: 11px;
+  color: var(--nq-text-secondary);
+}
+
+.delta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nq-warning);
+  background: rgba(var(--nq-warning-rgb), 0.08);
+  border-radius: var(--nq-radius-md);
+
+  &.down {
+    color: var(--nq-success);
+    background: rgba(var(--nq-success-rgb), 0.08);
+  }
+}
+
+.series-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--nq-surface-2);
+  border-radius: var(--nq-radius-full);
+}
+
+.series-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.active {
+    color: var(--nq-text);
+    background: var(--nq-bg);
+    box-shadow: var(--nq-shadow-xs);
+  }
+}
+
+.chart-card {
+  padding: 16px 10px 8px;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+}
+
+.history-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.history-values {
+  font-size: 12px;
+  color: var(--nq-text-secondary);
+}
+
+.history-note {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--nq-text-muted);
+}
+
+// ── Fotos ──
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.compare-side {
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: var(--nq-radius-md);
+  }
+
+  figcaption {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--nq-text-secondary);
+    text-align: center;
+  }
+}
+
+.angle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.angle-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nq-text-secondary);
+  background: var(--nq-surface);
+  border: 1px solid transparent;
+  border-radius: var(--nq-radius-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.active {
+    color: var(--nq-primary-strong);
+    background: rgba(var(--nq-primary-rgb), 0.1);
+    border-color: var(--nq-primary-strong);
+  }
+}
+
+.upload {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-primary-strong);
+  cursor: pointer;
+  background: rgba(var(--nq-primary-rgb), 0.06);
+  border: 1px dashed var(--nq-primary-strong);
+  border-radius: var(--nq-radius-md);
+  -webkit-tap-highlight-color: transparent;
+
+  &.busy {
+    cursor: progress;
+    opacity: 0.7;
+  }
+
+  // No `display: none`: sacaba el input del orden de tabulacion y dejaba el
+  // uploader inalcanzable con teclado. Oculto pero enfocable.
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+.upload-spinner {
+  animation: nq-spin 0.8s linear infinite;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.photo {
+  position: relative;
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: var(--nq-radius-sm);
+  }
+
+  figcaption {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--nq-text-muted);
+    text-align: center;
+  }
+}
+
+// 44x44 de area tactil con un circulo visible de 26px: el padding separa
+// ambas cosas y `background-clip: content-box` recorta el fondo al circulo.
+// Un halo con `::after` no servia: sobresale de la miniatura y las figuras
+// vecinas de la grilla se apilan encima de la parte que asoma.
+.photo-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 9px;
+  color: var(--nq-text-inverse);
+  background: rgba(26, 43, 42, 0.55);
+  background-clip: content-box;
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.section-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nq-text-muted);
+}
+
+// ── Confirmacion de borrado ──
+.confirm {
+  padding-bottom: 28px;
+  text-align: center;
+}
+
+.confirm-desc {
+  margin: 8px 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--nq-text-secondary);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+
+  .nq-btn {
+    flex: 1;
+  }
+}

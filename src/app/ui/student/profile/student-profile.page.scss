@@ -1,0 +1,146 @@
+:host {
+  display: block;
+}
+
+.page {
+  padding: 24px var(--nq-page-px) 0;
+}
+
+.head {
+  margin-bottom: 20px;
+}
+
+.identity {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.identity-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.identity-email {
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.identity-goal {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--nq-text-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 10px;
+  text-align: center;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-md);
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--nq-text-secondary);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nq-list-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 14px;
+  color: var(--nq-text);
+  text-align: left;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.trainer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trainer-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.trainer-since {
+  font-size: 12px;
+  color: var(--nq-text-secondary);
+}
+
+.logout {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0 16px;
+  color: var(--nq-danger);
+}
+
+// ── Confirmacion ──
+.confirm {
+  padding-bottom: 28px;
+  text-align: center;
+}
+
+.confirm-desc {
+  margin: 8px 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--nq-text-secondary);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+
+  .nq-btn {
+    flex: 1;
+  }
+}
