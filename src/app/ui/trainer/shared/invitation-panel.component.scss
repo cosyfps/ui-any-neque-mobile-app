@@ -1,0 +1,112 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-md);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.expiry {
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+// El enlace lleva un token largo: sin `break-all` desborda la tarjeta.
+.link {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action {
+  flex: 1;
+  gap: 8px;
+}
+
+.qr-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--nq-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nq-primary-strong);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+    border-radius: var(--nq-radius-sm);
+  }
+}
+
+.qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 12px;
+  background: #fff;
+  border-radius: var(--nq-radius-md);
+}
+
+.qr-fallback {
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.secondary {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.text-btn {
+  min-width: 44px;
+  min-height: 44px;
+  font-family: var(--nq-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nq-primary-strong);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &.danger {
+    color: var(--nq-danger);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+    border-radius: var(--nq-radius-sm);
+  }
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nq-text-secondary);
+}

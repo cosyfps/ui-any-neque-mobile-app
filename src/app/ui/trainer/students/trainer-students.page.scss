@@ -1,0 +1,170 @@
+.page {
+  padding: 24px var(--nq-page-px) 0;
+}
+
+.head {
+  margin-bottom: 16px;
+}
+
+.nq-caption {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+// Buscador propio: `.nq-search` global se borro por no tener consumidores.
+// Vive aqui mientras sea la unica pantalla que busca.
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--nq-text-secondary);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 44px;
+  font-family: var(--nq-font-family);
+  font-size: 15px;
+  color: var(--nq-text);
+  background: var(--nq-surface);
+  border: 1.5px solid transparent;
+  border-radius: var(--nq-radius-md);
+
+  &::placeholder {
+    color: var(--nq-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--nq-primary-strong);
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+
+  // La X nativa de Safari duplica el boton de limpiar.
+  &::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+.search-clear {
+  position: absolute;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--nq-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: -2px;
+    border-radius: var(--nq-radius-sm);
+  }
+}
+
+.nq-tabs {
+  margin-bottom: 16px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+// `.nq-list-item` es un div en el resto de la app; aqui es un boton y hay
+// que devolverle el ancho y la alineacion que el user-agent le quita.
+.item {
+  width: 100%;
+  font-family: var(--nq-font-family);
+  text-align: left;
+  border: none;
+}
+
+.item-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.item-goal {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.add {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #fff;
+  cursor: pointer;
+  background: var(--nq-primary-strong);
+  border: none;
+  border-radius: 50%;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+// El formulario es mas alto que la pantalla en un telefono chico: el sheet
+// hace su propio scroll en vez de empujar el teclado fuera de vista.
+.form-sheet {
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+// El panel de invitacion no lleva formulario: solo el boton de cerrar.
+.form-actions.single {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-top: 16px;
+}
