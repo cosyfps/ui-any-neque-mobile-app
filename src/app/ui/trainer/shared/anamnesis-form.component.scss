@@ -1,0 +1,69 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.days,
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.days-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+// Cuadrado de 44px: es el minimo tactil y los siete caben en 375px.
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 44px;
+  font-family: var(--nq-font-family);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-text-secondary);
+  cursor: pointer;
+  background: var(--nq-surface);
+  border: 1.5px solid transparent;
+  border-radius: var(--nq-radius-sm);
+
+  &.on {
+    color: #fff;
+    background: var(--nq-primary-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+.submit-error {
+  margin: 0;
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
