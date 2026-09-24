@@ -1,6 +1,8 @@
+import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 
 import { DomainError } from '@app/domain/shared/model/app-error';
+import { CLOCK } from '@app/domain/shared/port/clock.port';
 import { Assessment } from '@app/domain/students/model/assessment.model';
 import { Student } from '@app/domain/students/model/student.model';
 
@@ -16,12 +18,24 @@ const resolve = <T>(source: Observable<T>): { value?: T; error?: DomainError } =
   return { value, error };
 };
 
+/** El adapter inyecta `CLOCK` para fechar el alta, asi que necesita injector. */
+const crearAdapter = (): StudentsMockAdapter => {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    providers: [
+      StudentsMockAdapter,
+      { provide: CLOCK, useValue: { now: () => new Date('2026-09-19T10:00:00.000Z') } },
+    ],
+  });
+  return TestBed.inject(StudentsMockAdapter);
+};
+
 describe('StudentsMockAdapter', () => {
   let adapter: StudentsMockAdapter;
 
   beforeEach(() => {
     jest.useFakeTimers();
-    adapter = new StudentsMockAdapter();
+    adapter = crearAdapter();
   });
 
   afterEach(() => jest.useRealTimers());
@@ -76,17 +90,111 @@ describe('StudentsMockAdapter', () => {
   it('dos instancias no comparten estado', () => {
     resolve(adapter.update('std-001', { phone: 'mutado' }));
 
-    const otra = new StudentsMockAdapter();
+    const otra = crearAdapter();
     expect(resolve(otra.getById('std-001')).value?.phone).not.toBe('mutado');
   });
 });
 
+describe('StudentsMockAdapter — escritura del entrenador', () => {
+  let adapter: StudentsMockAdapter;
+
+  const alta = {
+    trainerId: 'trn-001',
+    firstName: 'Nuevo',
+    lastName: 'Alumno',
+    email: 'Nuevo@Neque.CL',
+    phone: null,
+    birthDate: null,
+    heightCm: null,
+    goal: null,
+  };
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    adapter = crearAdapter();
+  });
+
+  afterEach(() => jest.useRealTimers());
+
+  describe('create()', () => {
+    it('da de alta y normaliza el correo', () => {
+      const { value } = resolve<Student>(adapter.create(alta));
+
+      expect(value?.id).toMatch(/^std-/);
+      expect(value?.email).toBe('nuevo@neque.cl');
+      expect(value?.status).toBe('active');
+    });
+
+    it('resuelve el nombre del entrenador de su cartera', () => {
+      const { value } = resolve<Student>(adapter.create(alta));
+
+      expect(value?.trainerName).toBe('Kelvin Moreno');
+    });
+
+    it('lo deja en la cartera del entrenador', () => {
+      resolve<Student>(adapter.create(alta));
+
+      const { value } = resolve<Student[]>(adapter.listByTrainer('trn-001'));
+      expect(value?.some(item => item.email === 'nuevo@neque.cl')).toBe(true);
+    });
+
+    it('rechaza un correo repetido', () => {
+      const { error } = resolve<Student>(adapter.create({ ...alta, email: 'ana@neque.cl' }));
+
+      expect(error?.code).toBe('conflict');
+    });
+  });
+
+  describe('setStatus()', () => {
+    // El entrenador nunca elimina: suspende y reactiva.
+    it('suspende conservando la ficha', () => {
+      const { value } = resolve<Student>(adapter.setStatus('std-001', 'suspended'));
+
+      expect(value?.status).toBe('suspended');
+      expect(value?.goal).toBe('Ganar masa muscular y mejorar postura');
+    });
+
+    it('reactiva', () => {
+      resolve<Student>(adapter.setStatus('std-001', 'suspended'));
+      const { value } = resolve<Student>(adapter.setStatus('std-001', 'active'));
+
+      expect(value?.status).toBe('active');
+    });
+
+    it('falla con un id desconocido', () => {
+      const { error } = resolve<Student>(adapter.setStatus('std-999', 'suspended'));
+
+      expect(error?.code).toBe('not_found');
+    });
+  });
+
+  describe('edit()', () => {
+    it('corrige los datos de la ficha', () => {
+      const { value } = resolve<Student>(adapter.edit('std-001', { goal: 'Otro objetivo' }));
+
+      expect(value?.goal).toBe('Otro objetivo');
+    });
+
+    it('falla con un id desconocido', () => {
+      const { error } = resolve<Student>(adapter.edit('std-999', { goal: 'x' }));
+
+      expect(error?.code).toBe('not_found');
+    });
+  });
+});
+
 describe('AssessmentsMockAdapter', () => {
+  const AHORA = new Date('2026-11-01T10:00:00.000Z');
   let adapter: AssessmentsMockAdapter;
 
   beforeEach(() => {
     jest.useFakeTimers();
-    adapter = new AssessmentsMockAdapter();
+    // Fecha la evaluacion con el reloj inyectado, asi que necesita injector.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [AssessmentsMockAdapter, { provide: CLOCK, useValue: { now: () => AHORA } }],
+    });
+    adapter = TestBed.inject(AssessmentsMockAdapter);
   });
 
   afterEach(() => jest.useRealTimers());
@@ -120,10 +228,19 @@ describe('AssessmentsMockAdapter', () => {
   });
 
   describe('create()', () => {
+    const entrada: Omit<Assessment, 'id' | 'takenAt'> = {
+      studentId: 'std-001',
+      weightKg: 58,
+      heightCm: 165,
+      bodyFatPct: null,
+      muscleMassKg: null,
+      measurements: { chestCm: null, waistCm: null, hipCm: null, armCm: null, thighCm: null },
+      notes: null,
+    };
+
     it('agrega la evaluacion y le asigna id', () => {
-      const input: Omit<Assessment, 'id'> = {
+      const input: Omit<Assessment, 'id' | 'takenAt'> = {
         studentId: 'std-001',
-        takenAt: '2026-11-01T10:00:00.000Z',
         weightKg: 58,
         heightCm: 165,
         bodyFatPct: null,
@@ -137,13 +254,20 @@ describe('AssessmentsMockAdapter', () => {
       expect(created?.id).toBeDefined();
       expect(resolve(adapter.latestByStudent('std-001')).value?.weightKg).toBe(58);
     });
+
+    // La fecha no la manda el cliente: llega del reloj del backend.
+    it('fecha la evaluacion con el reloj inyectado', () => {
+      const created = resolve(adapter.create(entrada)).value;
+
+      expect(created?.takenAt).toBe(AHORA.toISOString());
+    });
   });
 });
 
 describe('semillas de alumnos', () => {
   it('el alumno semilla calza con la cuenta de auth', () => {
     jest.useFakeTimers();
-    const student = resolve(new StudentsMockAdapter().getById('std-001')).value as Student;
+    const student = resolve(crearAdapter().getById('std-001')).value as Student;
     expect(student.email).toBe('ana@neque.cl');
     jest.useRealTimers();
   });

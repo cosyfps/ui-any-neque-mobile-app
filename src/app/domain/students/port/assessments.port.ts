@@ -14,8 +14,11 @@ import { Assessment } from '../model/assessment.model';
 export interface AssessmentsPort {
   listByStudent(studentId: Id): Observable<Assessment[]>;
   latestByStudent(studentId: Id): Observable<Assessment | null>;
-  /** La usa el entrenador en la Epica 9. */
-  create(input: Omit<Assessment, 'id'>): Observable<Assessment>;
+  /**
+   * Registra una evaluacion. La fecha la pone el backend con su reloj: es
+   * cuando se tomo, y dejarla en manos del cliente la vuelve falsificable.
+   */
+  create(input: Omit<Assessment, 'id' | 'takenAt'>): Observable<Assessment>;
 }
 
 export const ASSESSMENTS_PORT = new InjectionToken<AssessmentsPort>('AssessmentsPort');
