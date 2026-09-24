@@ -41,6 +41,19 @@ export interface Routine {
   readonly days: readonly RoutineDay[];
 }
 
+/** Un ejercicio tal como lo envia el constructor, sin id todavia. */
+export type RoutineExerciseInput = Omit<RoutineExercise, 'id'>;
+
+/** Un dia tal como lo envia el constructor. */
+export interface RoutineDayInput extends Omit<RoutineDay, 'id' | 'exercises'> {
+  readonly exercises: readonly RoutineExerciseInput[];
+}
+
+/** Rutina completa tal como la envia el constructor. */
+export interface RoutineInput extends Omit<Routine, 'id' | 'status' | 'days'> {
+  readonly days: readonly RoutineDayInput[];
+}
+
 /** Total de series prescritas en un dia. */
 export function totalSets(day: RoutineDay): number {
   return day.exercises.reduce((sum, exercise) => sum + exercise.sets, 0);
