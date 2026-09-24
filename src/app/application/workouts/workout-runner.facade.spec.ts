@@ -23,6 +23,7 @@ const log = (id: string, sets: number, rest: number, done = false): WorkoutExerc
   weightKg: null,
   completedSets: done ? sets : 0,
   done,
+  sets: [],
 });
 
 const session = (exercises: WorkoutExerciseLog[]): WorkoutSession => ({
@@ -170,13 +171,31 @@ describe('WorkoutRunnerFacade', () => {
       expect(facade.currentSet()).toBe(2);
     });
 
-    it('registra las series en el puerto', () => {
+    // Confirmar sin tocar nada manda lo prescrito: un toque, igual que antes.
+    it('registra la serie con lo prescrito', () => {
       const facade = opened();
       facade.start();
 
       facade.completeSet();
 
-      expect(logSet).toHaveBeenCalledWith('wks-001', 'a', 1);
+      expect(logSet).toHaveBeenCalledWith('wks-001', 'a', {
+        setNumber: 1,
+        reps: 10,
+        weightKg: null,
+      });
+    });
+
+    it('registra el peso y las repeticiones corregidas', () => {
+      const facade = opened();
+      facade.start();
+
+      facade.completeSet(8, 45);
+
+      expect(logSet).toHaveBeenCalledWith('wks-001', 'a', {
+        setNumber: 1,
+        reps: 8,
+        weightKg: 45,
+      });
     });
 
     it('avanza al siguiente ejercicio tras la ultima serie', () => {

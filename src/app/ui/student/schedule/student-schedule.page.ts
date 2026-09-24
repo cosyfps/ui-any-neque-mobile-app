@@ -19,6 +19,7 @@ import {
 } from '@app/domain/schedule/model/scheduled-session.model';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 
 const WEEKDAY_HEADERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const;
 const TIME_FORMAT = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' });
@@ -33,13 +34,14 @@ const DAY_FORMAT = new Intl.DateTimeFormat('es-CL', {
   standalone: true,
   imports: [
     PageStateComponent,
+    PullToRefreshDirective,
     LucideArrowLeft,
     LucideChevronLeft,
     LucideChevronRight,
     LucideMapPin,
   ],
   template: `
-    <div class="page">
+    <div class="page" nqPullToRefresh [refreshing]="facade.sessions.loading()" (refresh)="reload()">
       <header class="head">
         <button class="nav-back" type="button" aria-label="Volver" (click)="goBack()">
           <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>

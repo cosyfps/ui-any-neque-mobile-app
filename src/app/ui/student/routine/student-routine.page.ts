@@ -7,6 +7,7 @@ import { RoutineExercise } from '@app/domain/routines/model/routine.model';
 import { Weekday } from '@app/domain/shared/model/date';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 const WEEKDAYS: readonly { value: Weekday; label: string }[] = [
@@ -22,9 +23,16 @@ const WEEKDAYS: readonly { value: Weekday; label: string }[] = [
 @Component({
   selector: 'app-student-routine',
   standalone: true,
-  imports: [PageStateComponent, SheetTrapDirective, LucideCheck, LucidePlay, LucideTimer],
+  imports: [
+    PageStateComponent,
+    PullToRefreshDirective,
+    SheetTrapDirective,
+    LucideCheck,
+    LucidePlay,
+    LucideTimer,
+  ],
   template: `
-    <div class="page">
+    <div class="page" nqPullToRefresh [refreshing]="facade.routine.loading()" (refresh)="reload()">
       <header class="head">
         <h1 class="nq-h2">Mi rutina</h1>
         @if (facade.routine.data(); as routine) {

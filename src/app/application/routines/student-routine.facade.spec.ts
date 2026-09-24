@@ -102,6 +102,7 @@ const todaySession = (done: boolean[]): WorkoutSession => ({
       weightKg: null,
       completedSets: done[0] === true ? 4 : 0,
       done: done[0] === true,
+      sets: [],
     },
     {
       routineExerciseId: 'rex-010',
@@ -113,6 +114,7 @@ const todaySession = (done: boolean[]): WorkoutSession => ({
       weightKg: 25,
       completedSets: done[1] === true ? 3 : 0,
       done: done[1] === true,
+      sets: [],
     },
   ],
 });

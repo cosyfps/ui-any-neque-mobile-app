@@ -10,6 +10,7 @@ import {
   WorkoutExerciseLog,
   WorkoutSession,
 } from '@app/domain/workouts/model/workout-session.model';
+import { WorkoutSet, WorkoutSetInput } from '@app/domain/workouts/model/workout-set.model';
 import { WorkoutsPort } from '@app/domain/workouts/port/workouts.port';
 
 import { SEED_ROUTINES } from '../routines/seed/routines.seed';
@@ -61,20 +62,24 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
       status: session.status === 'scheduled' ? 'in_progress' : session.status,
       exercises: session.exercises.map(exercise =>
         exercise.routineExerciseId === routineExerciseId
-          ? { ...exercise, done, completedSets: done ? exercise.targetSets : 0 }
+          ? {
+              ...exercise,
+              done,
+              completedSets: done ? exercise.targetSets : 0,
+              // Desmarcar borra lo registrado: no queda serie huerfana.
+              sets: done ? exercise.sets : [],
+            }
           : exercise,
       ),
     }));
   }
 
-  logSet(sessionId: Id, routineExerciseId: Id, completedSets: number): Observable<WorkoutSession> {
+  logSet(sessionId: Id, routineExerciseId: Id, set: WorkoutSetInput): Observable<WorkoutSession> {
     return this.mutate(sessionId, session => ({
       ...session,
       status: session.status === 'scheduled' ? 'in_progress' : session.status,
       exercises: session.exercises.map(exercise =>
-        exercise.routineExerciseId === routineExerciseId
-          ? this.withSets(exercise, completedSets)
-          : exercise,
+        exercise.routineExerciseId === routineExerciseId ? this.withSet(exercise, set) : exercise,
       ),
     }));
   }
@@ -93,9 +98,32 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
     }));
   }
 
-  private withSets(exercise: WorkoutExerciseLog, completedSets: number): WorkoutExerciseLog {
-    const clamped = Math.max(0, Math.min(completedSets, exercise.targetSets));
-    return { ...exercise, completedSets: clamped, done: clamped >= exercise.targetSets };
+  /**
+   * Agrega o reemplaza una serie.
+   *
+   * Reemplaza por `setNumber` en vez de acumular: reintentar el registro de
+   * la misma serie no puede inflar el conteo ni el volumen.
+   */
+  private withSet(exercise: WorkoutExerciseLog, input: WorkoutSetInput): WorkoutExerciseLog {
+    const setNumber = Math.max(1, Math.min(input.setNumber, exercise.targetSets));
+    const registrada: WorkoutSet = {
+      id: `wst-${exercise.routineExerciseId}-${setNumber}`,
+      setNumber,
+      reps: input.reps,
+      weightKg: input.weightKg,
+      completedAt: toIsoDate(this.clock.now()),
+    };
+
+    const sets = [...exercise.sets.filter(item => item.setNumber !== setNumber), registrada].sort(
+      (a, b) => a.setNumber - b.setNumber,
+    );
+
+    return {
+      ...exercise,
+      sets,
+      completedSets: sets.length,
+      done: sets.length >= exercise.targetSets,
+    };
   }
 
   private mutate(

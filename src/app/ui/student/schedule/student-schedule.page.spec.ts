@@ -25,6 +25,9 @@ const SESSION: ScheduledSession = {
   kind: 'training',
   status: 'pending',
   workoutSessionId: null,
+  cancellationReason: null,
+  cancellationNote: null,
+  cancelledAt: null,
 };
 
 describe('StudentSchedulePage', () => {

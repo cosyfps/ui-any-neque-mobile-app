@@ -92,17 +92,28 @@ describe('ScheduleMockAdapter', () => {
     it('deja la sesion cancelada', () => {
       const first = ofMonth()[0] as ScheduledSession;
 
-      expect(resolve(adapter.cancel(first.id, 'no puedo')).value?.status).toBe('cancelled');
+      expect(resolve(adapter.cancel(first.id, 'illness', null)).value?.status).toBe('cancelled');
+    });
+
+    // Sin motivo guardado el entrenador no puede leer patrones de ausencia.
+    it('guarda el motivo, la nota y cuando se cancelo', () => {
+      const first = ofMonth()[0] as ScheduledSession;
+
+      const value = resolve(adapter.cancel(first.id, 'other', 'Se cayo la micro')).value;
+
+      expect(value?.cancellationReason).toBe('other');
+      expect(value?.cancellationNote).toBe('Se cayo la micro');
+      expect(value?.cancelledAt).toBe(NOW.toISOString());
     });
 
     it('falla con un id desconocido', () => {
-      expect(resolve(adapter.cancel('sch-999', 'motivo')).error?.code).toBe('not_found');
+      expect(resolve(adapter.cancel('sch-999', 'travel', null)).error?.code).toBe('not_found');
     });
   });
 
   it('dos instancias no comparten estado', () => {
     const first = ofMonth()[0] as ScheduledSession;
-    resolve(adapter.cancel(first.id, 'motivo'));
+    resolve(adapter.cancel(first.id, 'travel', null));
 
     const otra = TestBed.runInInjectionContext(() => new ScheduleMockAdapter());
     const misma = (resolve(otra.listByStudent('std-001', monthRange(NOW))).value ?? []).find(

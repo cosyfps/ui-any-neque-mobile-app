@@ -34,6 +34,7 @@ const SESSION: WorkoutSession = {
       weightKg: null,
       completedSets: 0,
       done: false,
+      sets: [],
     },
     {
       routineExerciseId: 'b',
@@ -45,6 +46,7 @@ const SESSION: WorkoutSession = {
       weightKg: 25,
       completedSets: 0,
       done: false,
+      sets: [],
     },
   ],
 };
@@ -239,6 +241,64 @@ describe('WorkoutRunnerPage', () => {
 
       expect(complete).not.toHaveBeenCalled();
       expect(router.navigate).toHaveBeenCalledWith(['/student/routine']);
+    });
+  });
+
+  describe('registro de la serie', () => {
+    const cambio = (value: string): Event => ({ target: { value } }) as unknown as Event;
+
+    it('muestra lo prescrito mientras el alumno no corrige', () => {
+      page.facade.start();
+
+      expect(page.repsValue()).toBe(8);
+      expect(page.weightValue()).toBeNull();
+    });
+
+    it('refleja lo que el alumno escribe', () => {
+      page.facade.start();
+
+      page.setReps(cambio('6'));
+      page.setWeight(cambio('47.5'));
+
+      expect(page.repsValue()).toBe(6);
+      expect(page.weightValue()).toBe(47.5);
+    });
+
+    // Vaciar el campo vuelve a lo prescrito, no a cero.
+    it('vuelve a lo prescrito con el campo vacio', () => {
+      page.facade.start();
+      page.setReps(cambio('6'));
+
+      page.setReps(cambio('  '));
+
+      expect(page.repsValue()).toBe(8);
+    });
+
+    it('ignora un valor que no es numero', () => {
+      page.facade.start();
+
+      page.setReps(cambio('mucho'));
+
+      expect(page.repsValue()).toBe(8);
+    });
+
+    it('manda la correccion al cerrar la serie', () => {
+      page.facade.start();
+      const completeSet = jest.spyOn(page.facade, 'completeSet');
+
+      page.setReps(cambio('6'));
+      page.completeSet();
+
+      expect(completeSet).toHaveBeenCalledWith(6, null);
+    });
+
+    it('vuelve a lo prescrito para la serie siguiente', () => {
+      page.facade.start();
+      page.setReps(cambio('6'));
+
+      page.completeSet();
+
+      expect(page.repsValue()).toBe(8);
     });
   });
 

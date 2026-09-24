@@ -185,44 +185,83 @@ describe('WorkoutsMockAdapter', () => {
       };
     };
 
-    it('registra las series hechas sin marcar el ejercicio', () => {
+    /** Serie tal como la manda el runner: lo prescrito, salvo correccion. */
+    const serie = (setNumber: number, reps = 10, weightKg: number | null = 40) => ({
+      setNumber,
+      reps,
+      weightKg,
+    });
+
+    it('registra la serie sin marcar el ejercicio', () => {
       const { sessionId, exerciseId } = scheduledExercise();
 
-      const updated = resolve(adapter.logSet(sessionId, exerciseId, 1)).value;
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(1))).value;
       const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
 
       expect(target?.completedSets).toBe(1);
       expect(target?.done).toBe(false);
     });
 
+    it('guarda el peso y las repeticiones reales', () => {
+      const { sessionId, exerciseId } = scheduledExercise();
+
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(1, 8, 45))).value;
+      const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
+
+      expect(target?.sets[0]).toMatchObject({ setNumber: 1, reps: 8, weightKg: 45 });
+      expect(target?.sets[0]?.completedAt).toBe(NOW.toISOString());
+    });
+
     it('marca el ejercicio al llegar al objetivo', () => {
       const { sessionId, exerciseId, targetSets } = scheduledExercise();
 
-      const updated = resolve(adapter.logSet(sessionId, exerciseId, targetSets)).value;
+      let updated;
+      for (let n = 1; n <= targetSets; n++) {
+        updated = resolve(adapter.logSet(sessionId, exerciseId, serie(n))).value;
+      }
 
       expect(updated?.exercises.find(item => item.routineExerciseId === exerciseId)?.done).toBe(
         true,
       );
     });
 
-    it('recorta un valor sobre el objetivo', () => {
-      const { sessionId, exerciseId, targetSets } = scheduledExercise();
-
-      const updated = resolve(adapter.logSet(sessionId, exerciseId, targetSets + 10)).value;
-
-      expect(
-        updated?.exercises.find(item => item.routineExerciseId === exerciseId)?.completedSets,
-      ).toBe(targetSets);
-    });
-
-    it('recorta un valor negativo a cero', () => {
+    // Reintentar la misma serie no puede inflar el conteo ni el volumen.
+    it('reemplaza la serie del mismo numero en vez de acumular', () => {
       const { sessionId, exerciseId } = scheduledExercise();
 
-      const updated = resolve(adapter.logSet(sessionId, exerciseId, -5)).value;
+      resolve(adapter.logSet(sessionId, exerciseId, serie(1, 10, 40)));
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(1, 6, 50))).value;
+      const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
 
-      expect(
-        updated?.exercises.find(item => item.routineExerciseId === exerciseId)?.completedSets,
-      ).toBe(0);
+      expect(target?.sets).toHaveLength(1);
+      expect(target?.sets[0]?.weightKg).toBe(50);
+    });
+
+    it('recorta un numero de serie sobre el objetivo', () => {
+      const { sessionId, exerciseId, targetSets } = scheduledExercise();
+
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(targetSets + 10))).value;
+      const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
+
+      expect(target?.sets[0]?.setNumber).toBe(targetSets);
+    });
+
+    it('recorta un numero de serie bajo uno', () => {
+      const { sessionId, exerciseId } = scheduledExercise();
+
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(0))).value;
+      const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
+
+      expect(target?.sets[0]?.setNumber).toBe(1);
+    });
+
+    it('acepta una serie sin peso', () => {
+      const { sessionId, exerciseId } = scheduledExercise();
+
+      const updated = resolve(adapter.logSet(sessionId, exerciseId, serie(1, 12, null))).value;
+      const target = updated?.exercises.find(item => item.routineExerciseId === exerciseId);
+
+      expect(target?.sets[0]?.weightKg).toBeNull();
     });
   });
 

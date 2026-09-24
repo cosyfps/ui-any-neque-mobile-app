@@ -28,6 +28,9 @@ const scheduled = (
   kind: 'training',
   status,
   workoutSessionId: null,
+  cancellationReason: null,
+  cancellationNote: null,
+  cancelledAt: null,
 });
 
 const SESSIONS: ScheduledSession[] = [
@@ -216,7 +219,7 @@ describe('ScheduleFacade', () => {
       const facade = build();
       facade.load();
 
-      const ok = await facade.cancel('a', 'no puedo');
+      const ok = await facade.cancel('a', 'illness', 'Resfriado');
 
       expect(ok).toBe(true);
       expect(facade.all().find(item => item.id === 'a')?.status).toBe('cancelled');
@@ -227,7 +230,7 @@ describe('ScheduleFacade', () => {
       const facade = build();
       facade.load();
 
-      expect(await facade.cancel('a', 'motivo')).toBe(false);
+      expect(await facade.cancel('a', 'travel')).toBe(false);
     });
   });
 

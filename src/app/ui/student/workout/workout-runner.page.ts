@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
 import {
   LucideArrowLeft,
   LucideChevronLeft,
@@ -20,7 +19,6 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
   selector: 'app-workout-runner',
   standalone: true,
   imports: [
-    IonContent,
     PageStateComponent,
     RingProgressComponent,
     SheetTrapDirective,
@@ -33,7 +31,7 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
   ],
   providers: [WorkoutRunnerFacade],
   template: `
-    <ion-content [fullscreen]="true">
+    <div class="nq-screen">
       <div class="runner">
         <header class="head">
           <button class="nav-back" type="button" aria-label="Salir" (click)="exit()">
@@ -102,15 +100,32 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
                       </div>
 
                       <div class="targets">
-                        <div class="target">
-                          <span class="target-value">{{ exercise.targetReps }}</span>
+                        <label class="target">
+                          <input
+                            class="target-input"
+                            type="number"
+                            inputmode="numeric"
+                            min="1"
+                            max="99"
+                            [value]="repsValue()"
+                            (input)="setReps($event)"
+                          />
                           <span class="target-label">repeticiones</span>
-                        </div>
+                        </label>
                         @if (exercise.weightKg !== null) {
-                          <div class="target">
-                            <span class="target-value">{{ exercise.weightKg }}</span>
+                          <label class="target">
+                            <input
+                              class="target-input"
+                              type="number"
+                              inputmode="decimal"
+                              min="0"
+                              max="500"
+                              step="0.5"
+                              [value]="weightValue()"
+                              (input)="setWeight($event)"
+                            />
                             <span class="target-label">kg</span>
-                          </div>
+                          </label>
                         }
                         <div class="target">
                           <span class="target-value">{{ exercise.restSeconds }}</span>
@@ -118,10 +133,14 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
                         </div>
                       </div>
 
+                      <p class="targets-hint">
+                        Viene con lo que te toca. Ajústalo solo si levantaste algo distinto.
+                      </p>
+
                       <button
                         class="nq-btn nq-btn-primary stage-cta"
                         type="button"
-                        (click)="facade.completeSet()"
+                        (click)="completeSet()"
                       >
                         <svg lucideCheck [size]="18" [strokeWidth]="2.5"></svg>
                         Serie completada
@@ -224,7 +243,7 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
           }
         }
       </div>
-    </ion-content>
+    </div>
 
     <!-- Salir a mitad de la sesion pierde el cronometro y la fase en curso:
          se confirma antes. -->
@@ -254,9 +273,9 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
       </div>
     </div>
   `,
-  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
-  // router-outlet de Angular nadie la agrega, asi que la pone el host.
-  host: { class: 'ion-page' },
+  // `.nq-screen` se estira contra el ancestro posicionado que aporta esta
+  // clase; sin ella el contenedor no tiene contra que medir su alto.
+  host: { class: 'nq-page-host' },
   styleUrl: './workout-runner.page.scss',
 })
 export class WorkoutRunnerPage {
@@ -291,10 +310,53 @@ export class WorkoutRunnerPage {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   });
 
+  /**
+   * Lo que el alumno corrigio de la serie en curso.
+   *
+   * `null` significa "igual a lo prescrito": asi confirmar sin tocar nada
+   * sigue costando un toque y no hay que sincronizar los campos en cada
+   * cambio de ejercicio.
+   */
+  readonly repsOverride = signal<number | null>(null);
+  readonly weightOverride = signal<number | null>(null);
+
+  readonly repsValue = computed(
+    () => this.repsOverride() ?? this.facade.currentExercise()?.targetReps ?? 0,
+  );
+
+  readonly weightValue = computed(
+    () => this.weightOverride() ?? this.facade.currentExercise()?.weightKg ?? null,
+  );
+
   readonly reload = (): void => this.facade.reload();
 
   constructor() {
     this.facade.open(this.route.snapshot.paramMap.get('sessionId') ?? '');
+  }
+
+  setReps(event: Event): void {
+    this.repsOverride.set(this.numero(event));
+  }
+
+  setWeight(event: Event): void {
+    this.weightOverride.set(this.numero(event));
+  }
+
+  /** Cierra la serie con lo corregido y vuelve a lo prescrito para la siguiente. */
+  completeSet(): void {
+    this.facade.completeSet(this.repsOverride(), this.weightOverride());
+    this.repsOverride.set(null);
+    this.weightOverride.set(null);
+  }
+
+  /** Un campo vaciado vuelve a valer lo prescrito, no cero. */
+  private numero(event: Event): number | null {
+    const raw = (event.target as HTMLInputElement).value.trim();
+    if (raw === '') {
+      return null;
+    }
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
   }
 
   async finish(): Promise<void> {
