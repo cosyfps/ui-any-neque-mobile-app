@@ -1,0 +1,117 @@
+.page {
+  padding: 24px var(--nq-page-px) 0;
+}
+
+.head {
+  margin-bottom: 16px;
+}
+
+.greeting {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--nq-text-secondary);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-md);
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--nq-text);
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+// `.nq-list-item` es un div en el resto de la app; aqui es un boton y hay
+// que devolverle el ancho y la alineacion que el user-agent le quita.
+.item {
+  width: 100%;
+  color: var(--nq-text-secondary);
+  font-family: var(--nq-font-family);
+  text-align: left;
+  border: none;
+}
+
+.item-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.item-sub {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nq-text-secondary);
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.shortcut {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 16px;
+  font-family: var(--nq-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-primary-strong);
+  text-align: left;
+  cursor: pointer;
+  background: rgba(var(--nq-primary-rgb), 0.08);
+  border: none;
+  border-radius: var(--nq-radius-md);
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}
