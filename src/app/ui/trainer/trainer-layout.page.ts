@@ -1,13 +1,32 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
-import { LucideHouse, LucideUsers, LucideClipboardList } from '@lucide/angular';
-import { filter, map } from 'rxjs/operators';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { LucideDumbbell, LucideHouse, LucideUser, LucideUsers } from '@lucide/angular';
+import { filter, map, scan } from 'rxjs/operators';
+
+interface TrainerTab {
+  readonly path: string;
+  readonly label: string;
+  readonly icon: 'home' | 'students' | 'routines' | 'profile';
+}
+
+const TABS: readonly TrainerTab[] = [
+  { path: '/trainer/home', label: 'Inicio', icon: 'home' },
+  { path: '/trainer/students', label: 'Alumnos', icon: 'students' },
+  { path: '/trainer/routines', label: 'Rutinas', icon: 'routines' },
+  { path: '/trainer/profile', label: 'Perfil', icon: 'profile' },
+];
+
+/** Pestana que corresponde a una URL; Inicio para lo que no es pestana. */
+function tabFor(url: string): string {
+  const path = url.split('?')[0] ?? '';
+  return TABS.find(tab => path.startsWith(tab.path))?.path ?? '/trainer/home';
+}
 
 @Component({
   selector: 'app-trainer-layout',
   standalone: true,
-  imports: [RouterOutlet, LucideHouse, LucideUsers, LucideClipboardList],
+  imports: [RouterOutlet, LucideHouse, LucideUsers, LucideDumbbell, LucideUser],
   template: `
     <div class="layout">
       <div class="layout-content">
@@ -15,92 +34,63 @@ import { filter, map } from 'rxjs/operators';
       </div>
 
       <nav class="tab-bar" aria-label="Navegación principal">
-        <button
-          class="tab"
-          type="button"
-          aria-label="Inicio"
-          [class.active]="isActive('/trainer/dashboard')"
-          [attr.aria-current]="isActive('/trainer/dashboard') ? 'page' : null"
-          (click)="navigate('/trainer/dashboard')"
-        >
-          <svg lucideHouse [size]="22" [strokeWidth]="1.8"></svg>
-          <span class="tab-dot"></span>
-        </button>
-
-        <button
-          class="tab"
-          type="button"
-          aria-label="Clientes"
-          [class.active]="isActive('/trainer/clients')"
-          [attr.aria-current]="isActive('/trainer/clients') ? 'page' : null"
-          (click)="navigate('/trainer/clients')"
-        >
-          <svg lucideUsers [size]="22" [strokeWidth]="1.8"></svg>
-          <span class="tab-dot"></span>
-        </button>
-
-        <button
-          class="tab"
-          type="button"
-          aria-label="Rutinas"
-          [class.active]="isActive('/trainer/routines')"
-          [attr.aria-current]="isActive('/trainer/routines') ? 'page' : null"
-          (click)="navigate('/trainer/routines')"
-        >
-          <svg lucideClipboardList [size]="22" [strokeWidth]="1.8"></svg>
-          <span class="tab-dot"></span>
-        </button>
-
-        <button
-          class="tab tab-profile"
-          type="button"
-          aria-label="Perfil"
-          [class.active]="isActive('/trainer/profile')"
-          [attr.aria-current]="isActive('/trainer/profile') ? 'page' : null"
-          (click)="navigate('/trainer/profile')"
-        >
-          <div class="profile-avatar">
-            @if (profileImage) {
-              <img [src]="profileImage" alt="Perfil" />
-            } @else {
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
-              </svg>
+        @for (tab of tabs; track tab.path) {
+          <button
+            class="tab"
+            type="button"
+            [class.active]="isActive(tab.path)"
+            [attr.aria-label]="tab.label"
+            [attr.aria-current]="isActive(tab.path) ? 'page' : null"
+            (click)="navigate(tab.path)"
+          >
+            @switch (tab.icon) {
+              @case ('home') {
+                <svg lucideHouse [size]="22" [strokeWidth]="1.8"></svg>
+              }
+              @case ('students') {
+                <svg lucideUsers [size]="22" [strokeWidth]="1.8"></svg>
+              }
+              @case ('routines') {
+                <svg lucideDumbbell [size]="22" [strokeWidth]="1.8"></svg>
+              }
+              @case ('profile') {
+                <svg lucideUser [size]="22" [strokeWidth]="1.8"></svg>
+              }
             }
-          </div>
-          <span class="tab-dot"></span>
-        </button>
+            <span class="tab-dot"></span>
+          </button>
+        }
       </nav>
     </div>
   `,
   styleUrl: './trainer-layout.page.scss',
 })
 export class TrainerLayoutPage {
-  private readonly router: Router;
-  private readonly activeTab;
+  readonly tabs = TABS;
 
-  constructor(router: Router) {
-    this.router = router;
-    this.activeTab = toSignal(
-      this.router.events.pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-        map(e => e.urlAfterRedirects.split('?')[0]),
+  private readonly router = inject(Router);
+
+  /**
+   * Ultima pestana visitada.
+   *
+   * Mismo `scan` que el shell del alumno: la ficha de un alumno y el
+   * constructor de rutinas viven dentro del shell sin ser pestanas, y sin
+   * recordar la anterior las cuatro quedarian apagadas.
+   */
+  readonly activeTab = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => event.urlAfterRedirects.split('?')[0] ?? ''),
+      scan(
+        (lastTab, url) => TABS.find(tab => url.startsWith(tab.path))?.path ?? lastTab,
+        tabFor(this.router.url),
       ),
-      { initialValue: this.router.url.split('?')[0] },
-    );
-  }
-
-  profileImage: string | null = null;
+    ),
+    { initialValue: tabFor(this.router.url) },
+  );
 
   isActive(path: string): boolean {
-    return this.activeTab()?.startsWith(path) ?? false;
+    return this.activeTab() === path;
   }
 
   navigate(path: string): void {

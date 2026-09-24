@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 
-import { provideInvitationMockAdapters } from '@app/infrastructure/auth/auth-providers';
 import { authGuard, publicOnlyGuard, roleGuard } from '@app/ui/shared/guards/auth.guard';
 
 export const routes: Routes = [
@@ -21,36 +20,12 @@ export const routes: Routes = [
     // Con sesion activa la invitacion no se muestra: aceptarla sobrescribiria
     // la sesion del usuario que abrio el enlace.
     canMatch: [publicOnlyGuard],
-    providers: [provideInvitationMockAdapters()],
-    loadComponent: () => import('./ui/auth/invite/invite.page').then(m => m.InvitePage),
+    loadChildren: () => import('./ui/auth/invite/invite.routes').then(m => m.INVITE_ROUTES),
   },
   {
     path: 'trainer',
     canMatch: [authGuard, roleGuard('trainer')],
-    loadComponent: () => import('./ui/trainer/trainer-layout.page').then(m => m.TrainerLayoutPage),
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      {
-        path: 'dashboard',
-        loadComponent: () =>
-          import('./ui/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
-      },
-      {
-        path: 'clients',
-        loadComponent: () =>
-          import('./ui/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
-      },
-      {
-        path: 'routines',
-        loadComponent: () =>
-          import('./ui/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
-      },
-      {
-        path: 'profile',
-        loadComponent: () =>
-          import('./ui/trainer/dashboard/dashboard.page').then(m => m.DashboardPage),
-      },
-    ],
+    loadChildren: () => import('./ui/trainer/trainer.routes').then(m => m.TRAINER_ROUTES),
   },
   {
     path: 'student',

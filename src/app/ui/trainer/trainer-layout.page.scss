@@ -1,34 +1,3 @@
 @use '../shared/theme/shell' as *;
 
 @include nq-shell;
-
-// Pestana de perfil con avatar, propia del entrenador.
-.tab-profile {
-  .profile-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    overflow: hidden;
-    color: var(--nq-text-muted);
-    background: var(--nq-surface-2);
-    border: 2px solid transparent;
-    border-radius: 50%;
-    transition: border-color var(--nq-transition);
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  svg {
-    fill: none !important;
-  }
-
-  &.active .profile-avatar {
-    border-color: var(--nq-primary-strong);
-  }
-}

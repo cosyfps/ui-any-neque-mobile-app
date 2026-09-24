@@ -144,7 +144,7 @@ describe('SessionFacade', () => {
       login.mockReturnValue(of(VALID_TRAINER));
       const facade = build();
 
-      expect(await facade.login({ email: 'k@neque.cl', password: 'x' })).toBe('/trainer/dashboard');
+      expect(await facade.login({ email: 'k@neque.cl', password: 'x' })).toBe('/trainer/home');
     });
 
     it('devuelve null y expone el error ante credenciales invalidas', async () => {

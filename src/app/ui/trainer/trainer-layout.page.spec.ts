@@ -1,80 +1,101 @@
 import { TestBed } from '@angular/core/testing';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import { TrainerLayoutPage } from './trainer-layout.page';
 
 describe('TrainerLayoutPage', () => {
-  let events: Subject<NavigationEnd>;
+  let page: TrainerLayoutPage;
   let router: Router;
+  let events: Subject<NavigationEnd>;
 
-  const createPage = (initialUrl: string): TrainerLayoutPage => {
-    Object.defineProperty(router, 'url', { value: initialUrl, configurable: true });
-    return TestBed.runInInjectionContext(() => new TrainerLayoutPage(router));
+  const navigateTo = (url: string): void => {
+    events.next(new NavigationEnd(1, url, url));
   };
 
-  const navigateTo = (url: string): void => events.next(new NavigationEnd(1, url, url));
-
-  beforeEach(() => {
+  const createPage = (initialUrl = '/trainer/home'): TrainerLayoutPage => {
     events = new Subject<NavigationEnd>();
-    router = {
-      url: '/trainer/dashboard',
+    const routerStub = {
       events: events.asObservable(),
+      url: initialUrl,
       navigate: jest.fn().mockResolvedValue(true),
     } as unknown as Router;
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: Router, useValue: routerStub }],
+    });
+    router = TestBed.inject(Router);
+    return TestBed.runInInjectionContext(() => new TrainerLayoutPage());
+  };
+
+  beforeEach(() => {
+    page = createPage();
   });
 
-  describe('tab activa', () => {
-    it('parte desde la URL actual del router', () => {
-      const page = createPage('/trainer/dashboard');
-
-      expect(page.isActive('/trainer/dashboard')).toBe(true);
-      expect(page.isActive('/trainer/clients')).toBe(false);
+  describe('tabs', () => {
+    it('declara las cuatro pestanas del entrenador', () => {
+      expect(page.tabs.map(tab => tab.path)).toEqual([
+        '/trainer/home',
+        '/trainer/students',
+        '/trainer/routines',
+        '/trainer/profile',
+      ]);
     });
 
-    it('descarta los query params de la URL inicial', () => {
-      const page = createPage('/trainer/clients?filter=activos');
+    it('cada pestana tiene etiqueta accesible', () => {
+      for (const tab of page.tabs) {
+        expect(tab.label.length).toBeGreaterThan(0);
+      }
+    });
+  });
 
-      expect(page.isActive('/trainer/clients')).toBe(true);
+  describe('isActive()', () => {
+    it('marca la pestana de la url inicial', () => {
+      expect(page.isActive('/trainer/home')).toBe(true);
+      expect(page.isActive('/trainer/students')).toBe(false);
     });
 
-    it('se actualiza con cada NavigationEnd', () => {
-      const page = createPage('/trainer/dashboard');
-
+    it('sigue la navegacion', () => {
       navigateTo('/trainer/routines');
 
       expect(page.isActive('/trainer/routines')).toBe(true);
-      expect(page.isActive('/trainer/dashboard')).toBe(false);
+      expect(page.isActive('/trainer/home')).toBe(false);
     });
 
-    it('ignora los query params de la navegacion', () => {
-      const page = createPage('/trainer/dashboard');
+    it('ignora los query params', () => {
+      navigateTo('/trainer/students?q=ana');
 
-      navigateTo('/trainer/profile?tab=datos');
-
-      expect(page.isActive('/trainer/profile')).toBe(true);
+      expect(page.isActive('/trainer/students')).toBe(true);
     });
 
-    it('marca activa la ruta padre de una hija', () => {
-      const page = createPage('/trainer/dashboard');
+    // La ficha de un alumno vive bajo la pestana, no es una pestana.
+    it('una ruta hija mantiene encendida su pestana', () => {
+      navigateTo('/trainer/students/std-001');
 
-      navigateTo('/trainer/clients/42');
+      expect(page.isActive('/trainer/students')).toBe(true);
+    });
 
-      expect(page.isActive('/trainer/clients')).toBe(true);
+    // Sin recordar la anterior, una ruta fuera de las cuatro las apaga todas.
+    it('recuerda la ultima pestana fuera de las cuatro', () => {
+      navigateTo('/trainer/students');
+      navigateTo('/trainer/notificaciones');
+
+      expect(page.isActive('/trainer/students')).toBe(true);
+    });
+
+    it('cae en Inicio cuando la url inicial no es pestana', () => {
+      page = createPage('/trainer');
+
+      expect(page.isActive('/trainer/home')).toBe(true);
     });
   });
 
   describe('navigate()', () => {
-    it('delega en el Router', () => {
-      const page = createPage('/trainer/dashboard');
-
+    it('delega en el router', () => {
       page.navigate('/trainer/profile');
 
       expect(router.navigate).toHaveBeenCalledWith(['/trainer/profile']);
     });
-  });
-
-  it('no arranca con imagen de perfil', () => {
-    expect(createPage('/trainer/dashboard').profileImage).toBeNull();
   });
 });
