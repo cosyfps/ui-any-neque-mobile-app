@@ -8,11 +8,17 @@ plantillas, configuración del repo), que se trabajan directo sobre `develop`
 Ñeque es una app de entrenadores personales, **invitation-only**: solo un entrenador crea
 cuentas de alumnos.
 
-**Estado a 2026-09-18.** El código sigue **arquitectura hexagonal por `{capa}/{feature}`**
-y la **app del Alumno está completa y navegable** contra adapters mock: login por rol,
-invitación, home con IMC y progreso semanal, rutina con ejecución paso a paso, progreso
-con gráficos y fotos, agenda y notificaciones. El shell del entrenador sigue siendo un
-alias a `DashboardPage` — se aborda en la Épica 9. La conexión al BFF es la Épica 10.
+**Estado a 2026-09-24.** El código sigue **arquitectura hexagonal por `{capa}/{feature}`**
+y **las dos apps están completas y navegables** contra adapters mock.
+
+- **Alumno:** login por rol, invitación, home con IMC y progreso semanal, rutina con
+  ejecución paso a paso, progreso con gráficos y fotos, agenda y notificaciones.
+- **Entrenador:** shell propio de cuatro pestañas, cartera con búsqueda y filtro, alta
+  con invitación de 48 h (enlace, compartir nativo y QR), ficha con anamnesis,
+  evaluaciones y suspensión, biblioteca de rutinas con constructor y asignación,
+  ejercicios propios e Inicio con conteos reales.
+
+La conexión al BFF es la Épica 10.
 
 > Nota de proceso: en las Épicas 7 y 8 se trabajó **una rama por historia** en vez de una
 > por ticket. Los tickets de una misma HU tocan los mismos archivos y no se podían aislar
@@ -661,28 +667,32 @@ en web y en nativo).
 | ---------------------------------- | --------- | ------- | ------------------------------------- |
 | 0 — Fundación y CI real            | 3         | 16      | ✅ salvo 3 tickets de git/GitHub      |
 | 1 — Autenticación real (Supabase)  | 3         | 5       | ❌ re-encuadrada → absorbida por la 7 |
-| 2 — Gestión de Alumnos             | 8         | 19      | ⬜ pasa a la Épica 9                  |
-| 3 — Módulo Rutinas                 | 3         | 6       | ⬜ pasa a la Épica 9                  |
-| 4 — Perfil del Entrenador          | 1         | 2       | ⬜ pasa a la Épica 9                  |
-| 5 — Dashboard con datos reales     | 1         | 1       | ⬜ pasa a la Épica 9                  |
+| 2 — Gestión de Alumnos             | 8         | 19      | ✅ absorbida por la Épica 9           |
+| 3 — Módulo Rutinas                 | 3         | 6       | ✅ absorbida por la Épica 9           |
+| 4 — Perfil del Entrenador          | 1         | 2       | ✅ absorbida por la Épica 9           |
+| 5 — Dashboard con datos reales     | 1         | 1       | ✅ absorbida por la Épica 9           |
 | 6 — Release v1.0.0                 | 3         | 6       | ⬜ al final                           |
 | **7 — Arquitectura hexagonal**     | **6**     | **24**  | ✅                                    |
 | **8 — App del Alumno**             | **9**     | **41**  | ✅                                    |
-| 9 — App del Entrenador             | —         | —       | ⬜ reservada                          |
+| **9 — App del Entrenador**         | **13**    | **52**  | ✅                                    |
 | 10 — Conexión al BFF               | —         | —       | ⬜ reservada                          |
 | **11 — Correcciones de auditoría** | **7**     | **45**  | ✅ 39 hechos · 6 diferidos            |
 
 **El número de épica identifica, no ordena.** La Épica 11 se ejecuta antes que la 9 y la
 10; la Épica 6 (release) queda al final, después de todas, pese a llevar un número menor.
 
-### Estado del código (2026-09-18)
+### Estado del código (2026-09-24)
 
 | Métrica                             | Valor                                                   |
 | ----------------------------------- | ------------------------------------------------------- |
-| Tests                               | 761 en 53 suites                                        |
-| Cobertura                           | 98.84 / 87.97 / 98.31 / 98.81 (stmts/branch/func/lines) |
-| Bundle inicial                      | 495.19 kB — bajo el budget de 500 kB, sin warnings      |
+| Tests                               | 1174 en 75 suites                                       |
+| Cobertura                           | 98.16 / 88.85 / 97.90 / 98.09 (stmts/branch/func/lines) |
+| Bundle inicial                      | 259.33 kB — 48 % del budget de 500 kB                   |
 | `lint`, `typecheck`, `format:check` | limpios                                                 |
+
+> El bundle bajó de 494 kB a 259 kB al retirar Ionic en la Épica 9: de toda la
+> librería solo se usaba `<ion-content>` como contenedor con scroll, y traía 158 kB
+> de `@ionic/core` al bundle inicial. Ese contenedor es ahora `.nq-screen`.
 
 ### Orden de ejecución
 
@@ -840,6 +850,39 @@ tocan los mismos archivos y no se podían aislar en commits separados sin `add -
 | 67  | HU-8.7   | `feat/NEQUE-8.7-student-schedule`      | ✅     |
 | 68  | HU-8.8   | `feat/NEQUE-8.8-student-notifications` | ✅     |
 | 69  | HU-8.9   | `feat/NEQUE-8.9-student-profile`       | ✅     |
+
+### Épica 9 — App del Entrenador
+
+| #   | Historia | Rama                                        | Estado |
+| --- | -------- | ------------------------------------------- | ------ |
+| 70  | HU-9.0   | docs, directo sobre la rama de épica        | ✅     |
+| 71  | HU-9.1   | `feat/NEQUE-9.1-trainer-domain`             | ✅     |
+| 72  | HU-9.2   | `feat/NEQUE-9.2-trainer-adapters`           | ✅     |
+| 73  | HU-9.12  | `refactor/NEQUE-9.12-contrato-modelo-datos` | ✅     |
+| 74  | HU-9.3   | `refactor/NEQUE-9.3-trainer-shell-redesign` | ✅     |
+| 75  | HU-9.4   | `feat/NEQUE-9.4-students-list`              | ✅     |
+| 76  | HU-9.5   | `feat/NEQUE-9.5-student-create-invite`      | ✅     |
+| 77  | HU-9.6   | `feat/NEQUE-9.6-student-detail`             | ✅     |
+| 78  | HU-9.7   | `feat/NEQUE-9.7-anamnesis-assessments`      | ✅     |
+| 79  | HU-9.8   | `feat/NEQUE-9.8-routines`                   | ✅     |
+| 80  | HU-9.9   | `feat/NEQUE-9.9-own-exercises`              | ✅     |
+| 81  | HU-9.10  | `feat/NEQUE-9.10-trainer-profile`           | ✅     |
+| 82  | HU-9.11  | `feat/NEQUE-9.11-trainer-home`              | ✅     |
+
+**HU-9.12 fue antes que las pantallas** aunque su número sea el último: alinea el
+contrato con [`modelo-datos.md`](modelo-datos.md) y toca el runner del alumno, del que
+depende la progresión de carga que ve el entrenador.
+
+#### Decisiones que dejó la épica
+
+| Decisión                                               | Por qué                                                                                                             |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Ionic fuera del proyecto                               | Solo se usaba `<ion-content>`; costaba 158 kB del bundle inicial. Lo reemplaza `.nq-screen` del design system.      |
+| `clients` → `students` en rutas, carpetas y selectores | En la interfaz siempre se dijo «alumno»; el nombre técnico heredado ya no tenía a quién servir.                     |
+| El alta crea al alumno **y** emite su invitación       | Dar de alta sin invitar deja una ficha que nadie puede usar.                                                        |
+| Una rutina nace sin asignar                            | Activarla implica archivar la anterior del alumno, y eso es una decisión aparte. La pestaña se llama «Sin asignar». |
+| El QR entra por `import()` dinámico                    | La librería pesa más que la pantalla y solo la necesita quien toca «Ver código QR».                                 |
+| Los ejercicios propios son privados                    | `listForTrainer` devuelve el catálogo público más los del entrenador; nunca los de otro.                            |
 
 ---
 
