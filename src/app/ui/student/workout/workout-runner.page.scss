@@ -4,16 +4,12 @@
   display: block;
 }
 
-ion-content {
-  --background: var(--nq-bg);
-}
-
 .runner {
   display: flex;
   flex-direction: column;
   // `min-height` y no `height`: con un ejercicio de nombre largo la fase
   // `exercise` supera los 568px de un iPhone SE y necesita poder crecer para
-  // que `ion-content` la desplace.
+  // que `.nq-screen` la desplace.
   min-height: 100%;
   padding: calc(16px + env(safe-area-inset-top, 0px)) var(--nq-page-px)
     calc(24px + env(safe-area-inset-bottom, 0px));
@@ -69,7 +65,7 @@ ion-content {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
   text-align: center;
 }
 
@@ -109,7 +105,7 @@ ion-content {
 }
 
 .set-badge {
-  padding: 7px 16px;
+  padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
   color: var(--nq-primary-strong);
@@ -119,7 +115,7 @@ ion-content {
 
 .targets {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   width: 100%;
   max-width: 320px;
@@ -130,8 +126,8 @@ ion-content {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
-  padding: 14px 8px;
+  gap: 4px;
+  padding: 16px 8px;
   background: var(--nq-surface);
   border-radius: var(--nq-radius-md);
 }
@@ -143,8 +139,52 @@ ion-content {
 }
 
 .target-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--nq-text-secondary);
+}
+
+// El campo se ve igual que `.target-value`: editable, pero sin pedir permiso
+// para leerse de un vistazo en medio de una serie.
+.target-input {
+  width: 100%;
+  padding: 0;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nq-text);
+  text-align: center;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--nq-border);
+
+  &:focus {
+    border-bottom-color: var(--nq-primary-strong);
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+
+  // Las flechas nativas roban ancho y no se pueden tocar con el pulgar.
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+
+  &[type='number'] {
+    appearance: textfield;
+  }
+}
+
+.targets-hint {
+  max-width: 320px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--nq-text-muted);
+  text-align: center;
 }
 
 .nav-row {
@@ -192,14 +232,14 @@ ion-content {
 
 .rest-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   max-width: 320px;
   margin-top: 8px;
 
   .nq-btn {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
     justify-content: center;
     flex: 1;
@@ -221,7 +261,7 @@ ion-content {
 
 .summary-grid {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   max-width: 320px;
 }
@@ -230,7 +270,7 @@ ion-content {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 16px 8px;
   background: var(--nq-surface);
   border-radius: var(--nq-radius-md);
@@ -244,7 +284,7 @@ ion-content {
 }
 
 .summary-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--nq-text-secondary);
 }
 
@@ -263,7 +303,7 @@ ion-content {
 
 .confirm-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 
   .nq-btn {
     flex: 1;

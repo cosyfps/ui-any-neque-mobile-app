@@ -12,7 +12,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
 import {
   LucideCircleAlert,
   LucideLoaderCircle,
@@ -34,7 +33,6 @@ const OTP_LENGTH = 6;
   selector: 'app-forgot-password',
   standalone: true,
   imports: [
-    IonContent,
     ReactiveFormsModule,
     LucideCircleAlert,
     LucideLoaderCircle,
@@ -44,7 +42,7 @@ const OTP_LENGTH = 6;
     LucideEyeOff,
   ],
   template: `
-    <ion-content [fullscreen]="true" [scrollY]="false">
+    <div class="nq-screen">
       <div class="fp-container">
         <!-- Step 1: Email -->
         <div
@@ -53,7 +51,7 @@ const OTP_LENGTH = 6;
           [class.exit-left]="step() !== 'email'"
         >
           <div class="step-inner">
-            <button class="nav-back" (click)="goBack()" aria-label="Go back">
+            <button class="nav-back" (click)="goBack()" aria-label="Volver">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
             </button>
 
@@ -85,15 +83,15 @@ const OTP_LENGTH = 6;
               </svg>
             </div>
 
-            <h1 class="step-title">Reset Password</h1>
+            <h1 class="step-title">Recuperar contraseña</h1>
             <p class="step-desc">
-              Enter your email address and we'll send you<br />
-              a verification code to reset your password.
+              Ingresa tu correo y te enviaremos un código<br />
+              para crear una contraseña nueva.
             </p>
 
             <form [formGroup]="emailForm" (ngSubmit)="onSendCode()" novalidate class="email-form">
               <div class="field" [class.has-error]="emailTouched() && emailError()">
-                <label class="nq-field-label" for="fp-email">Email</label>
+                <label class="nq-field-label" for="fp-email">Correo</label>
                 <div class="nq-field-input">
                   <svg class="nq-field-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <rect
@@ -117,7 +115,7 @@ const OTP_LENGTH = 6;
                     id="fp-email"
                     type="email"
                     formControlName="email"
-                    placeholder="your.email&#64;example.com"
+                    placeholder="tu.correo&#64;ejemplo.com"
                     autocomplete="email"
                     inputmode="email"
                     enterkeyhint="send"
@@ -153,7 +151,7 @@ const OTP_LENGTH = 6;
                 @if (isSending()) {
                   <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
                 } @else {
-                  Send Code
+                  Enviar código
                 }
               </button>
             </form>
@@ -167,7 +165,7 @@ const OTP_LENGTH = 6;
           [class.exit-left]="step() === 'password'"
         >
           <div class="step-inner">
-            <button class="nav-back" (click)="backToEmail()" aria-label="Go back">
+            <button class="nav-back" (click)="backToEmail()" aria-label="Volver">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
             </button>
 
@@ -195,9 +193,9 @@ const OTP_LENGTH = 6;
               </svg>
             </div>
 
-            <h1 class="step-title">Verification Code</h1>
+            <h1 class="step-title">Código de verificación</h1>
             <p class="step-desc">
-              We sent a code to<br />
+              Enviamos un código a<br />
               <strong>{{ maskedEmail() }}</strong>
             </p>
 
@@ -209,7 +207,7 @@ const OTP_LENGTH = 6;
                   type="text"
                   inputmode="numeric"
                   maxlength="1"
-                  [attr.aria-label]="'Digit ' + ($index + 1)"
+                  [attr.aria-label]="'Dígito ' + ($index + 1)"
                   [value]="otpValues()[$index]"
                   (input)="onOtpInput($index, $event)"
                   (keydown)="onOtpKeydown($index, $event)"
@@ -226,15 +224,15 @@ const OTP_LENGTH = 6;
             }
 
             <div class="resend-row">
-              <span class="resend-label">Didn't get it?</span>
+              <span class="resend-label">¿No te llegó?</span>
               @if (canResend()) {
-                <button class="resend-btn" (click)="resendCode()">Resend code</button>
+                <button class="resend-btn" (click)="resendCode()">Reenviar código</button>
               } @else {
                 <span class="resend-timer">{{ resendCountdown() }}s</span>
               }
             </div>
 
-            <button class="change-email-link" (click)="backToEmail()">Change email address</button>
+            <button class="change-email-link" (click)="backToEmail()">Cambiar de correo</button>
 
             <button
               class="btn-submit"
@@ -245,7 +243,7 @@ const OTP_LENGTH = 6;
               @if (isVerifying()) {
                 <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
               } @else {
-                Verify Code
+                Verificar código
               }
             </button>
           </div>
@@ -255,7 +253,7 @@ const OTP_LENGTH = 6;
              aqui, con la contrasena cambiada, el backend devuelve una. -->
         <div class="step" [class.active]="step() === 'password'">
           <div class="step-inner">
-            <button class="nav-back" (click)="backToOtp()" aria-label="Go back">
+            <button class="nav-back" (click)="backToOtp()" aria-label="Volver">
               <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
             </button>
 
@@ -284,9 +282,9 @@ const OTP_LENGTH = 6;
               </svg>
             </div>
 
-            <h1 class="step-title">New Password</h1>
+            <h1 class="step-title">Contraseña nueva</h1>
             <p class="step-desc">
-              Choose a new password for <strong>{{ maskedEmail() }}</strong>
+              Elige una contraseña nueva para <strong>{{ maskedEmail() }}</strong>
             </p>
 
             <form
@@ -296,7 +294,7 @@ const OTP_LENGTH = 6;
               novalidate
             >
               <div class="field">
-                <label class="nq-field-label" for="fp-password">New password</label>
+                <label class="nq-field-label" for="fp-password">Contraseña nueva</label>
                 <div class="nq-field-input">
                   <input
                     id="fp-password"
@@ -304,13 +302,13 @@ const OTP_LENGTH = 6;
                     [type]="showPassword() ? 'text' : 'password'"
                     autocomplete="new-password"
                     enterkeyhint="next"
-                    placeholder="Your new password"
+                    placeholder="Tu contraseña nueva"
                     aria-describedby="fp-pwd-rules"
                   />
                   <button
                     class="toggle-visibility"
                     type="button"
-                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                    [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                     (click)="togglePassword()"
                   >
                     @if (showPassword()) {
@@ -336,7 +334,7 @@ const OTP_LENGTH = 6;
               </ul>
 
               <div class="field" [class.has-error]="confirmError() !== null">
-                <label class="nq-field-label" for="fp-confirm">Repeat password</label>
+                <label class="nq-field-label" for="fp-confirm">Repite la contraseña</label>
                 <div class="nq-field-input">
                   <input
                     id="fp-confirm"
@@ -344,7 +342,7 @@ const OTP_LENGTH = 6;
                     [type]="showPassword() ? 'text' : 'password'"
                     autocomplete="new-password"
                     enterkeyhint="done"
-                    placeholder="Confirm it"
+                    placeholder="Confírmala"
                     [attr.aria-describedby]="confirmError() ? 'fp-confirm-error' : null"
                     (blur)="markConfirmTouched()"
                   />
@@ -367,18 +365,18 @@ const OTP_LENGTH = 6;
                 @if (isSaving()) {
                   <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
                 } @else {
-                  Save Password
+                  Guardar contraseña
                 }
               </button>
             </form>
           </div>
         </div>
       </div>
-    </ion-content>
+    </div>
   `,
-  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
-  // router-outlet de Angular nadie la agrega, asi que la pone el host.
-  host: { class: 'ion-page' },
+  // `.nq-screen` se estira contra el ancestro posicionado que aporta esta
+  // clase; sin ella el contenedor no tiene contra que medir su alto.
+  host: { class: 'nq-page-host' },
   styleUrl: './forgot-password.page.scss',
 })
 export class ForgotPasswordPage implements AfterViewInit {
@@ -433,8 +431,8 @@ export class ForgotPasswordPage implements AfterViewInit {
     this._email();
     if (!this.emailTouched()) return null;
     const ctrl = this.emailForm.controls.email;
-    if (ctrl.hasError('required')) return 'Email is required';
-    if (ctrl.hasError('pattern')) return 'Please enter a valid email address';
+    if (ctrl.hasError('required')) return 'El correo es obligatorio';
+    if (ctrl.hasError('pattern')) return 'Ingresa un correo válido';
     return null;
   });
 
@@ -465,7 +463,7 @@ export class ForgotPasswordPage implements AfterViewInit {
     if (!this.confirmTouched() || this._confirm() === '') {
       return null;
     }
-    return this.confirmsMatch() ? null : 'Passwords do not match';
+    return this.confirmsMatch() ? null : 'Las contraseñas no coinciden';
   });
 
   constructor() {

@@ -13,6 +13,7 @@ import { BarChartComponent } from '@shared/components/chart/bar-chart.component'
 import { BarInput } from '@shared/components/chart/chart-math';
 import { PageStateComponent } from '@shared/components/page-state.component';
 import { WorkoutCardComponent } from '@shared/components/workout-card.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 
 const WEEKDAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const;
 const DATE_FORMAT = new Intl.DateTimeFormat('es-CL', {
@@ -27,6 +28,7 @@ const TIME_FORMAT = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: 
   standalone: true,
   imports: [
     PageStateComponent,
+    PullToRefreshDirective,
     WorkoutCardComponent,
     BarChartComponent,
     LucideBell,
@@ -34,7 +36,7 @@ const TIME_FORMAT = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: 
     LucideFlame,
   ],
   template: `
-    <div class="page">
+    <div class="page" nqPullToRefresh [refreshing]="profile.student.loading()" (refresh)="reload()">
       <header class="head">
         <div>
           <!-- El titulo de la pantalla va oculto: visualmente manda el saludo,

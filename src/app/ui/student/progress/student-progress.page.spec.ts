@@ -253,6 +253,86 @@ describe('StudentProgressPage', () => {
     });
   });
 
+  describe('comparador arrastrable', () => {
+    /** Contenedor de 200px que empieza en x=100. */
+    const contenedor = (): HTMLElement =>
+      ({ getBoundingClientRect: () => ({ left: 100, width: 200 }) }) as unknown as HTMLElement;
+
+    const puntero = (x: number): PointerEvent => ({ clientX: x }) as PointerEvent;
+
+    const tecla = (key: string): KeyboardEvent =>
+      new KeyboardEvent('keydown', { key, cancelable: true });
+
+    it('arranca en la mitad', () => {
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('al tomarlo salta a donde se toco', () => {
+      page.alTomarDivisor(puntero(150), contenedor());
+
+      expect(page.divisor()).toBe(25);
+    });
+
+    it('sigue al puntero mientras se arrastra', () => {
+      page.alTomarDivisor(puntero(150), contenedor());
+      page.alArrastrarDivisor(puntero(260), contenedor());
+
+      expect(page.divisor()).toBe(80);
+    });
+
+    it('deja de seguir al soltar', () => {
+      page.alTomarDivisor(puntero(200), contenedor());
+      page.alSoltarDivisor();
+      page.alArrastrarDivisor(puntero(300), contenedor());
+
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('recorta fuera de los bordes', () => {
+      page.alTomarDivisor(puntero(0), contenedor());
+      expect(page.divisor()).toBe(0);
+
+      page.alTomarDivisor(puntero(9999), contenedor());
+      expect(page.divisor()).toBe(100);
+    });
+
+    it('no falla con un contenedor sin ancho', () => {
+      const vacio = {
+        getBoundingClientRect: () => ({ left: 0, width: 0 }),
+      } as unknown as HTMLElement;
+
+      page.alTomarDivisor(puntero(50), vacio);
+
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('las flechas lo mueven de a cinco', () => {
+      page.alTeclearDivisor(tecla('ArrowRight'));
+      expect(page.divisor()).toBe(55);
+
+      page.alTeclearDivisor(tecla('ArrowLeft'));
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('Inicio y Fin van a los extremos', () => {
+      page.alTeclearDivisor(tecla('Home'));
+      expect(page.divisor()).toBe(0);
+
+      page.alTeclearDivisor(tecla('End'));
+      expect(page.divisor()).toBe(100);
+    });
+
+    it('otra tecla no lo mueve', () => {
+      page.alTeclearDivisor(tecla('a'));
+
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('describe la posicion para el lector de pantalla', () => {
+      expect(page.divisorTexto()).toContain('50%');
+    });
+  });
+
   describe('reload', () => {
     it('es un campo arrow invocable', () => {
       expect(() => page.reload()).not.toThrow();

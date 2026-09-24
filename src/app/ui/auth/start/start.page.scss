@@ -117,7 +117,7 @@
 
 .form-section {
   height: 100%;
-  // Scroll propio: `ion-content` va con `scrollY=false` porque el hero y el
+  // Scroll propio en la mitad del formulario: el hero y el
   // panel son fijos, y con `overflow: hidden` el boton "Log In" y el texto de
   // ayuda quedaban fuera de pantalla en un iPhone SE (568px de alto).
   padding: 24px 24px calc(32px + env(safe-area-inset-bottom, 0px));
@@ -179,7 +179,7 @@
 .form-options {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .forgot-link {

@@ -216,7 +216,8 @@ describe('StudentHomePage', () => {
           body: 'Mensaje',
           createdAt: NOW.toISOString(),
           readAt: null,
-          actionRoute: null,
+          targetType: null,
+          targetId: null,
         },
       ];
       const withUnread = createPage(SESSIONS, unread);

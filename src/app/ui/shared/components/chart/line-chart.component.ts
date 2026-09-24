@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { ChartBox, SeriesPoint, buildPolyline } from './chart-math';
 
@@ -16,7 +16,7 @@ let instanceCount = 0;
       [attr.viewBox]="viewBox"
       preserveAspectRatio="xMidYMid meet"
       role="img"
-      [attr.aria-label]="ariaLabel"
+      [attr.aria-label]="ariaLabel()"
     >
       <defs>
         <linearGradient [attr.id]="gradientId" x1="0" y1="0" x2="0" y2="1">
@@ -60,17 +60,13 @@ let instanceCount = 0;
   styleUrl: './line-chart.component.scss',
 })
 export class LineChartComponent {
-  @Input({ required: true }) set data(value: readonly SeriesPoint[]) {
-    this._data.set(value);
-  }
+  readonly data = input.required<readonly SeriesPoint[]>();
 
-  @Input() ariaLabel = 'Gráfico de evolución';
+  readonly ariaLabel = input('Gráfico de evolución');
 
   readonly viewBox = `0 0 ${BOX.width} ${BOX.height}`;
   readonly gradientId = `nq-line-gradient-${++instanceCount}`;
   readonly gradientRef = `url(#${this.gradientId})`;
 
-  private readonly _data = signal<readonly SeriesPoint[]>([]);
-
-  readonly polyline = computed(() => buildPolyline(this._data(), BOX));
+  readonly polyline = computed(() => buildPolyline(this.data(), BOX));
 }

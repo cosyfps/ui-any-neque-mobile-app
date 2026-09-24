@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { LucideAlertCircle, LucideInbox, LucideWifi, LucideRefreshCw } from '@lucide/angular';
 
 export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
@@ -8,12 +8,12 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
   standalone: true,
   imports: [LucideAlertCircle, LucideInbox, LucideWifi, LucideRefreshCw],
   template: `
-    @switch (type) {
+    @switch (type()) {
       @case ('loading') {
         <!-- role=status para que el lector de pantalla anuncie la carga: sin
              el, el cambio de estado es completamente mudo. Los backticks no
              caben aqui, romperian el template literal de TypeScript. -->
-        <div class="state" role="status" aria-live="polite" [attr.aria-label]="loadingLabel">
+        <div class="state" role="status" aria-live="polite" [attr.aria-label]="loadingLabel()">
           <div class="skeleton-group">
             <div class="skeleton-header">
               <div class="nq-skeleton-circle skeleton-avatar"></div>
@@ -36,11 +36,11 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
           <div class="nq-state-icon error">
             <svg lucideAlertCircle [size]="24" [strokeWidth]="1.5"></svg>
           </div>
-          <span class="nq-state-title">{{ title || 'Algo salió mal' }}</span>
+          <span class="nq-state-title">{{ title() || 'Algo salió mal' }}</span>
           <span class="nq-state-desc">{{
-            message || 'No pudimos cargar la información. Intenta de nuevo.'
+            message() || 'No pudimos cargar la información. Intenta de nuevo.'
           }}</span>
-          @if (showRetry) {
+          @if (showRetry()) {
             <button class="retry-btn" type="button" (click)="onRetry()">
               <svg lucideRefreshCw [size]="16" [strokeWidth]="2"></svg>
               Reintentar
@@ -53,8 +53,10 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
           <div class="nq-state-icon">
             <svg lucideInbox [size]="24" [strokeWidth]="1.5"></svg>
           </div>
-          <span class="nq-state-title">{{ title || 'Sin datos' }}</span>
-          <span class="nq-state-desc">{{ message || 'Aún no hay información para mostrar.' }}</span>
+          <span class="nq-state-title">{{ title() || 'Sin datos' }}</span>
+          <span class="nq-state-desc">{{
+            message() || 'Aún no hay información para mostrar.'
+          }}</span>
         </div>
       }
       @case ('offline') {
@@ -64,7 +66,7 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
           </div>
           <span class="nq-state-title">Sin conexión</span>
           <span class="nq-state-desc">Revisa tu conexión a internet e intenta de nuevo.</span>
-          @if (showRetry) {
+          @if (showRetry()) {
             <button class="retry-btn" type="button" (click)="onRetry()">
               <svg lucideRefreshCw [size]="16" [strokeWidth]="2"></svg>
               Reintentar
@@ -123,7 +125,7 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
         align-items: center;
         gap: 8px;
         min-height: 44px;
-        padding: 10px 20px;
+        padding: 12px 20px;
         border-radius: var(--nq-radius-sm);
         background: var(--nq-surface);
         border: 1px solid var(--nq-border-solid);
@@ -146,15 +148,15 @@ export type PageStateType = 'loading' | 'error' | 'empty' | 'offline';
   ],
 })
 export class PageStateComponent {
-  @Input() type: PageStateType = 'loading';
-  @Input() title = '';
-  @Input() message = '';
-  @Input() showRetry = true;
+  readonly type = input<PageStateType>('loading');
+  readonly title = input('');
+  readonly message = input('');
+  readonly showRetry = input(true);
   /** Texto que anuncia el lector de pantalla mientras carga. */
-  @Input() loadingLabel = 'Cargando';
-  @Input() retry?: () => void;
+  readonly loadingLabel = input('Cargando');
+  readonly retry = input<(() => void) | undefined>(undefined);
 
   onRetry(): void {
-    this.retry?.();
+    this.retry()?.();
   }
 }

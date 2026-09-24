@@ -44,12 +44,12 @@
 }
 
 .group {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .group-label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 12px;
   font-weight: 600;
   color: var(--nq-text-muted);
@@ -71,7 +71,7 @@
   gap: 12px;
   align-items: flex-start;
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   text-align: left;
   background: var(--nq-bg);
   border: 1px solid var(--nq-border);
@@ -101,7 +101,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -118,8 +118,8 @@
 }
 
 .time {
-  margin-top: 2px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 12px;
   color: var(--nq-text-muted);
 }
 
@@ -127,7 +127,7 @@
   flex-shrink: 0;
   width: 8px;
   height: 8px;
-  margin-top: 6px;
+  margin-top: 8px;
   background: var(--nq-primary-strong);
   border-radius: 50%;
 }

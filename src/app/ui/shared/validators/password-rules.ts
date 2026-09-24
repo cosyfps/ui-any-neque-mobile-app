@@ -14,10 +14,10 @@ const SPECIAL_CHARS = /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/~`]/;
  */
 export function passwordRules(value: string): PasswordRule[] {
   return [
-    { label: '8+ characters', met: value.length >= 8 },
-    { label: 'One uppercase letter', met: /[A-Z]/.test(value) },
-    { label: 'One number', met: /\d/.test(value) },
-    { label: 'One special character', met: SPECIAL_CHARS.test(value) },
+    { label: '8+ caracteres', met: value.length >= 8 },
+    { label: 'Una mayúscula', met: /[A-Z]/.test(value) },
+    { label: 'Un número', met: /\d/.test(value) },
+    { label: 'Un símbolo', met: SPECIAL_CHARS.test(value) },
   ];
 }
 

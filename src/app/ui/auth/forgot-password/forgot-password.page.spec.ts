@@ -103,7 +103,7 @@ describe('ForgotPasswordPage', () => {
     it('exige el campo cuando esta vacio y ya fue tocado', () => {
       page.markEmailTouched();
 
-      expect(page.emailError()).toBe('Email is required');
+      expect(page.emailError()).toBe('El correo es obligatorio');
       expect(page.emailValid()).toBe(false);
     });
 
@@ -111,7 +111,7 @@ describe('ForgotPasswordPage', () => {
       page.markEmailTouched();
       page.emailForm.controls.email.setValue('kelvin@sin-tld');
 
-      expect(page.emailError()).toBe('Please enter a valid email address');
+      expect(page.emailError()).toBe('Ingresa un correo válido');
     });
 
     it('acepta un email valido', () => {
@@ -377,7 +377,7 @@ describe('ForgotPasswordPage', () => {
       fillPassword('Abcdefg1!', 'Otra1234!');
       page.markConfirmTouched();
 
-      expect(page.confirmError()).toBe('Passwords do not match');
+      expect(page.confirmError()).toBe('Las contraseñas no coinciden');
     });
 
     it('no avisa antes de tocar el campo', () => {
