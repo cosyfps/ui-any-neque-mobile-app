@@ -1,0 +1,132 @@
+// ── Animations ──
+@keyframes nq-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nq-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.nq-ani {
+  animation: nq-fade-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.nq-d1 {
+  animation-delay: 0.04s;
+  opacity: 0;
+}
+.nq-d2 {
+  animation-delay: 0.08s;
+  opacity: 0;
+}
+.nq-d3 {
+  animation-delay: 0.12s;
+  opacity: 0;
+}
+.nq-d4 {
+  animation-delay: 0.16s;
+  opacity: 0;
+}
+
+// Respeta "reducir movimiento" del sistema: la app entra con fade-up en cada
+// pantalla, los sheets deslizan y los skeletons hacen shimmer infinito.
+// `.nq-d1`–`.nq-d4` arrancan en `opacity: 0`, asi que hay que devolverlas a 1
+// o el contenido escalonado no aparece nunca.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .nq-ani,
+  .nq-d1,
+  .nq-d2,
+  .nq-d3,
+  .nq-d4 {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── Skeleton loading ──
+%skeleton-base {
+  background: linear-gradient(
+    90deg,
+    var(--nq-surface) 25%,
+    var(--nq-surface-2) 50%,
+    var(--nq-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: nq-shimmer 1.5s ease infinite;
+  border-radius: var(--nq-radius-sm);
+}
+
+.nq-skeleton-text {
+  @extend %skeleton-base;
+  height: 14px;
+  width: 60%;
+
+  &.sm {
+    width: 40%;
+    height: 12px;
+  }
+  &.lg {
+    width: 80%;
+    height: 18px;
+  }
+  &.full {
+    width: 100%;
+  }
+}
+
+.nq-skeleton-circle {
+  @extend %skeleton-base;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nq-skeleton-card {
+  @extend %skeleton-base;
+  height: 140px;
+  border-radius: var(--nq-radius-md);
+}
+
+// ── Typography ──
+.nq-h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--nq-text);
+}
+.nq-h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--nq-text);
+}
+
+// ── Misc ──
+.nq-scroll-pad {
+  padding-bottom: var(--nq-safe-bottom);
+}

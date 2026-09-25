@@ -138,15 +138,32 @@ jobs:
       - name: Verify coverage threshold
         run: |
           node -e "
-            const d = require('./coverage/coverage-summary.json');
-            const t = d.total;
-            const pct = (t.lines.pct + t.statements.pct + t.functions.pct + t.branches.pct) / 4;
-            console.log('Coverage promedio: ' + pct.toFixed(2) + '%');
-            if (pct < 80) {
-              console.error('FAIL: Coverage ' + pct.toFixed(2) + '% < 80% requerido');
+            const MIN = 80;
+            const METRICS = ['lines', 'statements', 'functions', 'branches'];
+            const total = require('./coverage/coverage-summary.json').total;
+            const failures = [];
+
+            for (const metric of METRICS) {
+              const pct = total[metric] && total[metric].pct;
+              // Sin specs, Istanbul reporta el string 'Unknown' en vez de un numero:
+              // comparar directo daria NaN < 80 === false y el gate pasaria en falso.
+              if (typeof pct !== 'number' || !Number.isFinite(pct)) {
+                failures.push(metric + ': valor no numerico (' + JSON.stringify(pct) + ')');
+                continue;
+              }
+              if (pct < MIN) {
+                failures.push(metric + ': ' + pct.toFixed(2) + '% < ' + MIN + '%');
+                continue;
+              }
+              console.log('OK ' + metric + ': ' + pct.toFixed(2) + '% >= ' + MIN + '%');
+            }
+
+            if (failures.length) {
+              console.error('FAIL: coverage por debajo del minimo requerido');
+              for (const f of failures) console.error('  - ' + f);
               process.exit(1);
             }
-            console.log('OK: Coverage ' + pct.toFixed(2) + '% >= 80%');
+            console.log('OK: las 4 metricas superan el ' + MIN + '%');
           "
 
       - name: Upload coverage report
@@ -210,7 +227,7 @@ jobs:
         run: |
           JOBS_STATUS="${{ join(needs.*.result, ',') }}"
           echo "Estado de jobs: $JOBS_STATUS"
-          if echo "$JOBS_STATUS" | grep -qE '(failure|cancelled)'; then
+          if echo "$JOBS_STATUS" | grep -qE '(failure|cancelled|skipped)'; then
             echo "FAIL: Uno o mas jobs fallaron. PR bloqueado."
             exit 1
           fi

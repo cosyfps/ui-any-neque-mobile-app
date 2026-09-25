@@ -1,0 +1,91 @@
+import { Injectable, Signal, computed, inject } from '@angular/core';
+
+import { SessionFacade } from '@app/application/auth/session.facade';
+import { isSameDay, parseIsoDate, startOfWeek } from '@app/domain/shared/model/date';
+import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { WeeklyProgress, weeklyProgress } from '@app/domain/workouts/model/weekly-progress';
+import {
+  WorkoutCompletion,
+  WorkoutSession,
+} from '@app/domain/workouts/model/workout-session.model';
+import { WORKOUTS_PORT } from '@app/domain/workouts/port/workouts.port';
+
+import { AsyncState, ViewState, asyncState } from '../shared/async-state';
+
+/** Sesiones del alumno: alimenta el home y el resumen semanal. */
+// Scoped a la ruta /student: sus puertos viven en ese injector, no en el raiz.
+@Injectable()
+export class WorkoutFacade {
+  private readonly port = inject(WORKOUTS_PORT);
+  private readonly session = inject(SessionFacade);
+  private readonly clock = inject(CLOCK);
+
+  readonly sessions: AsyncState<WorkoutSession[]> = asyncState<WorkoutSession[]>();
+
+  readonly all: Signal<readonly WorkoutSession[]> = computed(() => this.sessions.data() ?? []);
+
+  /** Sesion agendada para hoy, si existe. */
+  readonly todaySession: Signal<WorkoutSession | null> = computed(() => {
+    const today = this.clock.now();
+    return (
+      this.all().find(item => {
+        const scheduled = parseIsoDate(item.scheduledFor);
+        return scheduled !== null && isSameDay(scheduled, today);
+      }) ?? null
+    );
+  });
+
+  /** Ultima sesion completada, de la mas reciente hacia atras. */
+  readonly latestCompleted: Signal<WorkoutSession | null> = computed(() => {
+    const completed = this.all().filter(item => item.status === 'completed');
+    return completed.length === 0 ? null : (completed[completed.length - 1] ?? null);
+  });
+
+  /** Proximas sesiones agendadas, de la mas cercana a la mas lejana. */
+  readonly upcoming: Signal<readonly WorkoutSession[]> = computed(() => {
+    const now = this.clock.now().getTime();
+    return this.all().filter(item => {
+      if (item.status === 'completed' || item.status === 'skipped') {
+        return false;
+      }
+      const scheduled = parseIsoDate(item.scheduledFor);
+      return scheduled !== null && scheduled.getTime() >= now;
+    });
+  });
+
+  readonly weekly: Signal<WeeklyProgress> = computed(() => {
+    const today = this.clock.now();
+    return weeklyProgress(this.all(), startOfWeek(today), today);
+  });
+
+  readonly viewState: Signal<ViewState> = this.sessions.viewState;
+
+  load(): void {
+    const studentId = this.session.profileId();
+    if (studentId === null) {
+      return;
+    }
+    this.sessions.load(() => this.port.listByStudent(studentId));
+  }
+
+  reload(): void {
+    this.sessions.reload();
+  }
+
+  /** Cierra una sesion y refleja el cambio sin volver a pedir la lista. */
+  completeSession(sessionId: string, completion: WorkoutCompletion): Promise<boolean> {
+    return new Promise(resolve => {
+      this.port.complete(sessionId, completion).subscribe({
+        next: updated => {
+          this.replace(updated);
+          resolve(true);
+        },
+        error: () => resolve(false),
+      });
+    });
+  }
+
+  private replace(updated: WorkoutSession): void {
+    this.sessions.set(this.all().map(item => (item.id === updated.id ? updated : item)));
+  }
+}

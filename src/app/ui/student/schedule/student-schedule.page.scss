@@ -1,0 +1,245 @@
+@use '../../shared/theme/mixins' as *;
+
+:host {
+  display: block;
+}
+
+.page {
+  padding: 16px var(--nq-page-px) 0;
+}
+
+.head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.nav-back {
+  @include nq-nav-back;
+}
+
+.head-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.month-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--nq-text);
+  background: var(--nq-surface);
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.month-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+// ── Calendario ──
+.calendar {
+  padding: 12px 8px;
+  margin-bottom: 24px;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekday {
+  padding-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-text-muted);
+  text-align: center;
+}
+
+.day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nq-text);
+  background: none;
+  border: none;
+  border-radius: var(--nq-radius-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--nq-transition),
+    color var(--nq-transition);
+
+  &.outside {
+    color: var(--nq-text-muted);
+    opacity: 0.45;
+  }
+
+  &.today {
+    font-weight: 700;
+    color: var(--nq-primary-strong);
+  }
+
+  &.selected {
+    color: var(--nq-text-inverse);
+    background: var(--nq-primary-strong);
+
+    .day-dot {
+      background: var(--nq-text-inverse);
+    }
+  }
+}
+
+.day-dot {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--nq-primary-strong);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+// ── Detalle del dia ──
+.day-detail-label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.session {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+
+  &.cancelled {
+    opacity: 0.55;
+
+    .session-title {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.session-time {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  min-width: 52px;
+}
+
+.session-hour {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--nq-text);
+}
+
+.session-duration {
+  font-size: 12px;
+  color: var(--nq-text-muted);
+}
+
+.session-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.session-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.session-kind {
+  font-size: 12px;
+  color: var(--nq-text-secondary);
+}
+
+.session-location {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--nq-text-muted);
+}
+
+.session-side {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-primary-strong);
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+}
+
+.day-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nq-text-muted);
+}

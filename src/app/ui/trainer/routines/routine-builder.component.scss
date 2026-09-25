@@ -1,0 +1,261 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  min-width: 0;
+}
+
+// `.nq-field-input` estira su `input`; el `select` necesita lo mismo o el
+// area de toque queda en la mitad de la caja visible.
+.nq-field-input select {
+  flex: 1;
+  align-self: stretch;
+  min-width: 0;
+  font-family: var(--nq-font-family);
+  font-size: 15px;
+  color: var(--nq-text);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.days-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.days-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.add-day {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--nq-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nq-primary-strong);
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+    border-radius: var(--nq-radius-sm);
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.day {
+  overflow: hidden;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-md);
+}
+
+.day-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  font-family: var(--nq-font-family);
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: -2px;
+  }
+}
+
+.day-title {
+  flex: 1;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-meta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--nq-text-secondary);
+}
+
+.day-chevron {
+  flex-shrink: 0;
+  color: var(--nq-text-secondary);
+  transition: transform var(--nq-transition);
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.day-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--nq-bg);
+  border-radius: var(--nq-radius-sm);
+}
+
+.exercise-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.exercise-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+  text-overflow: ellipsis;
+}
+
+.remove {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -12px -12px 0;
+  color: var(--nq-danger);
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: -2px;
+  }
+}
+
+.prescription {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+// El `<label>` envuelve el campo: toda la celda es area de toque aunque el
+// input mida 24px de alto.
+.presc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-sm);
+
+  input {
+    width: 100%;
+    padding: 0;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--nq-text);
+    text-align: center;
+    background: none;
+    border: none;
+
+    &:focus-visible {
+      outline: 2px solid var(--nq-primary-strong);
+      outline-offset: 2px;
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    &[type='number'] {
+      appearance: textfield;
+    }
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--nq-text-secondary);
+  }
+}
+
+.remove-day {
+  min-height: 44px;
+  font-family: var(--nq-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nq-danger);
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+    border-radius: var(--nq-radius-sm);
+  }
+}
+
+.submit-error {
+  margin: 0;
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}

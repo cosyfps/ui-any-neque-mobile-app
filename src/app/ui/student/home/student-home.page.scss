@@ -1,0 +1,207 @@
+:host {
+  display: block;
+}
+
+.page {
+  padding: 24px var(--nq-page-px) 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.greeting {
+  display: block;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.name {
+  // Era un h1; ahora el titulo de pantalla es el oculto de arriba.
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.name-skeleton {
+  width: 120px;
+  height: 24px;
+  border-radius: var(--nq-radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--nq-surface) 25%,
+    var(--nq-surface-2) 50%,
+    var(--nq-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: nq-shimmer 1.5s ease infinite;
+}
+
+.bell {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--nq-text);
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nq-text-inverse);
+  background: var(--nq-danger);
+  border-radius: var(--nq-radius-full);
+}
+
+// ── IMC ──
+.bmi {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-bottom: 16px;
+  color: var(--nq-text-inverse);
+  // Degradado accesible, no el de marca: esta tarjeta lleva texto blanco de
+  // 12-13px encima y el tramo claro del de marca daba 1.45:1.
+  background: linear-gradient(
+    135deg,
+    var(--nq-gradient-strong-start) 0%,
+    var(--nq-gradient-strong-end) 100%
+  );
+  border-radius: var(--nq-radius-lg);
+  box-shadow: var(--nq-shadow);
+}
+
+.bmi-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bmi-label {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.bmi-category {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.bmi-note {
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.bmi-value {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: var(--nq-radius-full);
+}
+
+.bmi-number {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+// ── Sesion de hoy ──
+.today {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-bottom: 24px;
+  background: var(--nq-bg);
+  border: 1px solid var(--nq-border);
+  border-radius: var(--nq-radius-md);
+  box-shadow: var(--nq-shadow-xs);
+}
+
+.today-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.today-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.today-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.today-meta {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--nq-text-secondary);
+}
+
+.today-cta {
+  flex-shrink: 0;
+  width: auto;
+  padding-inline: 16px;
+}
+
+// ── Secciones ──
+.week-summary {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nq-primary-strong);
+}
+
+.chart-card {
+  padding: 16px 12px 12px;
+}
+
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nq-text-muted);
+}
