@@ -18,15 +18,15 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
 .metric {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 14px 10px;
+  gap: 4px;
+  padding: 16px 12px;
   text-align: center;
   background: var(--nq-bg);
   border: 1px solid var(--nq-border);
@@ -40,16 +40,16 @@
 }
 
 .metric-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--nq-text-secondary);
 }
 
 .delta {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 12px;
   margin: 0 0 20px;
   font-size: 13px;
   font-weight: 600;
@@ -66,7 +66,7 @@
 .series-toggle {
   display: flex;
   gap: 4px;
-  padding: 3px;
+  padding: 4px;
   background: var(--nq-surface-2);
   border-radius: var(--nq-radius-full);
 }
@@ -77,7 +77,7 @@
   justify-content: center;
   min-width: 44px;
   min-height: 44px;
-  padding: 5px 12px;
+  padding: 4px 12px;
   font-size: 12px;
   font-weight: 600;
   color: var(--nq-text-secondary);
@@ -95,7 +95,7 @@
 }
 
 .chart-card {
-  padding: 16px 10px 8px;
+  padding: 16px 12px 8px;
 }
 
 .history {
@@ -110,7 +110,7 @@
 .history-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 12px;
   background: var(--nq-bg);
   border: 1px solid var(--nq-border);
@@ -129,35 +129,92 @@
 }
 
 .history-note {
-  margin-top: 3px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--nq-text-muted);
 }
 
 // ── Fotos ──
+// Comparador: las dos fotos apiladas y un divisor que recorta la de arriba.
 .compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--nq-radius-md);
+  // El dedo arrastra el divisor; sin esto el navegador desplaza la pagina.
+  touch-action: none;
+  user-select: none;
 }
 
-.compare-side {
-  margin: 0;
+.compare-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
 
-  img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
-    border-radius: var(--nq-radius-md);
+.compare-after {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.compare-date {
+  position: absolute;
+  bottom: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-text-inverse);
+  background: rgba(26, 43, 42, 0.55);
+  border-radius: var(--nq-radius-full);
+
+  &.izquierda {
+    left: 8px;
   }
 
-  figcaption {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--nq-text-secondary);
-    text-align: center;
+  &.derecha {
+    right: 8px;
+  }
+}
+
+.compare-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  padding: 0;
+  cursor: col-resize;
+  background: none;
+  border: none;
+  transform: translateX(-50%);
+  -webkit-tap-highlight-color: transparent;
+
+  // La linea visible es de 2px; el boton mide 44 para poder agarrarlo.
+  &::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    content: '';
+    background: var(--nq-text-inverse);
+    transform: translateX(-50%);
+  }
+
+  // Agarradera circular al centro, como en las referencias.
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    content: '';
+    background: var(--nq-text-inverse);
+    border-radius: 50%;
+    box-shadow: var(--nq-shadow);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -170,7 +227,7 @@
 .angle-btn {
   flex: 1;
   min-height: 44px;
-  padding: 9px;
+  padding: 8px;
   font-size: 13px;
   font-weight: 600;
   color: var(--nq-text-secondary);
@@ -247,7 +304,7 @@
 
   figcaption {
     margin-top: 4px;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--nq-text-muted);
     text-align: center;
   }
@@ -266,7 +323,7 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  padding: 9px;
+  padding: 8px;
   color: var(--nq-text-inverse);
   background: rgba(26, 43, 42, 0.55);
   background-clip: content-box;
@@ -297,7 +354,7 @@
 
 .confirm-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 
   .nq-btn {
     flex: 1;

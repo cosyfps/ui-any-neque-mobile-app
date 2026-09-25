@@ -12,7 +12,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .nav-back {
@@ -56,7 +56,7 @@
 // ── Calendario ──
 .calendar {
   padding: 12px 8px;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
   background: var(--nq-bg);
   border: 1px solid var(--nq-border);
   border-radius: var(--nq-radius-md);
@@ -69,8 +69,8 @@
 }
 
 .weekday {
-  padding-bottom: 6px;
-  font-size: 11px;
+  padding-bottom: 8px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--nq-text-muted);
   text-align: center;
@@ -147,7 +147,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 13px;
+  padding: 12px;
   background: var(--nq-bg);
   border: 1px solid var(--nq-border);
   border-radius: var(--nq-radius-md);
@@ -165,7 +165,7 @@
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   align-items: center;
   min-width: 52px;
 }
@@ -178,7 +178,7 @@
 }
 
 .session-duration {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--nq-text-muted);
 }
 
@@ -186,7 +186,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -205,8 +205,8 @@
   display: inline-flex;
   gap: 4px;
   align-items: center;
-  margin-top: 2px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 12px;
   color: var(--nq-text-muted);
 }
 
@@ -214,7 +214,7 @@
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   align-items: flex-end;
 }
 
@@ -224,7 +224,7 @@
   justify-content: flex-end;
   min-width: 44px;
   min-height: 44px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--nq-primary-strong);
   background: none;

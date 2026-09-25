@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { BarInput, ChartBox, scaleBars } from './chart-math';
 
@@ -16,7 +16,7 @@ const BOX: ChartBox = { width: 280, height: 110, padding: 8 };
       [attr.viewBox]="viewBox"
       preserveAspectRatio="xMidYMid meet"
       role="img"
-      [attr.aria-label]="ariaLabel"
+      [attr.aria-label]="ariaLabel()"
     >
       @for (bar of bars(); track $index) {
         <rect
@@ -41,16 +41,12 @@ const BOX: ChartBox = { width: 280, height: 110, padding: 8 };
   styleUrl: './bar-chart.component.scss',
 })
 export class BarChartComponent {
-  @Input({ required: true }) set data(value: readonly BarInput[]) {
-    this._data.set(value);
-  }
+  readonly data = input.required<readonly BarInput[]>();
 
   /** Resumen en texto para lectores de pantalla. */
-  @Input() ariaLabel = 'Gráfico de barras';
+  readonly ariaLabel = input('Gráfico de barras');
 
   readonly viewBox = `0 0 ${BOX.width} ${BOX.height}`;
 
-  private readonly _data = signal<readonly BarInput[]>([]);
-
-  readonly bars = computed(() => scaleBars(this._data(), BOX));
+  readonly bars = computed(() => scaleBars(this.data(), BOX));
 }

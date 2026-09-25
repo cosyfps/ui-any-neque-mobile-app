@@ -2,7 +2,6 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
 import { LucideCheck, LucideEye, LucideEyeOff, LucideLoaderCircle } from '@lucide/angular';
 
 import { InvitationFacade } from '@app/application/auth/invitation.facade';
@@ -14,7 +13,6 @@ import { PageStateComponent } from '@shared/components/page-state.component';
   selector: 'app-invite',
   standalone: true,
   imports: [
-    IonContent,
     ReactiveFormsModule,
     PageStateComponent,
     LucideCheck,
@@ -23,7 +21,7 @@ import { PageStateComponent } from '@shared/components/page-state.component';
     LucideLoaderCircle,
   ],
   template: `
-    <ion-content [fullscreen]="true">
+    <div class="nq-screen">
       <div class="invite">
         @switch (facade.viewState()) {
           @case ('loading') {
@@ -136,11 +134,11 @@ import { PageStateComponent } from '@shared/components/page-state.component';
           }
         }
       </div>
-    </ion-content>
+    </div>
   `,
-  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
-  // router-outlet de Angular nadie la agrega, asi que la pone el host.
-  host: { class: 'ion-page' },
+  // `.nq-screen` se estira contra el ancestro posicionado que aporta esta
+  // clase; sin ella el contenedor no tiene contra que medir su alto.
+  host: { class: 'nq-page-host' },
   styleUrl: './invite.page.scss',
 })
 export class InvitePage {

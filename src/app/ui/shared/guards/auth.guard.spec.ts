@@ -79,7 +79,7 @@ describe('guards de autenticacion', () => {
 
     it('manda al entrenador a su dashboard si intenta entrar al shell del alumno', () => {
       const router = setup(sessionFor('trainer'));
-      expect(run(roleGuard('student'))).toEqual(router.parseUrl('/trainer/dashboard'));
+      expect(run(roleGuard('student'))).toEqual(router.parseUrl('/trainer/home'));
     });
 
     it('redirige a la raiz sin sesion', () => {
@@ -96,7 +96,7 @@ describe('guards de autenticacion', () => {
 
     it('manda al home del rol si ya hay sesion', () => {
       const router = setup(sessionFor('trainer'));
-      expect(run(publicOnlyGuard)).toEqual(router.parseUrl('/trainer/dashboard'));
+      expect(run(publicOnlyGuard)).toEqual(router.parseUrl('/trainer/home'));
     });
   });
 });

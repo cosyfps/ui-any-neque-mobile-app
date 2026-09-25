@@ -14,6 +14,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja llevando la cadera atrás hasta que los muslos queden paralelos al suelo.',
       'Sube empujando con los talones, sin redondear la espalda.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-002',
@@ -27,6 +28,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja la barra pegada a las piernas llevando la cadera hacia atrás.',
       'Sube contrayendo glúteos al final del recorrido.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-003',
@@ -40,6 +42,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja controlando hasta formar 90 grados en la rodilla.',
       'Empuja sin bloquear la rodilla al final.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-004',
@@ -53,6 +56,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja la barra a la altura del pecho, con los codos a 45 grados.',
       'Empuja hasta extender los brazos sin bloquear el codo.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-005',
@@ -66,6 +70,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Empuja hacia arriba juntando levemente al final.',
       'Baja controlando durante dos segundos.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-006',
@@ -79,6 +84,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja hasta sentir estiramiento, sin forzar el hombro.',
       'Cierra contrayendo el pecho.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-007',
@@ -92,6 +98,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Sube hasta que el mentón pase la barra.',
       'Baja controlando hasta extender los brazos.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-008',
@@ -105,6 +112,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Junta los omóplatos al final del movimiento.',
       'Baja controlando sin mover el torso.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-009',
@@ -118,6 +126,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Tira hacia la clavícula llevando los codos abajo y atrás.',
       'Sube controlando sin encoger los hombros.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-010',
@@ -131,6 +140,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Empuja la barra sobre la cabeza.',
       'Baja controlando hasta la clavícula.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-011',
@@ -144,6 +154,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Mantén el codo levemente flectado.',
       'Baja lento, sin impulso.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-012',
@@ -157,6 +168,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Contrae arriba sin mover el codo.',
       'Baja controlando hasta extender.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-013',
@@ -170,6 +182,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Contrae el tríceps al final.',
       'Sube controlando sin despegar los codos.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-014',
@@ -183,6 +196,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Aprieta abdomen y glúteos.',
       'Respira sin dejar caer la cadera.',
     ],
+    ownerTrainerId: null,
   },
   {
     id: 'ex-015',
@@ -196,5 +210,6 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Mantén el ritmo durante el tiempo indicado.',
       'Baja el ritmo dos minutos antes de terminar.',
     ],
+    ownerTrainerId: null,
   },
 ];

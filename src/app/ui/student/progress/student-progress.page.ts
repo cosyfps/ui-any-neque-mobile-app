@@ -14,6 +14,7 @@ import { CLOCK } from '@app/domain/shared/port/clock.port';
 import { SeriesPoint } from '@shared/components/chart/chart-math';
 import { LineChartComponent } from '@shared/components/chart/line-chart.component';
 import { PageStateComponent } from '@shared/components/page-state.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 type ProgressTab = 'metrics' | 'photos';
@@ -26,6 +27,7 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
   standalone: true,
   imports: [
     PageStateComponent,
+    PullToRefreshDirective,
     SheetTrapDirective,
     LineChartComponent,
     LucideCamera,
@@ -35,7 +37,12 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
     LucideTrendingUp,
   ],
   template: `
-    <div class="page">
+    <div
+      class="page"
+      nqPullToRefresh
+      [refreshing]="facade.assessments.loading()"
+      (refresh)="reload()"
+    >
       <header class="head">
         <h1 class="nq-h2">Mi progreso</h1>
       </header>
@@ -173,20 +180,44 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                   <h2 class="nq-section-title">Comparación</h2>
                 </div>
 
-                <div class="compare">
-                  @if (facade.compareA(); as before) {
-                    <figure class="compare-side">
-                      <img [src]="before.url" alt="Foto anterior" />
-                      <figcaption>{{ formatDate(before.takenAt) }}</figcaption>
-                    </figure>
-                  }
+                @if (facade.compareA(); as before) {
                   @if (facade.compareB(); as after) {
-                    <figure class="compare-side">
-                      <img [src]="after.url" alt="Foto reciente" />
-                      <figcaption>{{ formatDate(after.takenAt) }}</figcaption>
+                    <!-- Las dos fotos se superponen y el divisor recorta la de
+                         arriba. Una al lado de otra no deja ver el cambio. -->
+                    <figure
+                      class="compare"
+                      #comparador
+                      (pointerdown)="alTomarDivisor($event, comparador)"
+                      (pointermove)="alArrastrarDivisor($event, comparador)"
+                      (pointerup)="alSoltarDivisor()"
+                      (pointercancel)="alSoltarDivisor()"
+                    >
+                      <img class="compare-img" [src]="before.url" alt="Foto anterior" />
+                      <img
+                        class="compare-img compare-after"
+                        [src]="after.url"
+                        alt="Foto reciente"
+                        [style.clip-path]="'inset(0 0 0 ' + divisor() + '%)'"
+                      />
+
+                      <span class="compare-date izquierda">{{ formatDate(before.takenAt) }}</span>
+                      <span class="compare-date derecha">{{ formatDate(after.takenAt) }}</span>
+
+                      <button
+                        class="compare-handle"
+                        type="button"
+                        role="slider"
+                        aria-label="Comparar fotos"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        [attr.aria-valuenow]="divisor()"
+                        [attr.aria-valuetext]="divisorTexto()"
+                        [style.left.%]="divisor()"
+                        (keydown)="alTeclearDivisor($event)"
+                      ></button>
                     </figure>
                   }
-                </div>
+                }
               </section>
             }
 
@@ -312,6 +343,10 @@ export class StudentProgressPage {
   readonly tab = signal<ProgressTab>('metrics');
   readonly series = signal<MetricSeries>('weight');
   readonly selectedAngle = signal<PhotoAngle>('front');
+  /** Posicion del divisor del comparador, en porcentaje. */
+  readonly divisor = signal(50);
+  private arrastrandoDivisor = false;
+
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly pendingRemoval = signal<string | null>(null);
@@ -343,6 +378,54 @@ export class StudentProgressPage {
 
   constructor() {
     this.facade.load();
+  }
+
+  /** Texto que lee el lector de pantalla en vez de un porcentaje pelado. */
+  divisorTexto(): string {
+    return `${this.divisor()}% de la foto reciente a la vista`;
+  }
+
+  alTomarDivisor(event: PointerEvent, contenedor: HTMLElement): void {
+    this.arrastrandoDivisor = true;
+    this.moverDivisor(event, contenedor);
+  }
+
+  alArrastrarDivisor(event: PointerEvent, contenedor: HTMLElement): void {
+    if (this.arrastrandoDivisor) {
+      this.moverDivisor(event, contenedor);
+    }
+  }
+
+  alSoltarDivisor(): void {
+    this.arrastrandoDivisor = false;
+  }
+
+  /** Con teclado el divisor se mueve de a 5%, y a los extremos con Inicio y Fin. */
+  alTeclearDivisor(event: KeyboardEvent): void {
+    const salto: Record<string, number> = { ArrowLeft: -5, ArrowRight: 5 };
+    const delta = salto[event.key];
+
+    if (delta !== undefined) {
+      event.preventDefault();
+      this.divisor.update(valor => Math.min(100, Math.max(0, valor + delta)));
+      return;
+    }
+    if (event.key === 'Home') {
+      event.preventDefault();
+      this.divisor.set(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.divisor.set(100);
+    }
+  }
+
+  private moverDivisor(event: PointerEvent, contenedor: HTMLElement): void {
+    const caja = contenedor.getBoundingClientRect();
+    if (caja.width === 0) {
+      return;
+    }
+    const porcentaje = ((event.clientX - caja.left) / caja.width) * 100;
+    this.divisor.set(Math.round(Math.min(100, Math.max(0, porcentaje))));
   }
 
   angleLabel(angle: PhotoAngle): string {

@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { ringCircumference, ringOffset } from './chart-math';
 
@@ -14,7 +14,7 @@ const RADIUS = 52;
       [attr.viewBox]="viewBox"
       preserveAspectRatio="xMidYMid meet"
       role="img"
-      [attr.aria-label]="ariaLabel"
+      [attr.aria-label]="ariaLabel()"
     >
       <circle
         [attr.cx]="center"
@@ -22,7 +22,7 @@ const RADIUS = 52;
         [attr.r]="radius"
         fill="none"
         stroke="var(--nq-surface-2)"
-        [attr.stroke-width]="strokeWidth"
+        [attr.stroke-width]="strokeWidth()"
       />
       <circle
         [attr.cx]="center"
@@ -30,7 +30,7 @@ const RADIUS = 52;
         [attr.r]="radius"
         fill="none"
         stroke="var(--nq-primary-strong)"
-        [attr.stroke-width]="strokeWidth"
+        [attr.stroke-width]="strokeWidth()"
         stroke-linecap="round"
         [attr.stroke-dasharray]="circumference"
         [attr.stroke-dashoffset]="offset()"
@@ -46,12 +46,10 @@ const RADIUS = 52;
 })
 export class RingProgressComponent {
   /** Avance entre 0 y 1. */
-  @Input({ required: true }) set progress(value: number) {
-    this._progress.set(value);
-  }
+  readonly progress = input.required<number>();
 
-  @Input() strokeWidth = 8;
-  @Input() ariaLabel = 'Progreso';
+  readonly strokeWidth = input(8);
+  readonly ariaLabel = input('Progreso');
 
   readonly viewBox = `0 0 ${SIZE} ${SIZE}`;
   readonly center = SIZE / 2;
@@ -59,7 +57,5 @@ export class RingProgressComponent {
   readonly circumference = ringCircumference(RADIUS);
   readonly rotation = `rotate(-90 ${SIZE / 2} ${SIZE / 2})`;
 
-  private readonly _progress = signal(0);
-
-  readonly offset = computed(() => ringOffset(RADIUS, this._progress()));
+  readonly offset = computed(() => ringOffset(RADIUS, this.progress()));
 }

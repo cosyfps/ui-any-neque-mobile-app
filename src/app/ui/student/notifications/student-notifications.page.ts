@@ -14,6 +14,8 @@ import { AppNotification } from '@app/domain/notifications/model/notification.mo
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
+import { notificationRoute } from '@shared/navigation/notification-target';
 
 const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
 
@@ -22,6 +24,7 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
   standalone: true,
   imports: [
     PageStateComponent,
+    PullToRefreshDirective,
     LucideArrowLeft,
     LucideBell,
     LucideCalendarDays,
@@ -29,7 +32,7 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
     LucideMessageCircle,
   ],
   template: `
-    <div class="page">
+    <div class="page" nqPullToRefresh [refreshing]="facade.items.loading()" (refresh)="reload()">
       <header class="head">
         <button class="nav-back" type="button" aria-label="Volver" (click)="goBack()">
           <svg lucideArrowLeft [size]="22" [strokeWidth]="1.8"></svg>
@@ -140,8 +143,9 @@ export class StudentNotificationsPage {
     if (notification.readAt === null) {
       await this.facade.markRead(notification.id);
     }
-    if (notification.actionRoute !== null) {
-      await this.router.navigate([notification.actionRoute]);
+    const ruta = notificationRoute(notification.targetType, notification.targetId);
+    if (ruta !== null) {
+      await this.router.navigate(ruta);
     }
   }
 

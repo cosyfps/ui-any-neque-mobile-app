@@ -1,57 +1,79 @@
-@import '@ionic/angular/css/core.css';
-@import '@ionic/angular/css/normalize.css';
-@import '@ionic/angular/css/structure.css';
-@import '@ionic/angular/css/typography.css';
-@import '@ionic/angular/css/padding.css';
-@import '@ionic/angular/css/float-elements.css';
-@import '@ionic/angular/css/text-alignment.css';
-@import '@ionic/angular/css/text-transformation.css';
-@import '@ionic/angular/css/flex-utils.css';
-@import '@ionic/angular/css/display.css';
-
 @import './app/ui/shared/theme/fonts';
 @import './app/ui/shared/theme/palette';
 @import './app/ui/shared/theme/utilities';
 @import './app/ui/shared/theme/components';
 
-:root {
-  --ion-color-primary: var(--nq-primary);
-  --ion-color-primary-rgb: var(--nq-primary-rgb);
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: var(--nq-primary-dark);
-  --ion-color-primary-tint: var(--nq-primary-light);
+// Reset propio.
+//
+// Reemplaza al `normalize.css` de Ionic, que llegaba junto con 158 kB de
+// `@ionic/core` en el bundle inicial para una app que solo usaba de Ionic
+// un contenedor con scroll. Ese contenedor es ahora `.nq-screen`.
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-  --ion-color-success: #2e7d32;
-  --ion-color-warning: #f57f17;
-
-  --ion-font-family: var(--nq-font-family);
-  --ion-background-color: var(--nq-bg);
-  --ion-text-color: var(--nq-text);
+html,
+body {
+  height: 100%;
 }
 
 html {
   overscroll-behavior-x: none;
+  // Evita que iOS agrande la tipografia al rotar.
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   font-family: var(--nq-font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--nq-text);
+  background: var(--nq-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   touch-action: pan-y;
+  // El resaltado azul del tap movil no aporta nada: cada control tiene su
+  // propio estado `:active`.
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+app-root {
+  display: block;
+  height: 100%;
 }
 
 // Sin `max-height`: con el limite de 500px el bloqueo solo alcanzaba a
 // telefonos y una tablet en horizontal renderizaba la app apaisada, con los
 // offsets de la portada calculados para 812px de alto.
 @media (orientation: landscape) {
-  // `ion-app.ion-page` y no `ion-app` a secas: Ionic le pone la clase
-  // `ion-page`, cuyo `display: flex` gana por especificidad al selector de
-  // elemento. Con el selector simple la app nunca se ocultaba y el aviso
-  // quedaba pintado debajo, fuera de la pantalla.
-  ion-app.ion-page {
+  app-root {
     display: none;
   }
 

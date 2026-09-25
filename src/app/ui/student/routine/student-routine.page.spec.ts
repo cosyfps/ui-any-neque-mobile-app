@@ -75,6 +75,7 @@ const sessionWith = (
       weightKg: null,
       completedSets: done ? 4 : 0,
       done,
+      sets: [],
     },
   ],
 });

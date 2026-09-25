@@ -45,5 +45,5 @@ export interface Credentials {
 
 /** Ruta inicial de cada rol tras autenticarse. */
 export function homeRouteForRole(role: UserRole): string {
-  return role === 'trainer' ? '/trainer/dashboard' : '/student/home';
+  return role === 'trainer' ? '/trainer/home' : '/student/home';
 }

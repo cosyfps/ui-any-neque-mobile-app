@@ -5,6 +5,7 @@ import {
   WorkoutExerciseLog,
   WorkoutSession,
 } from '@app/domain/workouts/model/workout-session.model';
+import { WorkoutSetInput } from '@app/domain/workouts/model/workout-set.model';
 import { WORKOUTS_PORT } from '@app/domain/workouts/port/workouts.port';
 
 import { AsyncState, ViewState, asyncState } from '../shared/async-state';
@@ -115,8 +116,11 @@ export class WorkoutRunnerFacade {
   /**
    * Cierra la serie en curso. Si quedan series, entra en descanso;
    * si era la ultima, marca el ejercicio y avanza.
+   *
+   * `reps` y `weightKg` en `null` significan "tal como se prescribio": es el
+   * caso normal, y evita que confirmar sin tocar nada cueste mas de un toque.
    */
-  completeSet(): void {
+  completeSet(reps: number | null = null, weightKg: number | null = null): void {
     const exercise = this.currentExercise();
     const current = this.session.data();
     if (exercise === null || current === null) {
@@ -128,14 +132,20 @@ export class WorkoutRunnerFacade {
     // reemplaza la sesion y moveria `isLastExercise()` bajo nuestros pies.
     const wasLastExercise = this.isLastExercise();
 
+    const serie: WorkoutSetInput = {
+      setNumber: this._setIndex() + 1,
+      reps: reps ?? exercise.targetReps,
+      weightKg: weightKg ?? exercise.weightKg,
+    };
+
     if (nextSetIndex < exercise.targetSets) {
       this._setIndex.set(nextSetIndex);
-      this.persistSets(current.id, exercise.routineExerciseId, nextSetIndex);
+      this.persistSet(current.id, exercise.routineExerciseId, serie);
       this.beginRest(exercise.restSeconds);
       return;
     }
 
-    this.persistSets(current.id, exercise.routineExerciseId, exercise.targetSets);
+    this.persistSet(current.id, exercise.routineExerciseId, serie);
 
     if (wasLastExercise) {
       this.finishToSummary();
@@ -221,8 +231,8 @@ export class WorkoutRunnerFacade {
     this._phase.set('summary');
   }
 
-  private persistSets(sessionId: string, routineExerciseId: string, completedSets: number): void {
-    this.port.logSet(sessionId, routineExerciseId, completedSets).subscribe({
+  private persistSet(sessionId: string, routineExerciseId: string, set: WorkoutSetInput): void {
+    this.port.logSet(sessionId, routineExerciseId, set).subscribe({
       next: updated => this.session.set(updated),
       error: () => undefined,
     });

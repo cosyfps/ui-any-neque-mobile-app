@@ -2,7 +2,7 @@ import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 
 import { SessionFacade } from '@app/application/auth/session.facade';
 import { MonthCell, buildMonthGrid } from '@app/domain/schedule/model/month-grid';
-import { ScheduledSession } from '@app/domain/schedule/model/scheduled-session.model';
+import { CancelReason, ScheduledSession } from '@app/domain/schedule/model/scheduled-session.model';
 import { SCHEDULE_PORT } from '@app/domain/schedule/port/schedule.port';
 import {
   addMonths,
@@ -99,8 +99,8 @@ export class ScheduleFacade {
     return this.mutate(() => this.port.confirm(sessionId));
   }
 
-  cancel(sessionId: string, reason: string): Promise<boolean> {
-    return this.mutate(() => this.port.cancel(sessionId, reason));
+  cancel(sessionId: string, reason: CancelReason, note: string | null = null): Promise<boolean> {
+    return this.mutate(() => this.port.cancel(sessionId, reason, note));
   }
 
   private fetch(): void {

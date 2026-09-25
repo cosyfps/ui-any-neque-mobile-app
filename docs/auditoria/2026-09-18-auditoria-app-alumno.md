@@ -289,8 +289,12 @@ _Recomendación:_ sacar el `@switch` de la rama `photos` y darle su propio estad
 **P-5 · "Peso actual" puede renderizarse vacío — Media · UI**
 `:79` — `{{ facade.latest()?.weightKg }} kg` imprime " kg" si `latest()` es `null`. La regla de dashboards pide `—`, como sí hace Perfil (`student-profile.page.ts:70`).
 
-**P-6 · El comparador no es el que documenta el ticket — Media · Documentación**
-`T-8.6.7` describe un comparador con divisor arrastrable y está marcado _Terminado_; lo implementado son dos `<figure>` lado a lado. Alinear el ticket con la realidad o completar la funcionalidad.
+**P-6 · El comparador no es el que se planificó — Media · Documentación**
+El plan de la Épica 8 describe un comparador con divisor arrastrable; lo implementado son dos `<figure>` lado a lado. Alinear el plan con la realidad o completar la funcionalidad.
+
+> **Corrección del 19-09-2026.** La primera redacción de este hallazgo culpaba al ticket
+> `T-8.6.7`, y el ticket era correcto: dice «lado a lado». Quien prometía el arrastre era
+> el plan de la sesión. Resuelto en `T-11.6.27`: el comparador ahora arrastra.
 
 ### StudentProfilePage
 

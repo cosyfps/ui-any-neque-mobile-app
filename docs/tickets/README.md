@@ -8,6 +8,7 @@ organizado por épica e historia.
 | [2 — Gestión de Alumnos](epica-2/)          |      19 | Pendiente de refinamiento    |
 | [7 — Arquitectura hexagonal](epica-7/)      |      24 | Terminada                    |
 | [8 — App del Alumno](epica-8/)              |      41 | Terminada                    |
+| [9 — App del Entrenador](epica-9/)          |      52 | Terminada                    |
 | [11 — Correcciones de auditoría](epica-11/) |      45 | 39 terminados · 6 pendientes |
 
 ## Estados

@@ -80,14 +80,14 @@ describe('StartPage', () => {
       page.markEmailTouched();
       page.form.controls.email.setValue('');
 
-      expect(page.emailError()).toBe('Email is required');
+      expect(page.emailError()).toBe('El correo es obligatorio');
     });
 
     it('rechaza un formato invalido', () => {
       page.markEmailTouched();
       page.form.controls.email.setValue('kelvin@sin-tld');
 
-      expect(page.emailError()).toBe('Please enter a valid email address');
+      expect(page.emailError()).toBe('Ingresa un correo válido');
     });
 
     it('acepta un email valido', () => {
@@ -109,14 +109,14 @@ describe('StartPage', () => {
       page.markPasswordTouched();
       page.form.controls.password.setValue('');
 
-      expect(page.passwordError()).toBe('Password is required');
+      expect(page.passwordError()).toBe('La contraseña es obligatoria');
     });
 
     it('exige un largo minimo de 8', () => {
       page.markPasswordTouched();
       page.form.controls.password.setValue('corta');
 
-      expect(page.passwordError()).toBe('Password must be at least 8 characters');
+      expect(page.passwordError()).toBe('Debe tener al menos 8 caracteres');
     });
 
     // El login no valida composicion: una contrasena antigua que no cumple

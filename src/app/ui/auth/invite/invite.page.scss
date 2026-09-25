@@ -2,10 +2,6 @@
   display: block;
 }
 
-ion-content {
-  --background: var(--nq-bg);
-}
-
 .invite {
   display: flex;
   flex-direction: column;
@@ -46,7 +42,7 @@ ion-content {
   justify-content: center;
   width: 44px;
   height: 44px;
-  margin-right: -10px;
+  margin-right: -12px;
   color: var(--nq-text-muted);
   background: none;
   border: none;

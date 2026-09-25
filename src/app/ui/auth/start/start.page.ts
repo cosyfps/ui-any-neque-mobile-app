@@ -2,7 +2,6 @@ import { Component, computed, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
 import { LucideCircleAlert, LucideEye, LucideEyeOff, LucideLoaderCircle } from '@lucide/angular';
 
 import { SessionFacade } from '@app/application/auth/session.facade';
@@ -10,16 +9,9 @@ import { SessionFacade } from '@app/application/auth/session.facade';
 @Component({
   selector: 'app-start',
   standalone: true,
-  imports: [
-    IonContent,
-    ReactiveFormsModule,
-    LucideCircleAlert,
-    LucideEye,
-    LucideEyeOff,
-    LucideLoaderCircle,
-  ],
+  imports: [ReactiveFormsModule, LucideCircleAlert, LucideEye, LucideEyeOff, LucideLoaderCircle],
   template: `
-    <ion-content [fullscreen]="true" [scrollY]="false">
+    <div class="nq-screen">
       <div class="start-container">
         <div class="hero">
           <svg class="lotus" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
@@ -77,16 +69,15 @@ import { SessionFacade } from '@app/application/auth/session.facade';
 
         <div class="content">
           <div class="welcome-group">
-            <h1 class="title">Welcome Back!</h1>
+            <h1 class="title">¡Hola de nuevo!</h1>
             <p class="subtitle">
-              Hi there!<br />
-              This is an invitation-only app.<br />
-              Log in with your assigned credentials.
+              Ñeque es una app por invitación.<br />
+              Ingresa con las credenciales que te asignaron.
             </p>
           </div>
           <div class="action-group">
-            <button class="btn-login" (click)="showLogin = true">Log In</button>
-            <p class="help-text">Don't have access? Contact your administrator.</p>
+            <button class="btn-login" (click)="showLogin = true">Ingresar</button>
+            <p class="help-text">¿No tienes acceso? Habla con tu entrenador.</p>
           </div>
         </div>
       </div>
@@ -94,8 +85,8 @@ import { SessionFacade } from '@app/application/auth/session.facade';
       <div class="login-panel" [class.open]="showLogin">
         <div class="form-section">
           <div class="form-header">
-            <h1 class="form-title">Log In</h1>
-            <button class="back-btn" (click)="showLogin = false" aria-label="Go back">
+            <h1 class="form-title">Ingresar</h1>
+            <button class="back-btn" (click)="showLogin = false" aria-label="Cerrar">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M18 6L6 18M6 6l12 12"
@@ -111,7 +102,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
           <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
             <!-- Email -->
             <div class="field" [class.has-error]="emailTouched() && emailError()">
-              <label class="nq-field-label" for="email">Email</label>
+              <label class="nq-field-label" for="email">Correo</label>
               <div class="nq-field-input">
                 <svg class="nq-field-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <rect
@@ -135,7 +126,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                   id="email"
                   type="email"
                   formControlName="email"
-                  placeholder="your.email&#64;example.com"
+                  placeholder="tu.correo&#64;ejemplo.com"
                   autocomplete="email"
                   inputmode="email"
                   enterkeyhint="next"
@@ -158,7 +149,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
 
             <!-- Password -->
             <div class="field" [class.has-error]="passwordError() !== null">
-              <label class="nq-field-label" for="password">Password</label>
+              <label class="nq-field-label" for="password">Contraseña</label>
               <div class="nq-field-input">
                 @if (passwordFilled()) {
                   <svg
@@ -209,7 +200,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                   id="password"
                   [type]="showPassword ? 'text' : 'password'"
                   formControlName="password"
-                  placeholder="Enter your password"
+                  placeholder="Tu contraseña"
                   autocomplete="current-password"
                   enterkeyhint="done"
                   [attr.aria-describedby]="passwordError() ? 'password-error' : null"
@@ -218,7 +209,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                 <button
                   class="toggle-password"
                   type="button"
-                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                  [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   (click)="showPassword = !showPassword"
                 >
                   @if (showPassword) {
@@ -248,7 +239,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
 
             <div class="form-options">
               <button class="forgot-link" type="button" (click)="goToForgotPassword()">
-                Forgot Password?
+                ¿Olvidaste tu contraseña?
               </button>
             </div>
 
@@ -261,22 +252,22 @@ import { SessionFacade } from '@app/application/auth/session.facade';
               @if (isSubmitting()) {
                 <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
               } @else {
-                Log In
+                Ingresar
               }
             </button>
 
             <p class="form-help-text">
-              Access is by invitation only.<br />
-              Contact your administrator if you need help.
+              El acceso es solo por invitación.<br />
+              Si necesitas ayuda, habla con tu entrenador.
             </p>
           </form>
         </div>
       </div>
-    </ion-content>
+    </div>
   `,
-  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
-  // router-outlet de Angular nadie la agrega, asi que la pone el host.
-  host: { class: 'ion-page' },
+  // `.nq-screen` se estira contra el ancestro posicionado que aporta esta
+  // clase; sin ella el contenedor no tiene contra que medir su alto.
+  host: { class: 'nq-page-host' },
   styleUrl: './start.page.scss',
 })
 export class StartPage {
@@ -313,8 +304,8 @@ export class StartPage {
     this._email();
     if (!this.emailTouched()) return null;
     const ctrl = this.form.controls.email;
-    if (ctrl.hasError('required')) return 'Email is required';
-    if (ctrl.hasError('pattern')) return 'Please enter a valid email address';
+    if (ctrl.hasError('required')) return 'El correo es obligatorio';
+    if (ctrl.hasError('pattern')) return 'Ingresa un correo válido';
     return null;
   });
 
@@ -332,8 +323,8 @@ export class StartPage {
     this._password();
     if (!this.passwordTouched()) return null;
     const ctrl = this.form.controls.password;
-    if (ctrl.hasError('required')) return 'Password is required';
-    if (ctrl.hasError('minlength')) return 'Password must be at least 8 characters';
+    if (ctrl.hasError('required')) return 'La contraseña es obligatoria';
+    if (ctrl.hasError('minlength')) return 'Debe tener al menos 8 caracteres';
     return null;
   });
 

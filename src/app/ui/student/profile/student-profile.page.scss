@@ -12,7 +12,7 @@
 
 .identity {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: center;
   margin-bottom: 16px;
 }
@@ -20,7 +20,7 @@
 .identity-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .identity-goal {
-  margin-top: 3px;
+  margin-top: 4px;
   font-size: 12px;
   line-height: 1.45;
   color: var(--nq-text-muted);
@@ -45,15 +45,15 @@
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 14px 10px;
+  gap: 4px;
+  padding: 16px 12px;
   text-align: center;
   background: var(--nq-surface);
   border-radius: var(--nq-radius-md);
@@ -66,7 +66,7 @@
 }
 
 .stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--nq-text-secondary);
 }
 
@@ -81,7 +81,7 @@
   gap: 12px;
   align-items: center;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   color: var(--nq-text);
   text-align: left;
   background: var(--nq-bg);
@@ -100,7 +100,7 @@
 .trainer-card {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .trainer-name {
@@ -138,7 +138,7 @@
 
 .confirm-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 
   .nq-btn {
     flex: 1;

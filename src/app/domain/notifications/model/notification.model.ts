@@ -2,6 +2,9 @@ import { Id, IsoDateString } from '@app/domain/shared/model/ids';
 
 export type NotificationKind = 'routine' | 'session' | 'message' | 'system';
 
+/** Entidad a la que apunta la notificacion. La ruta la decide el front. */
+export type NotificationTarget = 'routine' | 'session' | 'assessment' | 'photo';
+
 export const NOTIFICATION_KIND_LABEL: Record<NotificationKind, string> = {
   routine: 'Rutina',
   session: 'Sesión',
@@ -18,8 +21,12 @@ export interface AppNotification {
   readonly createdAt: IsoDateString;
   /** Null mientras no se ha leido. */
   readonly readAt: IsoDateString | null;
-  /** Ruta interna a la que lleva el toque, si corresponde. */
-  readonly actionRoute: string | null;
+  /**
+   * Que entidad abre el toque, si corresponde. Se guarda el tipo y el id, no
+   * una ruta: la base no conoce la navegacion del front.
+   */
+  readonly targetType: NotificationTarget | null;
+  readonly targetId: Id | null;
 }
 
 /**

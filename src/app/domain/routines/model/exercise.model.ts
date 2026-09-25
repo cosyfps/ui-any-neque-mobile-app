@@ -31,4 +31,23 @@ export interface Exercise {
   readonly thumbnailUrl: string | null;
   /** Pasos de ejecucion, en orden. */
   readonly instructions: readonly string[];
+  /**
+   * Entrenador dueño del ejercicio, o `null` si es del catalogo publico.
+   *
+   * Los ejercicios propios son privados: un entrenador nunca ve los de otro.
+   */
+  readonly ownerTrainerId: Id | null;
+}
+
+/** Campos que el formulario envia al crear un ejercicio propio. */
+export type ExerciseInput = Omit<Exercise, 'id'>;
+
+/** True cuando el ejercicio es del catalogo compartido. */
+export function isPublicExercise(exercise: Exercise): boolean {
+  return exercise.ownerTrainerId === null;
+}
+
+/** True cuando el entrenador puede ver el ejercicio: publico o suyo. */
+export function isVisibleToTrainer(exercise: Exercise, trainerId: Id): boolean {
+  return exercise.ownerTrainerId === null || exercise.ownerTrainerId === trainerId;
 }

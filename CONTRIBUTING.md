@@ -372,12 +372,19 @@ que se procesan en runtime.
 
 ### Patrón por capa
 
-| Capa              | Cómo se prueba                                                                                                                                | Referencia                      |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `domain/`         | Llamada directa a la función pura. Sin TestBed, sin mocks.                                                                                    | `weekly-progress.spec.ts`       |
-| `application/`    | `TestBed` con los **puertos stubeados** devolviendo `of(...)` / `throwError(...)`. Nunca el adapter real: evita los `delay()`.                | `workout.facade.spec.ts`        |
-| `infrastructure/` | Adapter real con `jest.useFakeTimers()` y `jest.runAllTimers()` para saltar la latencia simulada.                                             | `workouts.mock-adapter.spec.ts` |
-| `ui/` páginas     | Unit de clase con la facade stubeada o con puertos stubeados. `jest.spyOn(router, 'navigate')` siempre: el router de prueba no declara rutas. | `student-home.page.spec.ts`     |
+| Capa              | Cómo se prueba                                                                                                                                | Referencia                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `domain/`         | Llamada directa a la función pura. Sin TestBed, sin mocks.                                                                                    | `weekly-progress.spec.ts`        |
+| `application/`    | `TestBed` con los **puertos stubeados** devolviendo `of(...)` / `throwError(...)`. Nunca el adapter real: evita los `delay()`.                | `workout.facade.spec.ts`         |
+| `infrastructure/` | Adapter real con `jest.useFakeTimers()` y `jest.runAllTimers()` para saltar la latencia simulada.                                             | `workouts.mock-adapter.spec.ts`  |
+| `ui/` páginas     | Unit de clase con la facade stubeada o con puertos stubeados. `jest.spyOn(router, 'navigate')` siempre: el router de prueba no declara rutas. | `student-home.page.spec.ts`      |
+| `ui/` componentes | **Renderizado** con `TestBed.createComponent` y `componentRef.setInput()`. Es la unica forma de fijar un `input()` señal.                     | `workout-card.component.spec.ts` |
+
+Los componentes compartidos son la excepcion a la regla de no renderizar. Usan `input()`
+de Angular 17, y un input señal **no se puede asignar sobre una instancia suelta**: la
+unica API publica es `componentRef.setInput()`, que exige un `createComponent`. Son
+componentes de presentacion sin dependencias, asi que el costo es minimo y de paso el
+spec ve el DOM. Las **paginas** siguen siendo unit de clase.
 
 Dos detalles que ahorran tiempo:
 

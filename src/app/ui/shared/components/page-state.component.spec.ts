@@ -1,21 +1,31 @@
+import { ComponentRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { PageStateComponent } from './page-state.component';
 
+/** Renderiza por la misma razon que el spec de `nq-workout-card`: `input()`. */
 describe('PageStateComponent', () => {
-  it('arranca en loading con retry habilitado', () => {
-    const cmp = new PageStateComponent();
+  let ref: ComponentRef<PageStateComponent>;
+  let cmp: PageStateComponent;
 
-    expect(cmp.type).toBe('loading');
-    expect(cmp.title).toBe('');
-    expect(cmp.message).toBe('');
-    expect(cmp.showRetry).toBe(true);
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    const fixture = TestBed.createComponent(PageStateComponent);
+    ref = fixture.componentRef;
+    cmp = fixture.componentInstance;
+  });
+
+  it('arranca en loading con retry habilitado', () => {
+    expect(cmp.type()).toBe('loading');
+    expect(cmp.title()).toBe('');
+    expect(cmp.message()).toBe('');
+    expect(cmp.showRetry()).toBe(true);
+    expect(cmp.loadingLabel()).toBe('Cargando');
   });
 
   it('onRetry() invoca el callback cuando existe', () => {
-    const cmp = new PageStateComponent();
     const retry = jest.fn();
-    cmp.retry = retry;
+    ref.setInput('retry', retry);
 
     cmp.onRetry();
 
@@ -23,15 +33,24 @@ describe('PageStateComponent', () => {
   });
 
   it('onRetry() no falla cuando no hay callback', () => {
-    const cmp = new PageStateComponent();
-
     expect(() => cmp.onRetry()).not.toThrow();
   });
 
-  it('se puede instanciar desde el TestBed', () => {
-    TestBed.configureTestingModule({ imports: [PageStateComponent] });
+  it('pinta el estado que se le pide', () => {
     const fixture = TestBed.createComponent(PageStateComponent);
+    fixture.componentRef.setInput('type', 'empty');
+    fixture.componentRef.setInput('title', 'Sin evaluaciones');
+    fixture.detectChanges();
 
-    expect(fixture.componentInstance).toBeInstanceOf(PageStateComponent);
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Sin evaluaciones');
+  });
+
+  it('anuncia la carga como region viva', () => {
+    const fixture = TestBed.createComponent(PageStateComponent);
+    fixture.detectChanges();
+
+    const estado = (fixture.nativeElement as HTMLElement).querySelector('[role="status"]');
+    expect(estado?.getAttribute('aria-live')).toBe('polite');
   });
 });

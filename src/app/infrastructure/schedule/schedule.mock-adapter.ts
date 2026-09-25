@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  CancelReason,
   ScheduleStatus,
   ScheduledSession,
   SessionKind,
@@ -150,6 +151,9 @@ export class ScheduleMockAdapter implements SchedulePort {
         kind: slot.kind,
         status: slot.status,
         workoutSessionId: null,
+        cancellationReason: null,
+        cancellationNote: null,
+        cancelledAt: null,
       };
     });
   }
@@ -167,9 +171,14 @@ export class ScheduleMockAdapter implements SchedulePort {
     return this.mutate(sessionId, session => ({ ...session, status: 'confirmed' }));
   }
 
-  /** El mock no guarda el motivo; el BFF si lo persistira. */
-  cancel(sessionId: Id, _reason: string): Observable<ScheduledSession> {
-    return this.mutate(sessionId, session => ({ ...session, status: 'cancelled' }));
+  cancel(sessionId: Id, reason: CancelReason, note: string | null): Observable<ScheduledSession> {
+    return this.mutate(sessionId, session => ({
+      ...session,
+      status: 'cancelled',
+      cancellationReason: reason,
+      cancellationNote: note,
+      cancelledAt: toIsoDate(this.clock.now()),
+    }));
   }
 
   private mutate(

@@ -1,6 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
 import { LucideCompass } from '@lucide/angular';
 
 import { SessionFacade } from '@app/application/auth/session.facade';
@@ -9,9 +8,9 @@ import { homeRouteForRole } from '@app/domain/auth/model/auth-user.model';
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [IonContent, LucideCompass],
+  imports: [LucideCompass],
   template: `
-    <ion-content [fullscreen]="true" [scrollY]="false">
+    <div class="nq-screen">
       <div class="wrap">
         <div class="nq-state nq-ani">
           <div class="nq-state-icon">
@@ -26,11 +25,11 @@ import { homeRouteForRole } from '@app/domain/auth/model/auth-user.model';
           </button>
         </div>
       </div>
-    </ion-content>
+    </div>
   `,
-  // `ion-content` se posiciona contra un ancestro `.ion-page`. Con el
-  // router-outlet de Angular nadie la agrega, asi que la pone el host.
-  host: { class: 'ion-page' },
+  // `.nq-screen` se estira contra el ancestro posicionado que aporta esta
+  // clase; sin ella el contenedor no tiene contra que medir su alto.
+  host: { class: 'nq-page-host' },
   styleUrl: './not-found.page.scss',
 })
 export class NotFoundPage {

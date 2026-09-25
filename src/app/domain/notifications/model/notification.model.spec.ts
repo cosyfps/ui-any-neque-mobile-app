@@ -8,7 +8,8 @@ const notification = (readAt: string | null): AppNotification => ({
   body: 'Cuerpo',
   createdAt: '2026-09-17T10:00:00.000Z',
   readAt,
-  actionRoute: null,
+  targetType: null,
+  targetId: null,
 });
 
 describe('notification model', () => {

@@ -1,4 +1,31 @@
 // ══════════════════════════════════════
+//  SCREEN
+// ══════════════════════════════════════
+
+// Contenedor con scroll de una pantalla completa.
+//
+// Reemplaza a `<ion-content [fullscreen]>`: era el unico elemento de Ionic
+// que la app usaba de verdad, y traia 158 kB de `@ionic/core` al bundle
+// inicial. Necesita un ancestro posicionado, que es el host de la pagina.
+.nq-screen {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--nq-bg);
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+// El host de una pagina que usa `.nq-screen`: le da el bloque posicionado
+// contra el que el contenedor se estira.
+.nq-page-host {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+// ══════════════════════════════════════
 //  GLOBAL COMPONENT CLASSES
 //  Los mixins viven en _mixins.scss — este archivo emite CSS
 //  y solo debe importarse UNA vez, desde styles.scss.
@@ -35,8 +62,8 @@
 .nq-field-input {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 14px;
+  gap: 12px;
+  padding: 0 16px;
   height: 52px;
   border: 1.5px solid var(--nq-border-solid);
   border-radius: var(--nq-radius-md);
@@ -167,7 +194,7 @@
 .nq-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: var(--nq-radius-full);
   font-size: 12px;
   font-weight: 600;
@@ -269,6 +296,13 @@
 // el resto de la pantalla quedaba a 20px.
 .nq-section {
   padding: 0;
+
+  // Ritmo vertical entre secciones. Sin esto dependian de que el ultimo
+  // bloque de la anterior trajera margen propio, y en Perfil quedaban
+  // literalmente pegadas: 0px entre "Cuenta" y "Mi entrenador".
+  & + & {
+    margin-top: 24px;
+  }
 }
 
 .nq-section-header {
@@ -289,7 +323,7 @@
 
 .nq-section-action {
   display: inline-flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   justify-content: flex-end;
   min-width: 44px;
@@ -392,9 +426,11 @@
     opacity: 1;
     visibility: visible;
     pointer-events: all;
-    transition:
-      opacity var(--nq-transition),
-      visibility 0s;
+    // Solo `opacity` transiciona al abrir. Declarar tambien `visibility 0s`
+    // crea una transicion que el navegador congela cuando la pestana no se
+    // esta pintando: al volver a ella el sheet quedaba abierto pero
+    // invisible y sin foco. Sin transicion, `visibility` cambia y punto.
+    transition: opacity var(--nq-transition);
 
     .nq-sheet {
       transform: translateY(0);
@@ -462,6 +498,37 @@
   color: var(--nq-text-secondary);
   line-height: 1.5;
   max-width: 260px;
+}
+
+// ══════════════════════════════════════
+//  PULL TO REFRESH
+// ══════════════════════════════════════
+
+// La directiva `nqPullToRefresh` no pinta nada: expone `--nq-pull` y conmuta
+// estas clases. El indicador se dibuja aqui para que viva con el resto del
+// design system y no duplicado en cada pagina.
+.nq-pulling,
+.nq-refreshing {
+  position: relative;
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-top: -32px;
+    content: '';
+    border: 2.5px solid var(--nq-border-solid);
+    border-top-color: var(--nq-primary-strong);
+    border-radius: 50%;
+    transform: translate(-50%, var(--nq-pull, 0px));
+  }
+}
+
+.nq-refreshing::before {
+  transform: translate(-50%, 48px);
+  animation: nq-spin 0.7s linear infinite;
 }
 
 // ══════════════════════════════════════

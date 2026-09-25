@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { toIsoDate } from '@app/domain/shared/model/date';
 import { Id } from '@app/domain/shared/model/ids';
+import { CLOCK } from '@app/domain/shared/port/clock.port';
 import { Assessment } from '@app/domain/students/model/assessment.model';
 import { AssessmentsPort } from '@app/domain/students/port/assessments.port';
 
@@ -11,6 +13,7 @@ import { SEED_ASSESSMENTS } from './seed/students.seed';
 
 @Injectable()
 export class AssessmentsMockAdapter implements AssessmentsPort {
+  private readonly clock = inject(CLOCK);
   private assessments: Assessment[] = cloneSeed(SEED_ASSESSMENTS) as Assessment[];
 
   /** Ordenadas de la mas reciente a la mas antigua. */
@@ -22,8 +25,13 @@ export class AssessmentsMockAdapter implements AssessmentsPort {
     return simulate(this.forStudent(studentId)[0] ?? null);
   }
 
-  create(input: Omit<Assessment, 'id'>): Observable<Assessment> {
-    const created: Assessment = { ...input, id: `asm-${Date.now()}` };
+  create(input: Omit<Assessment, 'id' | 'takenAt'>): Observable<Assessment> {
+    const ahora = this.clock.now();
+    const created: Assessment = {
+      ...input,
+      id: `asm-${ahora.getTime()}`,
+      takenAt: toIsoDate(ahora),
+    };
     this.assessments = [...this.assessments, created];
     return simulate(created);
   }

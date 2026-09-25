@@ -27,6 +27,11 @@ function keydown(key: string, shiftKey = false): KeyboardEvent {
   return new KeyboardEvent('keydown', { key, shiftKey, cancelable: true });
 }
 
+/** `TouchEvent` no existe en jsdom: basta con lo que la directiva lee. */
+function toque(y: number, target: EventTarget | null = null): TouchEvent {
+  return { touches: [{ clientY: y }], target } as unknown as TouchEvent;
+}
+
 describe('SheetTrapDirective', () => {
   let sheet: HTMLElement;
   let directive: SheetTrapDirective;
@@ -76,6 +81,69 @@ describe('SheetTrapDirective', () => {
 
       expect(dismissed).toHaveBeenCalled();
       expect(event.defaultPrevented).toBe(true);
+    });
+  });
+
+  describe('arrastre para descartar', () => {
+    it('sigue al dedo hacia abajo', () => {
+      directive.alEmpezar(toque(100, sheet));
+      directive.alMover(toque(180));
+
+      expect(directive.arrastre()).toBe(80);
+      expect(directive.arrastrando()).toBe(true);
+    });
+
+    it('no se estira hacia arriba', () => {
+      directive.alEmpezar(toque(100, sheet));
+      directive.alMover(toque(40));
+
+      expect(directive.arrastre()).toBe(0);
+    });
+
+    it('cierra al soltar pasado el umbral', () => {
+      const dismissed = jest.fn();
+      directive.dismissed.subscribe(dismissed);
+
+      directive.alEmpezar(toque(0, sheet));
+      directive.alMover(toque(140));
+      directive.alSoltar();
+
+      expect(dismissed).toHaveBeenCalled();
+      expect(directive.arrastre()).toBe(0);
+    });
+
+    it('vuelve a su sitio si se queda corto', () => {
+      const dismissed = jest.fn();
+      directive.dismissed.subscribe(dismissed);
+
+      directive.alEmpezar(toque(0, sheet));
+      directive.alMover(toque(40));
+      directive.alSoltar();
+
+      expect(dismissed).not.toHaveBeenCalled();
+      expect(directive.arrastre()).toBe(0);
+    });
+
+    // Desde un boton el dedo esta pulsando, no arrastrando el sheet.
+    it('no arranca desde un control', () => {
+      const boton = sheet.querySelector('#uno');
+
+      directive.alEmpezar(toque(0, boton));
+      directive.alMover(toque(200));
+
+      expect(directive.arrastre()).toBe(0);
+    });
+
+    it('cancelar descarta el gesto sin cerrar', () => {
+      const dismissed = jest.fn();
+      directive.dismissed.subscribe(dismissed);
+
+      directive.alEmpezar(toque(0, sheet));
+      directive.alMover(toque(200));
+      directive.cancelarArrastre();
+
+      expect(dismissed).not.toHaveBeenCalled();
+      expect(directive.arrastrando()).toBe(false);
     });
   });
 

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AppNotification,
   NotificationKind,
+  NotificationTarget,
 } from '@app/domain/notifications/model/notification.model';
 import { NotificationsPort } from '@app/domain/notifications/port/notifications.port';
 import { toIsoDate } from '@app/domain/shared/model/date';
@@ -18,7 +19,8 @@ interface NotificationSeed {
   readonly title: string;
   readonly body: string;
   readonly read: boolean;
-  readonly actionRoute: string | null;
+  readonly targetType: NotificationTarget | null;
+  readonly targetId: Id | null;
 }
 
 const SEEDS: readonly NotificationSeed[] = [
@@ -28,7 +30,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Tu sesión de hoy te espera',
     body: 'Tren inferior a las 18:00. Recuerda llegar 10 minutos antes.',
     read: false,
-    actionRoute: '/student/routine',
+    targetType: 'session',
+    targetId: 'wks-001',
   },
   {
     minutesAgo: 180,
@@ -36,7 +39,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Kelvin ajustó tu rutina',
     body: 'Subió la carga de sentadilla a 40 kg para este bloque.',
     read: false,
-    actionRoute: '/student/routine',
+    targetType: 'routine',
+    targetId: 'rtn-001',
   },
   {
     minutesAgo: 1_200,
@@ -44,7 +48,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Mensaje de tu entrenador',
     body: 'Buen trabajo esta semana. Sigamos con ese ritmo.',
     read: false,
-    actionRoute: null,
+    targetType: null,
+    targetId: null,
   },
   {
     minutesAgo: 2_880,
@@ -52,7 +57,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Evaluación física agendada',
     body: 'Quedó para el sábado a las 10:00.',
     read: true,
-    actionRoute: '/student/schedule',
+    targetType: 'assessment',
+    targetId: 'sch-002',
   },
   {
     minutesAgo: 4_320,
@@ -60,7 +66,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Completaste tu semana',
     body: 'Cerraste 4 de 4 sesiones. Excelente adherencia.',
     read: true,
-    actionRoute: '/student/progress',
+    targetType: 'photo',
+    targetId: 'pht-005',
   },
   {
     minutesAgo: 10_080,
@@ -68,7 +75,8 @@ const SEEDS: readonly NotificationSeed[] = [
     title: 'Bienvenida a Ñeque',
     body: 'Tu cuenta quedó activa. Revisa tu rutina para comenzar.',
     read: true,
-    actionRoute: null,
+    targetType: null,
+    targetId: null,
   },
 ];
 
@@ -88,7 +96,8 @@ export class NotificationsMockAdapter implements NotificationsPort {
       body: seed.body,
       createdAt: toIsoDate(new Date(now - seed.minutesAgo * 60_000)),
       readAt: seed.read ? toIsoDate(new Date(now - seed.minutesAgo * 60_000 + 60_000)) : null,
-      actionRoute: seed.actionRoute,
+      targetType: seed.targetType,
+      targetId: seed.targetId,
     }));
   }
 

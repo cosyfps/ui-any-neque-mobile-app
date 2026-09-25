@@ -1,5 +1,7 @@
 import { Id, IsoDateString } from '@app/domain/shared/model/ids';
 
+import { WorkoutSet } from './workout-set.model';
+
 export type WorkoutStatus = 'scheduled' | 'in_progress' | 'completed' | 'skipped';
 
 /** Etiquetas en espanol de cada estado. */
@@ -18,9 +20,12 @@ export interface WorkoutExerciseLog {
   readonly targetSets: number;
   readonly targetReps: number;
   readonly restSeconds: number;
+  /** Carga prescrita. Lo que el alumno levanto va en `sets`. */
   readonly weightKg: number | null;
   readonly completedSets: number;
   readonly done: boolean;
+  /** Series ejecutadas, en orden de registro. */
+  readonly sets: readonly WorkoutSet[];
 }
 
 /** Una sesion de entrenamiento agendada o ya realizada. */

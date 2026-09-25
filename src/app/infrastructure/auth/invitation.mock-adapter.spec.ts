@@ -2,9 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 
 import { AuthSession } from '@app/domain/auth/model/auth-user.model';
-import { InvitationDetails } from '@app/domain/auth/port/invitation.port';
+import { INVITATION_TTL_HOURS, InvitationDetails } from '@app/domain/auth/port/invitation.port';
 import { DomainError } from '@app/domain/shared/model/app-error';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { STUDENTS_PORT } from '@app/domain/students/port/students.port';
+
+import { StudentsMockAdapter } from '../students/students.mock-adapter';
 
 import { InvitationMockAdapter } from './invitation.mock-adapter';
 
@@ -25,7 +28,14 @@ describe('InvitationMockAdapter', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     TestBed.configureTestingModule({
-      providers: [InvitationMockAdapter, { provide: CLOCK, useValue: { now: () => NOW } }],
+      providers: [
+        InvitationMockAdapter,
+        // `create()` resuelve al alumno por el puerto, para ver tambien a los
+        // que se dieron de alta en la sesion y no solo a los de la semilla.
+        StudentsMockAdapter,
+        { provide: STUDENTS_PORT, useExisting: StudentsMockAdapter },
+        { provide: CLOCK, useValue: { now: () => NOW } },
+      ],
     });
     adapter = TestBed.inject(InvitationMockAdapter);
   });
@@ -106,6 +116,95 @@ describe('InvitationMockAdapter', () => {
       expect(resolve(adapter.accept('inv-expirada', VALID_PASSWORD)).error?.code).toBe(
         'invalid_invitation',
       );
+    });
+  });
+
+  describe('getForStudent()', () => {
+    it('devuelve la invitacion pendiente del alumno', () => {
+      const { value } = resolve<InvitationDetails | null>(adapter.getForStudent('std-002'));
+
+      expect(value?.token).toBe('inv-valida');
+    });
+
+    // Una invitacion ya aceptada no es una invitacion vigente.
+    it('devuelve null cuando la unica invitacion esta aceptada', () => {
+      const { value } = resolve<InvitationDetails | null>(adapter.getForStudent('std-001'));
+
+      expect(value).toBeNull();
+    });
+  });
+
+  describe('create()', () => {
+    it('emite una invitacion vigente por las horas del TTL', () => {
+      const { value } = resolve<InvitationDetails>(adapter.create('std-001'));
+
+      expect(value?.status).toBe('pending');
+      expect(value?.email).toBe('ana@neque.cl');
+      expect(value?.expiresAt).toBe(
+        new Date(NOW.getTime() + INVITATION_TTL_HOURS * 60 * 60 * 1000).toISOString(),
+      );
+    });
+
+    // Reemitir sin revocar dejaria dos enlaces validos a la vez.
+    it('revoca la invitacion pendiente anterior del alumno', () => {
+      resolve<InvitationDetails>(adapter.create('std-002'));
+
+      expect(resolve<InvitationDetails>(adapter.resolve('inv-valida')).error?.code).toBe(
+        'invalid_invitation',
+      );
+    });
+
+    it('deja una sola invitacion vigente tras reemitir', () => {
+      const { value: emitida } = resolve<InvitationDetails>(adapter.create('std-002'));
+
+      const { value } = resolve<InvitationDetails | null>(adapter.getForStudent('std-002'));
+      expect(value?.token).toBe(emitida?.token);
+    });
+
+    // El alta y la invitacion son un solo gesto: leer la semilla en vez del
+    // puerto dejaba sin invitacion a todo alumno creado en la sesion.
+    it('invita a un alumno dado de alta en esta sesion', () => {
+      const students = TestBed.inject(StudentsMockAdapter);
+      let creado = '';
+      students
+        .create({
+          trainerId: 'trn-001',
+          firstName: 'Valentina',
+          lastName: 'Núñez',
+          email: 'vale@neque.cl',
+          phone: null,
+          birthDate: null,
+          heightCm: null,
+          goal: null,
+        })
+        .subscribe(student => (creado = student.id));
+      jest.runAllTimers();
+
+      const { value } = resolve<InvitationDetails>(adapter.create(creado));
+
+      expect(value?.studentName).toBe('Valentina Núñez');
+      expect(value?.email).toBe('vale@neque.cl');
+    });
+
+    it('falla con un alumno desconocido', () => {
+      const { error } = resolve<InvitationDetails>(adapter.create('std-999'));
+
+      expect(error?.code).toBe('not_found');
+    });
+  });
+
+  describe('revoke()', () => {
+    it('inutiliza el token revocado', () => {
+      resolve<void>(adapter.revoke('inv-valida'));
+
+      const { error } = resolve<InvitationDetails>(adapter.resolve('inv-valida'));
+      expect(error?.message).toContain('ya no es válida');
+    });
+
+    it('falla con un token desconocido', () => {
+      const { error } = resolve<void>(adapter.revoke('inv-inexistente'));
+
+      expect(error?.code).toBe('not_found');
     });
   });
 

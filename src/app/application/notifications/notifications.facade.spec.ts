@@ -20,7 +20,8 @@ const notification = (id: string, daysAgo: number, read: boolean): AppNotificati
   body: 'Cuerpo',
   createdAt: toIsoDate(addDays(NOW, -daysAgo)),
   readAt: read ? toIsoDate(NOW) : null,
-  actionRoute: null,
+  targetType: null,
+  targetId: null,
 });
 
 const ITEMS: AppNotification[] = [

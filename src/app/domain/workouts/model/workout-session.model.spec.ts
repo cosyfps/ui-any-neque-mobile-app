@@ -17,6 +17,7 @@ const log = (overrides: Partial<WorkoutExerciseLog> = {}): WorkoutExerciseLog =>
   weightKg: 40,
   completedSets: 0,
   done: false,
+  sets: [],
   ...overrides,
 });
 

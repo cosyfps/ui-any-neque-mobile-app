@@ -8,10 +8,7 @@ import { Id, IsoDateString } from '@app/domain/shared/model/ids';
  */
 export type StudentStatus = 'active' | 'suspended';
 
-/**
- * Alumno. En la interfaz se dice "alumno"; el nombre tecnico historico del
- * repo es Client y se mantiene solo en `/trainer/clients`.
- */
+/** Alumno. Se dice "alumno" en la interfaz y en el codigo: no queda Client. */
 export interface Student {
   readonly id: Id;
   readonly trainerId: Id;
@@ -20,7 +17,7 @@ export interface Student {
    *
    * Es la forma que devuelve el BFF: la ficha del alumno viene con el nombre
    * resuelto para no obligar a la app a una segunda llamada solo para pintar
-   * una linea. La feature completa de entrenadores llega en la Epica 9.
+   * una linea.
    */
   readonly trainerName: string;
   readonly firstName: string;

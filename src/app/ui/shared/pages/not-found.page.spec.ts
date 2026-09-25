@@ -73,7 +73,7 @@ describe('NotFoundPage', () => {
 
     it('lleva al entrenador a su dashboard', () => {
       createPage(sessionFor('trainer')).goHome();
-      expect(router.navigate).toHaveBeenCalledWith(['/trainer/dashboard']);
+      expect(router.navigate).toHaveBeenCalledWith(['/trainer/home']);
     });
   });
 });

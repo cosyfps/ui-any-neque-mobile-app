@@ -17,7 +17,8 @@ const notification = (
   id: string,
   minutesAgo: number,
   read: boolean,
-  actionRoute: string | null = null,
+  targetType: AppNotification['targetType'] = null,
+  targetId: string | null = null,
 ): AppNotification => ({
   id,
   userId: 'usr-1',
@@ -26,10 +27,11 @@ const notification = (
   body: 'Cuerpo',
   createdAt: toIsoDate(new Date(NOW.getTime() - minutesAgo * 60_000)),
   readAt: read ? toIsoDate(NOW) : null,
-  actionRoute,
+  targetType,
+  targetId,
 });
 
-const ITEMS = [notification('n1', 25, false, '/student/routine'), notification('n2', 180, true)];
+const ITEMS = [notification('n1', 25, false, 'routine', 'rtn-1'), notification('n2', 180, true)];
 
 describe('StudentNotificationsPage', () => {
   let page: StudentNotificationsPage;
