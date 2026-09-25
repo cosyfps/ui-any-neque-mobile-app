@@ -5,9 +5,18 @@ Descomposición del trabajo en **épicas → historias → tickets**. La regla o
 plantillas, configuración del repo), que se trabajan directo sobre `develop`
 (ver [`CONTRIBUTING.md`](../CONTRIBUTING.md)).
 
-Ñeque es una app de entrenadores personales. Hoy solo existe la UI de login (sin backend),
-recuperación de contraseña (simulada) y un dashboard de entrenador con datos placeholder;
-los módulos de clientes, rutinas y perfil son alias temporales al mismo `DashboardPage`.
+Ñeque es una app de entrenadores personales, **invitation-only**: solo un entrenador crea
+cuentas de alumnos.
+
+**Estado a 2026-09-18.** El código sigue **arquitectura hexagonal por `{capa}/{feature}`**
+y la **app del Alumno está completa y navegable** contra adapters mock: login por rol,
+invitación, home con IMC y progreso semanal, rutina con ejecución paso a paso, progreso
+con gráficos y fotos, agenda y notificaciones. El shell del entrenador sigue siendo un
+alias a `DashboardPage` — se aborda en la Épica 9. La conexión al BFF es la Épica 10.
+
+> Nota de proceso: en las Épicas 7 y 8 se trabajó **una rama por historia** en vez de una
+> por ticket. Los tickets de una misma HU tocan los mismos archivos y no se podían aislar
+> en commits separados sin `git add -p`.
 
 ---
 
@@ -120,12 +129,28 @@ no por `NaN`.
 
 ---
 
-## ÉPICA 1 — Autenticación real (Supabase)
+## ÉPICA 1 — Autenticación real (Supabase) — **re-encuadrada**
+
+> ⚠️ **Esta épica quedó superada (2026-09-17).** Se descartó que la app hable directo
+> con Supabase: hablará con un **BFF propio**, y hasta que exista se trabaja contra
+> adapters mock detrás de puertos. El alcance funcional se cumplió en la **Épica 7**.
+>
+> | Ticket  | Estado                                                        |
+> | ------- | ------------------------------------------------------------- |
+> | T-1.1.1 | ❌ **Descartado.** No se instala `@supabase/supabase-js`.     |
+> | T-1.1.2 | ➡️ Absorbido por T-7.3.1 / T-7.3.2 / T-7.3.3.                 |
+> | T-1.2.1 | ➡️ Absorbido por T-7.3.4.                                     |
+> | T-1.2.2 | ➡️ Absorbido por T-7.3.5 (guard por rol, no solo por sesión). |
+> | T-1.3.1 | ➡️ Absorbido por T-7.3.6.                                     |
+>
+> Las claves `supabaseUrl`/`supabaseAnonKey` de `environments/` quedan como código
+> muerto hasta la Épica 10, que las reemplaza por `apiBaseUrl`.
+
+<details>
+<summary>Contenido original de la épica</summary>
 
 > _Roadmap inferido de los `// TODO: wire to auth service` existentes y del scaffolding
-> vacío de `supabaseUrl`/`supabaseAnonKey` en `environments/`. Ajustar historias y
-> tickets cuando confirmes el alcance funcional exacto — por ejemplo, quién crea las
-> cuentas de entrenador, dado que `StartPage` dice hoy "This is an invitation-only app."_
+> vacío de `supabaseUrl`/`supabaseAnonKey` en `environments/`._
 >
 > **Definición de terminado:** `StartPage.onLogin()` y el flujo completo de
 > `ForgotPasswordPage` llaman a un servicio de auth real; `/trainer` está protegido por
@@ -150,6 +175,8 @@ no por `NaN`.
 | Ticket  | Rama                                         | Qué hace                                                                                                                |
 | ------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | T-1.3.1 | `feat/NEQUE-1.3.1-wire-forgot-password-flow` | `onSendCode`/`onVerifyOtp`/`resendCode` contra `AuthService` en vez de los `setTimeout` simulados actuales. **+ spec.** |
+
+</details>
 
 ---
 
@@ -353,18 +380,309 @@ no por `NaN`.
 
 ---
 
+---
+
+## ÉPICA 7 — Arquitectura hexagonal, sesión por rol e invitación
+
+> **Decisión (2026-09-17).** El código se organiza por **`{capa}/{feature}`**, no por
+> vertical slicing: `domain/`, `application/`, `infrastructure/` y `ui/`. Así un caso de
+> uso puede componer puertos de varias features sin duplicar código ni crear
+> dependencias entre slices.
+>
+> Mientras no exista el BFF, cada puerto tiene un **adapter mock en memoria**. Conectar
+> el backend es reemplazar `provideMockData()` / `provideStudentMockData()` por sus
+> equivalentes HTTP: **ningún archivo de `domain/`, `application/` ni `ui/` cambia**.
+>
+> **Definición de terminado:** no queda `src/app/pages` ni `src/app/shared`; el login
+> único resuelve el rol y redirige; ambos shells están protegidos por guard;
+> `/invite/:token` permite al alumno establecer su contraseña.
+
+### Regla de dependencias entre capas
+
+| Capa              | Puede importar de         | Nunca importa de                                |
+| ----------------- | ------------------------- | ----------------------------------------------- |
+| `domain/`         | solo de `domain/`         | application, infrastructure, ui                 |
+| `application/`    | `domain/`                 | infrastructure, ui                              |
+| `infrastructure/` | `domain/`                 | application, ui                                 |
+| `ui/`             | `domain/`, `application/` | infrastructure, salvo los `provide*()` en rutas |
+
+Una facade puede inyectar varios puertos y **una sola otra facade: `SessionFacade`**.
+
+### HU-7.0 — Documentación
+
+Tickets sin cambio de lógica: van directo sobre `develop`, sin rama propia.
+
+| Ticket  | Rama                | Qué hace                                                                             |
+| ------- | ------------------- | ------------------------------------------------------------------------------------ |
+| T-7.0.1 | `develop` (directo) | Épicas 7 y 8 en este documento; re-encuadre de la Épica 1 y reserva de la 9 y la 10. |
+| T-7.0.2 | `develop` (directo) | `docs/tickets/epica-7/` y `epica-8/`: un archivo por ticket, con criterios escritos. |
+
+### HU-7.1 — Migración de estructura
+
+| Ticket  | Rama                                              | Qué hace                                                                               |
+| ------- | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| T-7.1.1 | `chore/NEQUE-7.1.1-wire-path-aliases-jest-eslint` | `moduleNameMapper` de `@app/@env/@shared` en Jest y `pathGroups` en `import/order`.    |
+| T-7.1.2 | `refactor/NEQUE-7.1.2-move-shared-to-ui-shared`   | `src/app/shared` → `src/app/ui/shared`; actualiza `styles.scss` y `tsconfig`.          |
+| T-7.1.3 | `refactor/NEQUE-7.1.3-move-pages-to-ui`           | `pages/start` y `pages/forgot-password` → `ui/auth/`; `pages/trainer` → `ui/trainer/`. |
+| T-7.1.4 | `refactor/NEQUE-7.1.4-adopt-path-aliases-in-ui`   | Imports cruzados pasan a `@app/…` / `@shared/…`.                                       |
+| T-7.1.5 | `refactor/NEQUE-7.1.5-split-theme-mixins`         | Separa `_mixins.scss` de `_components.scss`. Ver nota abajo.                           |
+| T-7.1.6 | `develop` (directo)                               | `CONTRIBUTING.md` y `README.md` a la estructura hexagonal y los patrones de test.      |
+
+**Por qué T-7.1.5.** `_components.scss` mezclaba 3 mixins con ~555 líneas de CSS global.
+Cada `@use` de una página inyectaba **todo** ese CSS en su estilo scopeado:
+`start.page.scss` compilaba a 12.44 kB desde 4.0 kB de fuente y dos páginas ya excedían
+el budget de 8 kB. Con ~15 pantallas nuevas habrían sido ~150 kB de CSS duplicado.
+
+### HU-7.2 — Núcleo compartido
+
+| Ticket  | Rama                                    | Qué hace                                                                                               |
+| ------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| T-7.2.1 | `feat/NEQUE-7.2.1-domain-shared-kernel` | `Id`, `IsoDateString`, `DateRange`, `DomainError`, helpers de fecha puros y puerto `CLOCK`.            |
+| T-7.2.2 | `feat/NEQUE-7.2.2-async-state`          | `AsyncState<T>`: **único** lugar con loading/error/empty. `viewState()` mapea 1:1 a `<nq-page-state>`. |
+| T-7.2.3 | `feat/NEQUE-7.2.3-mock-infra-kit`       | `simulate`, `simulateError`, `cloneSeed`, `SystemClock`, `provideMockData()`.                          |
+
+`CLOCK` existe para que nada dependa de `new Date()`: los tests inyectan un reloj fijo
+en vez de usar fake timers en cada constructor.
+
+### HU-7.3 — Auth por rol
+
+| Ticket  | Rama                                         | Qué hace                                                                                       |
+| ------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| T-7.3.1 | `feat/NEQUE-7.3.1-auth-domain-port`          | `AuthUser/AuthSession/Credentials`, `AUTH_PORT`, `SESSION_STORAGE_PORT`, `homeRouteForRole()`. |
+| T-7.3.2 | `feat/NEQUE-7.3.2-auth-mock-adapter`         | Cuentas semilla de entrenador y alumno; sesión en `localStorage`.                              |
+| T-7.3.3 | `feat/NEQUE-7.3.3-session-facade`            | `SessionFacade` con `role`, `profileId`, `login/restore/signOut`.                              |
+| T-7.3.4 | `feat/NEQUE-7.3.4-wire-start-page-login`     | `StartPage.onLogin()` contra el puerto; error con `.nq-field-error`; redirect por rol.         |
+| T-7.3.5 | `feat/NEQUE-7.3.5-role-guards`               | `authGuard`, `roleGuard(role)` y `publicOnlyGuard` con `canMatch`.                             |
+| T-7.3.6 | `feat/NEQUE-7.3.6-wire-forgot-password-flow` | Los 3 `setTimeout` simulados pasan a `AUTH_PORT`.                                              |
+| T-7.3.7 | `feat/NEQUE-7.3.7-not-found-route`           | Ruta `**` con CTA según sesión y rol.                                                          |
+
+**`AuthUser.profileId`** viaja en la sesión a propósito: evita que cada feature necesite
+un `getByUserId` propio para resolver el alumno o el entrenador autenticado.
+
+### HU-7.4 — Invitación `/invite/:token`
+
+| Ticket  | Rama                                          | Qué hace                                                                 |
+| ------- | --------------------------------------------- | ------------------------------------------------------------------------ |
+| T-7.4.1 | `feat/NEQUE-7.4.1-invitation-domain-port`     | `InvitationDetails` + `INVITATION_PORT`.                                 |
+| T-7.4.2 | `feat/NEQUE-7.4.2-invitation-mock-adapter`    | Tres tokens semilla: válido, expirado y ya usado.                        |
+| T-7.4.3 | `refactor/NEQUE-7.4.3-extract-password-rules` | Las 4 reglas de password salen de `StartPage` a `ui/shared/validators/`. |
+| T-7.4.4 | `feat/NEQUE-7.4.4-invite-page-scaffold`       | Ruta pública con estados `loading/error/success`.                        |
+| T-7.4.5 | `feat/NEQUE-7.4.5-invite-set-password-submit` | Password + confirmación, auto-login y redirect al home del alumno.       |
+
+Para probar a mano: `/invite/inv-valida`, `/invite/inv-expirada`, `/invite/inv-usada`.
+
+### HU-7.5 — Outlet de rutas
+
+| Ticket  | Rama                                        | Qué hace                                                                  |
+| ------- | ------------------------------------------- | ------------------------------------------------------------------------- |
+| T-7.5.1 | `fix/NEQUE-7.5.1-use-angular-router-outlet` | `<ion-router-outlet>` → `<router-outlet>` en el shell y en ambos layouts. |
+
+**Por qué.** `ion-router-outlet` mantiene una pila pensada para push/pop. Con el tab bar
+propio de Ñeque dejaba la página entrante en `ion-page-invisible` de forma permanente
+—tras el login la app se veía congelada en el formulario— y al navegar entre pestañas
+apilaba todas las visitadas mostrándolas a la vez. Las transiciones visuales las aportan
+las animaciones `nq-ani` del design system. Efecto secundario: el bundle inicial bajó de
+514.76 kB a **492.11 kB**, por debajo del budget de 500 kB que `develop` ya excedía.
+
+---
+
+## ÉPICA 8 — App del Alumno
+
+> **Definición de terminado:** el alumno autenticado navega `/student` con 4 pestañas
+> (Inicio, Mi rutina, Progreso, Perfil), ve su IMC y su progreso semanal, ejecuta una
+> sesión paso a paso con temporizador de descanso, marca ejercicios y sesiones, consulta
+> y compara fotos, y revisa su agenda y sus notificaciones — todo contra adapters mock.
+
+### Decisiones funcionales
+
+- Las métricas del Home se limitan a lo que el backlog puede alimentar: **IMC** (de la
+  última evaluación física), **progreso semanal** y **último/próximos entrenamientos**.
+  Pulso, agua, sueño y calorías quedan fuera: exigen un wearable que no existe.
+- Los puertos y adapters del alumno se registran en `providers` de la ruta `/student`
+  para que viajen en su chunk lazy. **Las facades del alumno también**: dependen de esos
+  puertos, así que `providedIn: 'root'` las rompe en tiempo de ejecución.
+- Los gráficos son SVG inline propios (`<nq-bar-chart>`, `<nq-line-chart>`,
+  `<nq-ring-progress>`), sin librerías. Toda la matemática vive en `chart-math.ts`.
+
+| HU                   | Tickets           | Contenido                                                                                       |
+| -------------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
+| 8.1 Shell            | T-8.1.1           | `StudentLayoutPage` con las 4 pestañas y `canMatch: [roleGuard('student')]`.                    |
+| 8.2 Dominio y datos  | T-8.2.1 … T-8.2.7 | Modelos y puertos de alumnos, evaluaciones, rutinas, catálogo y sesiones; adapters mock.        |
+| 8.3 Home             | T-8.3.1 … T-8.3.7 | `StudentProfileFacade`, `WorkoutFacade`, `<nq-workout-card>`, `<nq-bar-chart>`, tarjeta de IMC. |
+| 8.4 Mi rutina        | T-8.4.1 … T-8.4.4 | Selector de día, check por ejercicio y modal de celebración.                                    |
+| 8.5 Ejecutar sesión  | T-8.5.1 … T-8.5.4 | `WorkoutRunnerFacade` (`idle/exercise/rest/summary`), `/student/workout/:id`, resumen final.    |
+| 8.6 Progreso y fotos | T-8.6.1 … T-8.6.7 | `ProgressFacade` multi-feature, `<nq-line-chart>`, galería y comparador.                        |
+| 8.7 Agenda           | T-8.7.1 … T-8.7.5 | `buildMonthGrid()` puro, calendario en CSS grid, detalle del día.                               |
+| 8.8 Notificaciones   | T-8.8.1 … T-8.8.4 | Agrupación hoy/semana/antes, `unreadCount` computed y badge en el Home.                         |
+| 8.9 Perfil           | T-8.9.1, T-8.9.2  | Datos, entrenador asignado, accesos y cierre de sesión con confirmación.                        |
+
+### Cuentas y datos de prueba
+
+| Rol        | Correo            | Contraseña     |
+| ---------- | ----------------- | -------------- |
+| Entrenador | `kelvin@neque.cl` | `Entrenador1!` |
+| Alumno     | `ana@neque.cl`    | `Alumno1234!`  |
+
+Código OTP del flujo de recuperación: `123456`. El historial de sesiones se genera
+relativo al reloj inyectado, así que el Home siempre muestra "hoy" y "próximos" con
+sentido; los tests usan un reloj fijo y siguen siendo deterministas.
+
+---
+
+## ÉPICA 9 — App del Entrenador (reservada)
+
+> Amplía `/trainer` con la gestión de alumnos, rutinas y perfil descrita en las
+> Épicas 2–5, reutilizando los puertos ya definidos: `STUDENTS_PORT`, `ASSESSMENTS_PORT`,
+> `ROUTINES_PORT` y `WORKOUTS_PORT` ya declaran los métodos de escritura que necesita,
+> así que **extiende adapters en vez de rehacer puertos**.
+
+## ÉPICA 10 — Conexión al BFF (reservada)
+
+> Agrega `provideHttpClient(withFetch())` y adapters HTTP contra el BFF NestJS. El
+> criterio de aceptación es que **ningún archivo de `domain/`, `application/` ni `ui/`
+> cambie**.
+
+## ÉPICA 11 — Correcciones de auditoría
+
+> **Se ejecuta antes que la 9 y la 10.** El número identifica, no ordena.
+>
+> Cierra los hallazgos bloqueantes y de accesibilidad de
+> [`docs/auditoria/2026-09-18-auditoria-app-alumno.md`](auditoria/2026-09-18-auditoria-app-alumno.md),
+> que cerró en ❌ NO APROBADO con 45 hallazgos sobre 12 pantallas y 5 componentes.
+>
+> **DoD:** las cinco categorías del informe en verde, contraste AA en toda pantalla,
+> ningún control interactivo bajo 44×44, y el recorrido del alumno navegable con teclado.
+
+### Decisiones tomadas
+
+| #   | Decisión                                                                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Alcance: bloqueantes + accesibilidad. El resto queda documentado como tickets pendientes de esta misma épica.                   |
+| 2   | Contraste por token nuevo `--nq-primary-strong` (#0f766e). `--nq-primary` (#2cb5a0) sigue siendo la marca en fondos y gráficos. |
+| 3   | La recuperación de contraseña gana su paso 3: verificar el OTP deja de abrir sesión.                                            |
+| 4   | Una rama por historia, como en las Épicas 7 y 8.                                                                                |
+
+### HU-11.0 — Documentación (directo en `develop`, sin rama)
+
+| Ticket   | Qué hace                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------- |
+| T-11.0.1 | Épica 11 en este backlog, con el cruce al informe de auditoría.                             |
+| T-11.0.2 | `docs/tickets/epica-11/` con README y un `.md` por ticket, incluidos los diferidos.         |
+| T-11.0.3 | Regla de uso de `--nq-primary` vs `--nq-primary-strong` en `CLAUDE.md` y `CONTRIBUTING.md`. |
+
+### HU-11.1 — Design system: contraste, targets y grid
+
+Rama: `fix/NEQUE-11.1-design-system-contraste-targets`
+
+| Ticket   | Hallazgo | Qué hace                                                                                                                         |
+| -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| T-11.1.1 | T-3      | Tokens: `--nq-primary-strong` (5.50:1), `--nq-text-muted` a #647976 (4.66:1), `--nq-danger` a #c62828, `--nq-warning` a #b45309. |
+| T-11.1.2 | T-3      | Aplicación en el theme, los 10 `.scss` de página y los tres gráficos. `nq-btn-gradient` pasa a fondo sólido.                     |
+| T-11.1.3 | T-2      | Mixins `nq-tap-target` y `nq-tap-halo` sobre los 12 controles bajo 44×44.                                                        |
+| T-11.1.4 | T-1      | `.nq-section` y `.nq-tabs` sin padding lateral: dentro de `.page` quedaban al doble.                                             |
+| T-11.1.5 | —        | Baja 18 clases globales muertas y el `nq-scroll` inerte de seis páginas.                                                         |
+
+### HU-11.2 — Bugs funcionales bloqueantes
+
+Rama: `fix/NEQUE-11.2-bugs-bloqueantes`
+
+| Ticket   | Hallazgo | Qué hace                                                                                     |
+| -------- | -------- | -------------------------------------------------------------------------------------------- |
+| T-11.2.1 | PR-1     | `Student.trainerName` denormalizado: el Perfil mostraba "Kelvin Moreno" fijo a todo alumno.  |
+| T-11.2.2 | W-1      | `saving` pasa de `computed(() => false)` a `signal`: el botón del runner guardaba dos veces. |
+| T-11.2.3 | P-2      | La pestaña Fotos deja de depender del estado de las evaluaciones.                            |
+| T-11.2.4 | P-1      | Confirmación antes de borrar una foto.                                                       |
+| T-11.2.5 | S-1      | El login deja de exigir composición de contraseña.                                           |
+
+### HU-11.3 — Scroll en pantallas de alto fijo
+
+Rama: `fix/NEQUE-11.3-scroll-start-runner`
+
+| Ticket   | Hallazgo | Qué hace                                                                                        |
+| -------- | -------- | ----------------------------------------------------------------------------------------------- |
+| T-11.3.1 | S-2      | Panel de login con scroll propio, anclado al viewport y a pantalla completa bajo 700px de alto. |
+| T-11.3.2 | W-3      | El runner deja de recortar la fase `exercise` en pantallas bajas.                               |
+
+### HU-11.4 — Accesibilidad transversal
+
+Rama: `fix/NEQUE-11.4-accesibilidad`
+
+| Ticket   | Hallazgo | Qué hace                                                                                     |
+| -------- | -------- | -------------------------------------------------------------------------------------------- |
+| T-11.4.1 | T-6      | `:focus-visible` global más el anillo del contenedor de inputs.                              |
+| T-11.4.2 | T-4      | `role="status"`/`role="alert"` en `<nq-page-state>` y región viva para las fases del runner. |
+| T-11.4.3 | T-5      | Bloque `prefers-reduced-motion`.                                                             |
+| T-11.4.4 | R-1      | `SheetTrapDirective`: foco al abrir, trampa de Tab y cierre con `Escape` en los tres sheets. |
+| T-11.4.5 | T-9      | `.nq-section-title` de `<span>` a `<h2>`.                                                    |
+| T-11.4.6 | S-3…SC-2 | Nombres accesibles: campanita con contador, progressbars con rango, día con fecha completa.  |
+| T-11.4.7 | P-3      | El uploader de fotos entra en el orden de tabulación.                                        |
+
+### HU-11.5 — Paso de contraseña nueva en la recuperación
+
+Rama: `feat/NEQUE-11.5-reset-password-step`
+
+| Ticket   | Hallazgo | Qué hace                                                                                      |
+| -------- | -------- | --------------------------------------------------------------------------------------------- |
+| T-11.5.1 | F-1      | `verifyOtp()` devuelve un `PasswordResetTicket` de un solo uso y se agrega `resetPassword()`. |
+| T-11.5.2 | F-1      | Tercer paso en `/forgot-password` con reglas de contraseña, confirmación y auto-login.        |
+
+### HU-11.6 — Hallazgos diferidos
+
+Rama: `fix/NEQUE-11.6-hallazgos-diferidos`
+
+**Cerrados en la segunda tanda (15):** CH-1 (`track` duplicado en `nq-bar-chart`), I-4
+(`/invite/:token` sin `publicOnlyGuard`), L-1 (pestaña activa en Notificaciones y Agenda),
+N-1 ("Volver" respeta el origen), SC-1 (Confirmar con estado de carga), W-2 (confirmación
+al salir del runner), P-4 (feedback al subir foto), P-5 (peso vacío como guion), H-1
+(nombre con esqueleto en vez de respaldo falso), H-4 (se elimina el modo `upcoming`
+muerto), A-2 (estilos inline del esqueleto), T-10 (`CLOCK` en vez de `new Date()`), T-12
+(`safe-area-inset-top`), I-1 (adapter fuera de `invite.page.ts`) y G-1 (portrait-only real
+en web y en nativo).
+
+> **G-1 destapó que el bloqueo de horizontal nunca había funcionado.** `ion-app` lleva la
+> clase `ion-page` y su `display: flex` ganaba por especificidad al selector de elemento,
+> así que la app nunca se ocultaba y el aviso de rotar quedaba pintado debajo, fuera de
+> pantalla. La auditoría lo había dado por bueno leyendo el CSS.
+
+**Pendientes (6):** todos llevan una decisión de diseño detrás.
+
+| Hallazgo | Qué falta                                                        |
+| -------- | ---------------------------------------------------------------- |
+| T-7      | Traducir `StartPage` y `ForgotPasswordPage` al español.          |
+| T-8      | Normalizar la escala de espaciado y el piso tipográfico de 12px. |
+| T-11     | Pull-to-refresh en las listas.                                   |
+| T-14     | Migrar los `@Input()` con setter a `input()` de Angular 17.      |
+| PR-2     | Gesto de arrastre del bottom sheet, o retirar el asa.            |
+| P-6      | Comparador de fotos arrastrable, o corregir el ticket T-8.6.7.   |
+
 ## Resumen
 
-| Épica                          | Historias | Tickets | PRs                                   |
-| ------------------------------ | --------- | ------- | ------------------------------------- |
-| 0 — Fundación y CI real        | 3         | 16      | 10 (2 sin PR, 4 directo en `develop`) |
-| 1 — Autenticación real         | 3         | 5       | 5                                     |
-| 2 — Gestión de Alumnos         | 8         | 19      | 19                                    |
-| 3 — Módulo Rutinas             | 3         | 6       | 6                                     |
-| 4 — Perfil del Entrenador      | 1         | 2       | 2                                     |
-| 5 — Dashboard con datos reales | 1         | 1       | 1                                     |
-| 6 — Release v1.0.0             | 3         | 6       | 6 (5 a `develop` + 1 a `main`)        |
-| **Total**                      | **22**    | **55**  | **49 (47 a `develop` + 2 a `main`)**  |
+| Épica                              | Historias | Tickets | Estado                                |
+| ---------------------------------- | --------- | ------- | ------------------------------------- |
+| 0 — Fundación y CI real            | 3         | 16      | ✅ salvo 3 tickets de git/GitHub      |
+| 1 — Autenticación real (Supabase)  | 3         | 5       | ❌ re-encuadrada → absorbida por la 7 |
+| 2 — Gestión de Alumnos             | 8         | 19      | ⬜ pasa a la Épica 9                  |
+| 3 — Módulo Rutinas                 | 3         | 6       | ⬜ pasa a la Épica 9                  |
+| 4 — Perfil del Entrenador          | 1         | 2       | ⬜ pasa a la Épica 9                  |
+| 5 — Dashboard con datos reales     | 1         | 1       | ⬜ pasa a la Épica 9                  |
+| 6 — Release v1.0.0                 | 3         | 6       | ⬜ al final                           |
+| **7 — Arquitectura hexagonal**     | **6**     | **24**  | ✅                                    |
+| **8 — App del Alumno**             | **9**     | **41**  | ✅                                    |
+| 9 — App del Entrenador             | —         | —       | ⬜ reservada                          |
+| 10 — Conexión al BFF               | —         | —       | ⬜ reservada                          |
+| **11 — Correcciones de auditoría** | **7**     | **45**  | ✅ 39 hechos · 6 diferidos            |
+
+**El número de épica identifica, no ordena.** La Épica 11 se ejecuta antes que la 9 y la
+10; la Épica 6 (release) queda al final, después de todas, pese a llevar un número menor.
+
+### Estado del código (2026-09-18)
+
+| Métrica                             | Valor                                                   |
+| ----------------------------------- | ------------------------------------------------------- |
+| Tests                               | 761 en 53 suites                                        |
+| Cobertura                           | 98.84 / 87.97 / 98.31 / 98.81 (stmts/branch/func/lines) |
+| Bundle inicial                      | 495.19 kB — bajo el budget de 500 kB, sin warnings      |
+| `lint`, `typecheck`, `format:check` | limpios                                                 |
 
 ### Orden de ejecución
 
@@ -496,6 +814,33 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 | 54  | T-6.3.1 | `chore/NEQUE-6.3.1-version-bump-changelog`    | ⬜     |
 | 55  | T-6.3.2 | `release/1.0.0` → `main` + tag `v1.0.0`       | ⬜     |
 
+### Épica 7 — Arquitectura hexagonal
+
+Se trabajó **una rama por historia**, no una por ticket: los tickets de una misma HU
+tocan los mismos archivos y no se podían aislar en commits separados sin `add -p`.
+
+| #   | Historia | Rama                                               | Estado |
+| --- | -------- | -------------------------------------------------- | ------ |
+| 56  | HU-7.1   | `refactor/NEQUE-7.1-hexagonal-structure-migration` | ✅     |
+| 57  | HU-7.2   | `feat/NEQUE-7.2-shared-kernel`                     | ✅     |
+| 58  | HU-7.3   | `feat/NEQUE-7.3-auth-por-rol`                      | ✅     |
+| 59  | HU-7.4   | `feat/NEQUE-7.4-invitacion`                        | ✅     |
+| 60  | HU-7.5   | `fix/NEQUE-7.5-angular-router-outlet`              | ✅     |
+
+### Épica 8 — App del Alumno
+
+| #   | Historia | Rama                                   | Estado |
+| --- | -------- | -------------------------------------- | ------ |
+| 61  | HU-8.1   | `feat/NEQUE-8.1-student-shell`         | ✅     |
+| 62  | HU-8.2   | `feat/NEQUE-8.2-student-domain-data`   | ✅     |
+| 63  | HU-8.3   | `feat/NEQUE-8.3-student-home`          | ✅     |
+| 64  | HU-8.4   | `feat/NEQUE-8.4-student-routine`       | ✅     |
+| 65  | HU-8.5   | `feat/NEQUE-8.5-workout-runner`        | ✅     |
+| 66  | HU-8.6   | `feat/NEQUE-8.6-student-progress`      | ✅     |
+| 67  | HU-8.7   | `feat/NEQUE-8.7-student-schedule`      | ✅     |
+| 68  | HU-8.8   | `feat/NEQUE-8.8-student-notifications` | ✅     |
+| 69  | HU-8.9   | `feat/NEQUE-8.9-student-profile`       | ✅     |
+
 ---
 
 ## Componentes que se reutilizan tal cual
@@ -506,6 +851,35 @@ Antes de que existiera este documento ya se mergearon 4 PRs a mano, sin ticket
 - **Keyframes:** `nq-fade-up`, `nq-spin`, `nq-shimmer`.
 - **Patrones:** `toSignal(NavigationEnd)` de `trainer-layout.page.ts` (tab bar activa) y
   `page-state.component.ts` (loading/error/empty/offline).
+
+### Agregados en las Épicas 7 y 8
+
+- **Componentes:** `<nq-workout-card>` (modos `progress` y `upcoming`), `<nq-bar-chart>`,
+  `<nq-line-chart>`, `<nq-ring-progress>`.
+- **Mixin de shell:** `nq-shell` en `ui/shared/theme/_shell.scss`, compartido por los
+  layouts de entrenador y alumno. Es mixin y no clase global para que el CSS viaje en
+  los chunks lazy y no en el bundle inicial.
+- **Aplicación:** `AsyncState<T>` con su `viewState()`, `SessionFacade`.
+- **Dominio:** `DomainError`, helpers de fecha, `CLOCK`, `calculateBmi()`,
+  `weeklyProgress()`, `buildMonthGrid()`.
+- **UI compartida:** `authGuard` / `roleGuard` / `publicOnlyGuard`, `passwordRules()`,
+  `chart-math.ts`, `NotFoundPage`.
+
+### Patrón de página
+
+Toda página nueva resuelve sus estados con un único `@switch` sobre la facade:
+
+```
+@switch (facade.viewState()) {
+  @case ('loading') { <nq-page-state type="loading" /> }
+  @case ('error')   { <nq-page-state type="error" [retry]="reload" /> }
+  @case ('empty')   { <nq-page-state type="empty" title="…" message="…" /> }
+  @case ('success') { …contenido… }
+}
+```
+
+`reload` se declara como **campo arrow** (`reload = () => this.facade.reload();`): el
+input `[retry]` es `() => void` y `strictTemplates` no acepta un método desbindado.
 
 ---
 

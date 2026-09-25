@@ -33,6 +33,7 @@
     "@capacitor/core": "^6.0.0",
     "@capacitor/ios": "^6.0.0",
     "@capacitor/push-notifications": "^6.0.0",
+    "@capacitor/screen-orientation": "^6.0.4",
     "@capacitor/share": "^6.0.0",
     "@ionic/angular": "^8.0.0",
     "@lucide/angular": "^1.20.0",
@@ -74,7 +75,10 @@
       "node_modules/(?!.*\\.mjs$|@ionic|@stencil|ionicons)"
     ],
     "moduleNameMapper": {
-      "^ionicons/components/(.*)$": "<rootDir>/node_modules/ionicons/components/$1"
+      "^ionicons/components/(.*)$": "<rootDir>/node_modules/ionicons/components/$1",
+      "^@app/(.*)$": "<rootDir>/src/app/$1",
+      "^@env/(.*)$": "<rootDir>/src/environments/$1",
+      "^@shared/(.*)$": "<rootDir>/src/app/ui/shared/$1"
     },
     "testPathIgnorePatterns": [
       "/node_modules/",

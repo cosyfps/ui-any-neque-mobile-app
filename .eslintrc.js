@@ -19,6 +19,12 @@ module.exports = {
       'error',
       {
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+        pathGroups: [
+          { pattern: '@app/**', group: 'internal', position: 'before' },
+          { pattern: '@shared/**', group: 'internal', position: 'before' },
+          { pattern: '@env/**', group: 'internal', position: 'before' },
+        ],
+        pathGroupsExcludedImportTypes: ['builtin'],
         'newlines-between': 'always',
         alphabetize: { order: 'asc', caseInsensitive: true },
       },

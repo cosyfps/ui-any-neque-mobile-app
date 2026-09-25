@@ -9,10 +9,10 @@
 @import '@ionic/angular/css/flex-utils.css';
 @import '@ionic/angular/css/display.css';
 
-@import './app/shared/theme/fonts';
-@import './app/shared/theme/palette';
-@import './app/shared/theme/utilities';
-@import './app/shared/theme/components';
+@import './app/ui/shared/theme/fonts';
+@import './app/ui/shared/theme/palette';
+@import './app/ui/shared/theme/utilities';
+@import './app/ui/shared/theme/components';
 
 :root {
   --ion-color-primary: var(--nq-primary);
@@ -43,21 +43,34 @@ body {
   touch-action: pan-y;
 }
 
-@media (orientation: landscape) and (max-height: 500px) {
-  ion-app {
+// Sin `max-height`: con el limite de 500px el bloqueo solo alcanzaba a
+// telefonos y una tablet en horizontal renderizaba la app apaisada, con los
+// offsets de la portada calculados para 812px de alto.
+@media (orientation: landscape) {
+  // `ion-app.ion-page` y no `ion-app` a secas: Ionic le pone la clase
+  // `ion-page`, cuyo `display: flex` gana por especificidad al selector de
+  // elemento. Con el selector simple la app nunca se ocultaba y el aviso
+  // quedaba pintado debajo, fuera de la pantalla.
+  ion-app.ion-page {
     display: none;
   }
+
+  // `fixed` con fondo propio: sin eso el aviso depende de que la app de
+  // verdad haya desaparecido del flujo.
   body::after {
-    content: 'Rota tu dispositivo a vertical';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    padding: 24px;
     font-family: var(--nq-font-family);
     font-size: 16px;
     font-weight: 600;
     color: var(--nq-text-secondary);
     text-align: center;
-    padding: 24px;
+    content: 'Rota tu dispositivo a vertical';
+    background: var(--nq-bg);
   }
 }
