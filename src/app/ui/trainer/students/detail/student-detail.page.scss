@@ -1,0 +1,137 @@
+@use '../../../shared/theme/mixins' as *;
+
+.page {
+  padding: 16px var(--nq-page-px) 0;
+}
+
+.head {
+  margin-bottom: 8px;
+}
+
+.nav-back {
+  @include nq-nav-back;
+}
+
+.identity {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.identity-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.email {
+  margin: 4px 0 0;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+  text-overflow: ellipsis;
+}
+
+// Aviso clinico: no es un error, es algo que hay que leer antes de prescribir.
+.flags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 24px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--nq-warning);
+  background: rgba(var(--nq-warning-rgb), 0.08);
+  border-radius: var(--nq-radius-md);
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.data-row {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+
+  dt {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--nq-text-secondary);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--nq-text);
+    text-align: right;
+  }
+}
+
+.latest {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nq-text);
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nq-text-secondary);
+}
+
+.danger-btn {
+  width: 100%;
+  color: var(--nq-danger);
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+// El formulario es mas alto que la pantalla en un telefono chico: el sheet
+// hace su propio scroll en vez de empujar el teclado fuera de vista.
+.form-sheet {
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 16px 0 0;
+  list-style: none;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: var(--nq-surface);
+  border-radius: var(--nq-radius-sm);
+}
+
+.history-date {
+  font-size: 13px;
+  color: var(--nq-text-secondary);
+}
+
+.history-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nq-text);
+}

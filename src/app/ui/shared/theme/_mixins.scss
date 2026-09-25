@@ -1,0 +1,106 @@
+// ══════════════════════════════════════
+//  SHARED MIXINS
+// ══════════════════════════════════════
+
+// Boton de accion principal. El fondo es solido y no un degradado teal:
+// el label blanco daba 1.45:1 sobre el extremo claro, y un degradado
+// obligado a mantenerse sobre 4.5:1 en todo su recorrido termina siendo un
+// color plano de todos modos. El degradado sigue vivo donde es decorativo:
+// el hero de la portada y la tarjeta de IMC.
+@mixin nq-btn-gradient {
+  width: 100%;
+  min-height: 44px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--nq-font-family);
+  color: var(--nq-text-inverse);
+  background: var(--nq-primary-strong);
+  border: none;
+  border-radius: var(--nq-radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+  box-shadow: 0 4px 16px rgba(var(--nq-primary-strong-rgb), 0.28);
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+/// Minimo tactil de 44x44 para controles que pueden crecer sin romper el diseno.
+@mixin nq-tap-target($size: 44px) {
+  min-width: $size;
+  min-height: $size;
+}
+
+/// Minimo tactil para iconos que DEBEN verse pequenos: amplia el area de
+/// toque con un pseudo-elemento centrado, sin tocar el tamano visual.
+@mixin nq-tap-halo($size: 44px) {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: $size;
+    height: $size;
+    content: '';
+    transform: translate(-50%, -50%);
+  }
+}
+
+@mixin nq-field-base {
+  margin-bottom: 16px;
+
+  &.has-error .nq-field-input {
+    border-color: var(--nq-danger);
+    box-shadow: 0 0 0 3px rgba(var(--nq-danger-rgb), 0.08);
+  }
+
+  &.has-error .nq-field-icon {
+    color: var(--nq-danger);
+  }
+}
+
+@mixin nq-nav-back {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1.5px solid var(--nq-border-solid);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--nq-text-secondary);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--nq-primary-rgb), 0.04);
+  }
+
+  &:active {
+    background: rgba(var(--nq-primary-rgb), 0.06);
+    border-color: var(--nq-primary-light);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-top: 4px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nq-text-muted);
+}
