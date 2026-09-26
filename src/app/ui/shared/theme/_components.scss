@@ -386,7 +386,12 @@
   -webkit-tap-highlight-color: transparent;
 
   &.active {
-    background: var(--nq-text);
+    // Degradado fuerte: admite texto blanco encima y da el tono teal de marca.
+    background: linear-gradient(
+      135deg,
+      var(--nq-gradient-strong-start),
+      var(--nq-gradient-strong-end)
+    );
     color: var(--nq-text-inverse);
   }
 
