@@ -18,8 +18,8 @@ const invitacion = (
 ): InvitationDetails => ({
   token: 'inv-abc',
   studentId: 'std-009',
-  studentName: 'Ana Rojas',
-  email: 'ana@neque.cl',
+  studentName: 'Alejandra Acosta',
+  email: 'alejandra@neque.cl',
   trainerName: 'Kelvin Moreno',
   expiresAt: new Date(AHORA.getTime() + horas * 60 * 60 * 1000).toISOString(),
   status,
@@ -173,7 +173,7 @@ describe('InvitationPanelComponent', () => {
       await panel.share();
 
       expect(share.mock.calls[0]?.[0]).toMatchObject({
-        text: expect.stringContaining('Ana Rojas'),
+        text: expect.stringContaining('Alejandra Acosta'),
       });
     });
 

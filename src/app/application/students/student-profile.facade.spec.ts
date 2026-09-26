@@ -14,9 +14,9 @@ const STUDENT: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -87,9 +87,9 @@ describe('StudentProfileFacade', () => {
       facade.load();
 
       expect(facade.viewState()).toBe('success');
-      expect(facade.displayName()).toBe('Ana Rojas');
-      expect(facade.firstName()).toBe('Ana');
-      expect(facade.avatarInitials()).toBe('AR');
+      expect(facade.displayName()).toBe('Alejandra Acosta');
+      expect(facade.firstName()).toBe('Alejandra');
+      expect(facade.avatarInitials()).toBe('AA');
     });
 
     it('queda en loading mientras el puerto no responde', () => {

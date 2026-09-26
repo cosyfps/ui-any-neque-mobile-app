@@ -10,9 +10,9 @@ const ALUMNO: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -360,7 +360,7 @@ describe('RoutineBuilderComponent', () => {
 
   describe('nombreDe()', () => {
     it('arma el nombre completo del alumno', () => {
-      expect(builder.nombreDe(ALUMNO)).toBe('Ana Rojas');
+      expect(builder.nombreDe(ALUMNO)).toBe('Alejandra Acosta');
     });
   });
 });

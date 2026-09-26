@@ -26,8 +26,8 @@ export const SEED_INVITATIONS: readonly InvitationDetails[] = [
   {
     token: 'inv-usada',
     studentId: 'std-001',
-    studentName: 'Ana Rojas',
-    email: 'ana@neque.cl',
+    studentName: 'Alejandra Acosta',
+    email: 'alejandra@neque.cl',
     trainerName: 'Kelvin Moreno',
     expiresAt: '2026-12-31T23:59:59.000Z',
     status: 'accepted',

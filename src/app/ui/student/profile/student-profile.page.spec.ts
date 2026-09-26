@@ -20,9 +20,9 @@ const STUDENT: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -92,7 +92,7 @@ describe('StudentProfilePage', () => {
   describe('estado inicial', () => {
     it('carga la ficha del alumno', () => {
       expect(page.facade.viewState()).toBe('success');
-      expect(page.facade.displayName()).toBe('Ana Rojas');
+      expect(page.facade.displayName()).toBe('Alejandra Acosta');
     });
 
     it('expone el IMC', () => {

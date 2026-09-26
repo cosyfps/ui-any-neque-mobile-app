@@ -17,7 +17,7 @@ const alumno = (id: string, firstName: string, status: Student['status'] = 'acti
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
   firstName,
-  lastName: 'Rojas',
+  lastName: 'Acosta',
   email: `${id}@neque.cl`,
   phone: null,
   avatarUrl: null,
@@ -78,7 +78,7 @@ describe('TrainerRoutinesPage', () => {
   ): TrainerRoutinesPage => {
     const {
       rutinas = [rutina('rtn-001', 'Hipertrofia', 'active')],
-      cartera = [alumno('std-001', 'Ana'), alumno('std-002', 'Diego', 'suspended')],
+      cartera = [alumno('std-001', 'Alejandra'), alumno('std-002', 'Diego', 'suspended')],
       ejercicios = [
         ejercicio('ex-001', 'Sentadilla', null),
         ejercicio('ex-900', 'Búlgara', 'trn-001'),
@@ -124,7 +124,7 @@ describe('TrainerRoutinesPage', () => {
 
   describe('biblioteca', () => {
     it('resuelve el nombre del alumno de cada rutina', () => {
-      expect(page.facade.visible()[0]).toMatchObject({ studentName: 'Ana Rojas' });
+      expect(page.facade.visible()[0]).toMatchObject({ studentName: 'Alejandra Acosta' });
     });
 
     it('avisa cuando el alumno ya no esta en la cartera', () => {

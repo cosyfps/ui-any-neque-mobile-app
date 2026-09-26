@@ -1,15 +1,15 @@
 import { Assessment } from '@app/domain/students/model/assessment.model';
 import { Student } from '@app/domain/students/model/student.model';
 
-/** Alumno que corresponde a la cuenta semilla `ana@neque.cl`. */
+/** Alumno que corresponde a la cuenta semilla `alejandra@neque.cl`. */
 export const SEED_STUDENTS: readonly Student[] = [
   {
     id: 'std-001',
     trainerId: 'trn-001',
     trainerName: 'Kelvin Moreno',
-    firstName: 'Ana',
-    lastName: 'Rojas',
-    email: 'ana@neque.cl',
+    firstName: 'Alejandra',
+    lastName: 'Acosta',
+    email: 'alejandra@neque.cl',
     phone: '+56 9 8765 4321',
     avatarUrl: null,
     status: 'active',

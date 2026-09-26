@@ -50,7 +50,7 @@ describe('AuthMockAdapter', () => {
 
     it('autentica al alumno semilla', () => {
       const { value } = resolve<AuthSession>(
-        adapter.login({ email: 'ana@neque.cl', password: 'Alumno1234!' }),
+        adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
       );
 
       expect(value?.user.role).toBe('student');
@@ -59,7 +59,7 @@ describe('AuthMockAdapter', () => {
 
     it('normaliza mayusculas y espacios del correo', () => {
       const { value } = resolve<AuthSession>(
-        adapter.login({ email: '  ANA@NEQUE.CL ', password: 'Alumno1234!' }),
+        adapter.login({ email: '  ALEJANDRA@NEQUE.CL ', password: 'Alumno1234!' }),
       );
 
       expect(value?.user.role).toBe('student');
@@ -67,7 +67,7 @@ describe('AuthMockAdapter', () => {
 
     it('la sesion expira una semana despues del reloj inyectado', () => {
       const { value } = resolve<AuthSession>(
-        adapter.login({ email: 'ana@neque.cl', password: 'Alumno1234!' }),
+        adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
       );
 
       expect(value?.expiresAt).toBe('2026-09-24T10:00:00.000Z');
@@ -75,7 +75,7 @@ describe('AuthMockAdapter', () => {
 
     it('rechaza una contrasena incorrecta', () => {
       const { error } = resolve<AuthSession>(
-        adapter.login({ email: 'ana@neque.cl', password: 'incorrecta' }),
+        adapter.login({ email: 'alejandra@neque.cl', password: 'incorrecta' }),
       );
 
       expect(error?.code).toBe('invalid_credentials');
@@ -99,7 +99,7 @@ describe('AuthMockAdapter', () => {
 
   describe('requestPasswordReset()', () => {
     it('acepta un correo existente', () => {
-      const { error } = resolve<void>(adapter.requestPasswordReset('ana@neque.cl'));
+      const { error } = resolve<void>(adapter.requestPasswordReset('alejandra@neque.cl'));
       expect(error).toBeUndefined();
     });
 
@@ -112,14 +112,16 @@ describe('AuthMockAdapter', () => {
   describe('verifyOtp()', () => {
     it('entrega un ticket de recuperacion, no una sesion', () => {
       const { value } = resolve<PasswordResetTicket>(
-        adapter.verifyOtp('ana@neque.cl', SEED_OTP_CODE),
+        adapter.verifyOtp('alejandra@neque.cl', SEED_OTP_CODE),
       );
-      expect(value?.email).toBe('ana@neque.cl');
+      expect(value?.email).toBe('alejandra@neque.cl');
       expect(value?.token).toEqual(expect.any(String));
     });
 
     it('rechaza un codigo incorrecto', () => {
-      const { error } = resolve<PasswordResetTicket>(adapter.verifyOtp('ana@neque.cl', '000000'));
+      const { error } = resolve<PasswordResetTicket>(
+        adapter.verifyOtp('alejandra@neque.cl', '000000'),
+      );
       expect(error?.code).toBe('invalid_credentials');
     });
 
@@ -139,31 +141,31 @@ describe('AuthMockAdapter', () => {
 
     it('abre sesion con la contrasena nueva', () => {
       const { value } = resolve<AuthSession>(
-        adapter.resetPassword(ticketFor('ana@neque.cl'), 'Nueva1234!'),
+        adapter.resetPassword(ticketFor('alejandra@neque.cl'), 'Nueva1234!'),
       );
       expect(value?.user.role).toBe('student');
     });
 
     it('deja de aceptar la contrasena anterior', () => {
-      resolve<AuthSession>(adapter.resetPassword(ticketFor('ana@neque.cl'), 'Nueva1234!'));
+      resolve<AuthSession>(adapter.resetPassword(ticketFor('alejandra@neque.cl'), 'Nueva1234!'));
 
       const { error } = resolve<AuthSession>(
-        adapter.login({ email: 'ana@neque.cl', password: 'Alumno1234!' }),
+        adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
       );
       expect(error?.code).toBe('invalid_credentials');
     });
 
     it('acepta la contrasena nueva en el login', () => {
-      resolve<AuthSession>(adapter.resetPassword(ticketFor('ana@neque.cl'), 'Nueva1234!'));
+      resolve<AuthSession>(adapter.resetPassword(ticketFor('alejandra@neque.cl'), 'Nueva1234!'));
 
       const { value } = resolve<AuthSession>(
-        adapter.login({ email: 'ana@neque.cl', password: 'Nueva1234!' }),
+        adapter.login({ email: 'alejandra@neque.cl', password: 'Nueva1234!' }),
       );
-      expect(value?.user.email).toBe('ana@neque.cl');
+      expect(value?.user.email).toBe('alejandra@neque.cl');
     });
 
     it('invalida el ticket despues de usarlo', () => {
-      const ticket = ticketFor('ana@neque.cl');
+      const ticket = ticketFor('alejandra@neque.cl');
       resolve<AuthSession>(adapter.resetPassword(ticket, 'Nueva1234!'));
 
       const { error } = resolve<AuthSession>(adapter.resetPassword(ticket, 'Otra1234!'));
@@ -172,7 +174,7 @@ describe('AuthMockAdapter', () => {
 
     it('rechaza un ticket que nunca emitio', () => {
       const { error } = resolve<AuthSession>(
-        adapter.resetPassword({ email: 'ana@neque.cl', token: 'inventado' }, 'Nueva1234!'),
+        adapter.resetPassword({ email: 'alejandra@neque.cl', token: 'inventado' }, 'Nueva1234!'),
       );
       expect(error?.code).toBe('unauthorized');
     });
@@ -187,10 +189,10 @@ describe('AuthMockAdapter', () => {
 
   it('no entrega referencias a su estado interno', () => {
     const first = resolve<AuthSession>(
-      adapter.login({ email: 'ana@neque.cl', password: 'Alumno1234!' }),
+      adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
     ).value;
     const second = resolve<AuthSession>(
-      adapter.login({ email: 'ana@neque.cl', password: 'Alumno1234!' }),
+      adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
     ).value;
 
     expect(first).not.toBe(second);

@@ -524,10 +524,10 @@ las animaciones `nq-ani` del design system. Efecto secundario: el bundle inicial
 
 ### Cuentas y datos de prueba
 
-| Rol        | Correo            | Contraseña     |
-| ---------- | ----------------- | -------------- |
-| Entrenador | `kelvin@neque.cl` | `Entrenador1!` |
-| Alumno     | `ana@neque.cl`    | `Alumno1234!`  |
+| Rol        | Correo               | Contraseña     |
+| ---------- | -------------------- | -------------- |
+| Entrenador | `kelvin@neque.cl`    | `Entrenador1!` |
+| Alumno     | `alejandra@neque.cl` | `Alumno1234!`  |
 
 Código OTP del flujo de recuperación: `123456`. El historial de sesiones se genera
 relativo al reloj inyectado, así que el Home siempre muestra "hoy" y "próximos" con

@@ -19,7 +19,7 @@ const sessionFor = (role: 'trainer' | 'student', expiresAt: string): AuthSession
     id: `usr-${role}`,
     email: `${role}@neque.cl`,
     role,
-    displayName: role === 'trainer' ? 'Kelvin Moreno' : 'Ana Rojas',
+    displayName: role === 'trainer' ? 'Kelvin Moreno' : 'Alejandra Acosta',
     avatarUrl: null,
     profileId: role === 'trainer' ? 'trn-001' : 'std-001',
   },
@@ -131,11 +131,11 @@ describe('SessionFacade', () => {
     it('publica la sesion, la persiste y devuelve el home del rol', async () => {
       const facade = build();
 
-      const route = await facade.login({ email: 'ana@neque.cl', password: 'x' });
+      const route = await facade.login({ email: 'alejandra@neque.cl', password: 'x' });
 
       expect(route).toBe('/student/home');
       expect(facade.isAuthenticated()).toBe(true);
-      expect(facade.displayName()).toBe('Ana Rojas');
+      expect(facade.displayName()).toBe('Alejandra Acosta');
       expect(storage.write).toHaveBeenCalledWith(VALID_STUDENT);
       expect(facade.status()).toBe('idle');
     });
@@ -151,7 +151,7 @@ describe('SessionFacade', () => {
       login.mockReturnValue(throwError(() => domainError('invalid_credentials')));
       const facade = build();
 
-      const route = await facade.login({ email: 'ana@neque.cl', password: 'mala' });
+      const route = await facade.login({ email: 'alejandra@neque.cl', password: 'mala' });
 
       expect(route).toBeNull();
       expect(facade.isAuthenticated()).toBe(false);
@@ -163,10 +163,10 @@ describe('SessionFacade', () => {
     it('limpia el error de un intento previo', async () => {
       login.mockReturnValue(throwError(() => domainError('invalid_credentials')));
       const facade = build();
-      await facade.login({ email: 'ana@neque.cl', password: 'mala' });
+      await facade.login({ email: 'alejandra@neque.cl', password: 'mala' });
 
       login.mockReturnValue(of(VALID_STUDENT));
-      await facade.login({ email: 'ana@neque.cl', password: 'buena' });
+      await facade.login({ email: 'alejandra@neque.cl', password: 'buena' });
 
       expect(facade.loginError()).toBeNull();
       expect(facade.status()).toBe('idle');
@@ -188,7 +188,7 @@ describe('SessionFacade', () => {
   describe('signOut()', () => {
     it('limpia la sesion y el storage', async () => {
       const facade = build();
-      await facade.login({ email: 'ana@neque.cl', password: 'x' });
+      await facade.login({ email: 'alejandra@neque.cl', password: 'x' });
 
       await facade.signOut();
 
@@ -199,7 +199,7 @@ describe('SessionFacade', () => {
     it('limpia igual aunque el backend falle', async () => {
       signOut.mockReturnValue(throwError(() => domainError('network')));
       const facade = build();
-      await facade.login({ email: 'ana@neque.cl', password: 'x' });
+      await facade.login({ email: 'alejandra@neque.cl', password: 'x' });
 
       await facade.signOut();
 
@@ -212,7 +212,7 @@ describe('SessionFacade', () => {
     it('descarta el error y vuelve a idle', async () => {
       login.mockReturnValue(throwError(() => domainError('invalid_credentials')));
       const facade = build();
-      await facade.login({ email: 'ana@neque.cl', password: 'mala' });
+      await facade.login({ email: 'alejandra@neque.cl', password: 'mala' });
 
       facade.clearError();
 

@@ -23,7 +23,7 @@ const alumno = (id: string, firstName: string, status: Student['status'] = 'acti
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
   firstName,
-  lastName: 'Rojas',
+  lastName: 'Acosta',
   email: `${id}@neque.cl`,
   phone: null,
   avatarUrl: null,
@@ -73,7 +73,7 @@ describe('TrainerHomePage', () => {
     } = {},
   ): TrainerHomePage => {
     const {
-      cartera = [alumno('std-001', 'Ana')],
+      cartera = [alumno('std-001', 'Alejandra')],
       sesiones = [],
       rutina = RUTINA,
       evaluacion = EVALUACION,
@@ -131,7 +131,7 @@ describe('TrainerHomePage', () => {
   describe('metricas', () => {
     it('cuenta solo los alumnos activos', () => {
       page = createPage({
-        cartera: [alumno('std-001', 'Ana'), alumno('std-002', 'Diego', 'suspended')],
+        cartera: [alumno('std-001', 'Alejandra'), alumno('std-002', 'Diego', 'suspended')],
       });
 
       expect(page.facade.activeCount()).toBe(1);
@@ -150,7 +150,7 @@ describe('TrainerHomePage', () => {
       page = createPage({ sesiones: [sesion('wks-001', 'std-001', AHORA)] });
 
       expect(page.facade.today.data()?.[0]).toMatchObject({
-        studentName: 'Ana Rojas',
+        studentName: 'Alejandra Acosta',
         title: 'Tren inferior',
       });
     });
@@ -169,7 +169,7 @@ describe('TrainerHomePage', () => {
     });
 
     it('no consulta sesiones sin alumnos activos', () => {
-      page = createPage({ cartera: [alumno('std-001', 'Ana', 'suspended')] });
+      page = createPage({ cartera: [alumno('std-001', 'Alejandra', 'suspended')] });
 
       expect(page.facade.today.data()).toEqual([]);
     });
@@ -184,7 +184,7 @@ describe('TrainerHomePage', () => {
       page = createPage({ rutina: null });
 
       expect(page.facade.pending.data()?.[0]).toMatchObject({
-        name: 'Ana Rojas',
+        name: 'Alejandra Acosta',
         reason: 'Sin rutina asignada',
       });
     });

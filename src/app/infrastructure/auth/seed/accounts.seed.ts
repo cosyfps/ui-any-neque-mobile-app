@@ -33,9 +33,9 @@ export const SEED_ACCOUNTS: readonly SeedAccount[] = [
     password: 'Alumno1234!',
     user: {
       id: 'usr-student-001',
-      email: 'ana@neque.cl',
+      email: 'alejandra@neque.cl',
       role: 'student',
-      displayName: 'Ana Rojas',
+      displayName: 'Alejandra Acosta',
       avatarUrl: null,
       profileId: 'std-001',
     },

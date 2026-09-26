@@ -64,7 +64,7 @@ describe('TrainerLayoutPage', () => {
     });
 
     it('ignora los query params', () => {
-      navigateTo('/trainer/students?q=ana');
+      navigateTo('/trainer/students?q=alejandra');
 
       expect(page.isActive('/trainer/students')).toBe(true);
     });

@@ -43,7 +43,7 @@ describe('StudentsMockAdapter', () => {
   describe('getById()', () => {
     it('devuelve el alumno semilla', () => {
       const { value } = resolve(adapter.getById('std-001'));
-      expect(value?.firstName).toBe('Ana');
+      expect(value?.firstName).toBe('Alejandra');
       expect(value?.trainerId).toBe('trn-001');
     });
 
@@ -78,7 +78,7 @@ describe('StudentsMockAdapter', () => {
 
     it('conserva los campos no enviados', () => {
       const { value } = resolve(adapter.update('std-001', { heightCm: 170 }));
-      expect(value?.firstName).toBe('Ana');
+      expect(value?.firstName).toBe('Alejandra');
       expect(value?.heightCm).toBe(170);
     });
 
@@ -139,7 +139,7 @@ describe('StudentsMockAdapter — escritura del entrenador', () => {
     });
 
     it('rechaza un correo repetido', () => {
-      const { error } = resolve<Student>(adapter.create({ ...alta, email: 'ana@neque.cl' }));
+      const { error } = resolve<Student>(adapter.create({ ...alta, email: 'alejandra@neque.cl' }));
 
       expect(error?.code).toBe('conflict');
     });
@@ -268,7 +268,7 @@ describe('semillas de alumnos', () => {
   it('el alumno semilla calza con la cuenta de auth', () => {
     jest.useFakeTimers();
     const student = resolve(crearAdapter().getById('std-001')).value as Student;
-    expect(student.email).toBe('ana@neque.cl');
+    expect(student.email).toBe('alejandra@neque.cl');
     jest.useRealTimers();
   });
 });

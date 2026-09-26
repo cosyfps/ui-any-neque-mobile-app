@@ -16,7 +16,7 @@ const sessionFor = (role: 'trainer' | 'student'): AuthSession => ({
     id: `usr-${role}`,
     email: `${role}@neque.cl`,
     role,
-    displayName: role === 'trainer' ? 'Kelvin Moreno' : 'Ana Rojas',
+    displayName: role === 'trainer' ? 'Kelvin Moreno' : 'Alejandra Acosta',
     avatarUrl: null,
     profileId: role === 'trainer' ? 'trn-001' : 'std-001',
   },

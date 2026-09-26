@@ -7,7 +7,7 @@ import { MOCK_LATENCY_MS, cloneSeed, simulate, simulateError } from './mock-dela
 describe('mock-delay', () => {
   describe('cloneSeed()', () => {
     it('devuelve un valor equivalente pero no la misma referencia', () => {
-      const seed = { nombre: 'Ana', etiquetas: ['a', 'b'] };
+      const seed = { nombre: 'Alejandra', etiquetas: ['a', 'b'] };
       const copy = cloneSeed(seed);
 
       expect(copy).toEqual(seed);

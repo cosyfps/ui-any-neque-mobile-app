@@ -14,8 +14,8 @@ const invitacion = (
 ): InvitationDetails => ({
   token: 'inv-abc',
   studentId: 'std-009',
-  studentName: 'Ana Rojas',
-  email: 'ana@neque.cl',
+  studentName: 'Alejandra Acosta',
+  email: 'alejandra@neque.cl',
   trainerName: 'Kelvin Moreno',
   expiresAt: new Date(AHORA.getTime() + horas * 60 * 60 * 1000).toISOString(),
   status,

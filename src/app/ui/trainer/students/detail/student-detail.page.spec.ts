@@ -24,9 +24,9 @@ const ALUMNO: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -123,7 +123,7 @@ describe('StudentDetailPage', () => {
   describe('carga inicial', () => {
     it('abre la ficha del parametro de ruta', () => {
       expect(page.facade.viewState()).toBe('success');
-      expect(page.facade.displayName()).toBe('Ana Rojas');
+      expect(page.facade.displayName()).toBe('Alejandra Acosta');
     });
 
     it('pide tambien la invitacion del alumno', () => {
@@ -169,10 +169,10 @@ describe('StudentDetailPage', () => {
     it('junta nombre, parentesco y telefono', () => {
       page = createPage(ALUMNO, {
         ...ANAMNESIS,
-        emergencyContact: { name: 'Luis Rojas', phone: '+56 9 2222', relation: 'Padre' },
+        emergencyContact: { name: 'Luis Acosta', phone: '+56 9 2222', relation: 'Padre' },
       });
 
-      expect(page.emergency()).toBe('Luis Rojas (Padre) · +56 9 2222');
+      expect(page.emergency()).toBe('Luis Acosta (Padre) · +56 9 2222');
     });
   });
 
@@ -205,9 +205,9 @@ describe('StudentDetailPage', () => {
 
   describe('editar datos', () => {
     const VALORES = {
-      firstName: 'Ana',
-      lastName: 'Rojas',
-      email: 'ana@neque.cl',
+      firstName: 'Alejandra',
+      lastName: 'Acosta',
+      email: 'alejandra@neque.cl',
       phone: '+56 9 3333 3333',
       birthDate: null,
       heightCm: 167,
@@ -231,8 +231,8 @@ describe('StudentDetailPage', () => {
       await page.saveEdit(VALORES);
 
       expect(edit).toHaveBeenCalledWith('std-001', {
-        firstName: 'Ana',
-        lastName: 'Rojas',
+        firstName: 'Alejandra',
+        lastName: 'Acosta',
         phone: '+56 9 3333 3333',
         birthDate: null,
         heightCm: 167,
