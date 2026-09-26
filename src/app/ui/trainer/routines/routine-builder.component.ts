@@ -14,7 +14,6 @@ import {
   RoutineInput,
 } from '@app/domain/routines/model/routine.model';
 import { Weekday } from '@app/domain/shared/model/date';
-import { Student, fullName } from '@app/domain/students/model/student.model';
 
 /** Etiquetas de los dias ISO, en el orden en que se muestran. */
 const DIAS: readonly { value: Weekday; label: string }[] = [
@@ -67,34 +66,6 @@ const MINUTOS_POR_DEFECTO = 50;
             enterkeyhint="next"
             placeholder="Ganar masa muscular"
           />
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="nq-field-label" [attr.for]="id('alumno')">Alumno *</label>
-        <div class="nq-field-input">
-          <select [attr.id]="id('alumno')" formControlName="studentId">
-            <option value="">Selecciona un alumno</option>
-            @for (student of students(); track student.id) {
-              <option [value]="student.id">{{ nombreDe(student) }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div class="field">
-          <label class="nq-field-label" [attr.for]="id('inicio')">Inicio *</label>
-          <div class="nq-field-input">
-            <input [attr.id]="id('inicio')" formControlName="startDate" type="date" />
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="nq-field-label" [attr.for]="id('fin')">Fin</label>
-          <div class="nq-field-input">
-            <input [attr.id]="id('fin')" formControlName="endDate" type="date" />
-          </div>
         </div>
       </div>
 
@@ -323,7 +294,6 @@ const MINUTOS_POR_DEFECTO = 50;
   styleUrl: './routine-builder.component.scss',
 })
 export class RoutineBuilderComponent {
-  readonly students = input<readonly Student[]>([]);
   readonly publicExercises = input<readonly Exercise[]>([]);
   readonly ownExercises = input<readonly Exercise[]>([]);
   readonly routine = input<Routine | null>(null);
@@ -343,9 +313,6 @@ export class RoutineBuilderComponent {
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
     goal: ['', [Validators.required, Validators.maxLength(120)]],
-    studentId: ['', Validators.required],
-    startDate: ['', Validators.required],
-    endDate: [''],
   });
 
   readonly validationError = computed(() => {
@@ -353,7 +320,7 @@ export class RoutineBuilderComponent {
       return null;
     }
     if (this.form.invalid) {
-      return 'Completa nombre, objetivo, alumno y fecha de inicio.';
+      return 'Completa nombre y objetivo.';
     }
     if (this.days().length === 0) {
       return 'Agrega al menos un día de entrenamiento.';
@@ -373,10 +340,6 @@ export class RoutineBuilderComponent {
 
   id(campo: string): string {
     return `${this.uid}-${campo}`;
-  }
-
-  nombreDe(student: Student): string {
-    return fullName(student);
   }
 
   etiquetaDia(weekday: Weekday): string {
@@ -409,9 +372,6 @@ export class RoutineBuilderComponent {
     this.form.reset({
       name: routine?.name ?? '',
       goal: routine?.goal ?? '',
-      studentId: routine?.studentId ?? '',
-      startDate: this.soloFecha(routine?.startDate ?? ''),
-      endDate: this.soloFecha(routine?.endDate ?? ''),
     });
   }
 
@@ -530,11 +490,8 @@ export class RoutineBuilderComponent {
 
     const raw = this.form.getRawValue();
     this.submitted.emit({
-      studentId: raw.studentId,
       name: raw.name.trim(),
       goal: raw.goal.trim(),
-      startDate: new Date(`${raw.startDate}T00:00:00`).toISOString(),
-      endDate: raw.endDate === '' ? null : new Date(`${raw.endDate}T00:00:00`).toISOString(),
       days: this.days(),
     });
   }
@@ -548,10 +505,5 @@ export class RoutineBuilderComponent {
     this.days.update(actual =>
       actual.map((day, i) => (i === index ? { ...day, ...cambios } : day)),
     );
-  }
-
-  /** `<input type="date">` solo entiende `yyyy-MM-dd`. */
-  private soloFecha(iso: string): string {
-    return iso === '' ? '' : (iso.split('T')[0] ?? '');
   }
 }

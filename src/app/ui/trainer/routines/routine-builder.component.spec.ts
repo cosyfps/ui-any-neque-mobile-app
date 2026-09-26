@@ -2,25 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Exercise } from '@app/domain/routines/model/exercise.model';
 import { Routine, RoutineDayInput, RoutineInput } from '@app/domain/routines/model/routine.model';
-import { Student } from '@app/domain/students/model/student.model';
 
 import { RoutineBuilderComponent } from './routine-builder.component';
-
-const ALUMNO: Student = {
-  id: 'std-001',
-  trainerId: 'trn-001',
-  trainerName: 'Kelvin Moreno',
-  firstName: 'Alejandra',
-  lastName: 'Acosta',
-  email: 'alejandra@neque.cl',
-  phone: null,
-  avatarUrl: null,
-  status: 'active',
-  birthDate: null,
-  heightCm: null,
-  goal: null,
-  joinedAt: '2026-01-10T00:00:00.000Z',
-};
 
 const PUBLICO: Exercise = {
   id: 'ex-001',
@@ -36,13 +19,16 @@ const PROPIO: Exercise = { ...PUBLICO, id: 'ex-900', name: 'Búlgara', ownerTrai
 
 const RUTINA: Routine = {
   id: 'rtn-001',
-  studentId: 'std-001',
   trainerId: 'trn-001',
   name: 'Hipertrofia',
   goal: 'Ganar masa',
-  startDate: '2026-09-01T00:00:00.000Z',
-  endDate: '2026-12-01T00:00:00.000Z',
-  status: 'active',
+  assignments: [
+    {
+      studentId: 'std-001',
+      startDate: '2026-09-01T00:00:00.000Z',
+      endDate: '2026-12-01T00:00:00.000Z',
+    },
+  ],
   days: [
     {
       id: 'day-001',
@@ -81,7 +67,6 @@ describe('RoutineBuilderComponent', () => {
 
     fixture = TestBed.createComponent(RoutineBuilderComponent);
     fixture.componentRef.setInput('routine', routine);
-    fixture.componentRef.setInput('students', [ALUMNO]);
     fixture.componentRef.setInput('publicExercises', [PUBLICO]);
     fixture.componentRef.setInput('ownExercises', [PROPIO]);
     builder = fixture.componentInstance;
@@ -105,8 +90,6 @@ describe('RoutineBuilderComponent', () => {
     builder.form.patchValue({
       name: 'Hipertrofia',
       goal: 'Ganar masa',
-      studentId: 'std-001',
-      startDate: '2026-09-01',
     });
   };
 
@@ -290,26 +273,17 @@ describe('RoutineBuilderComponent', () => {
   });
 
   describe('emision', () => {
-    it('convierte las fechas a ISO', () => {
-      llenarCabecera();
-      builder.form.controls.endDate.setValue('2026-12-01');
-      builder.addDay();
-      builder.addExercise(dia(0), seleccionar('ex-001'));
-
-      builder.onSubmit();
-
-      expect(emitido?.startDate).toContain('2026-09-01');
-      expect(emitido?.endDate).toContain('2026-12-01');
-    });
-
-    it('una vigencia sin fin viaja en null', () => {
+    // Los alumnos y sus fechas se eligen al asignar, no al disenar la rutina.
+    it('emite la plantilla sin alumnos ni fechas', () => {
       llenarCabecera();
       builder.addDay();
       builder.addExercise(dia(0), seleccionar('ex-001'));
 
       builder.onSubmit();
 
-      expect(emitido?.endDate).toBeNull();
+      expect(emitido).not.toHaveProperty('studentId');
+      expect(emitido).not.toHaveProperty('startDate');
+      expect(emitido).not.toHaveProperty('assignments');
     });
 
     it('recorta nombre y objetivo', () => {
@@ -327,13 +301,8 @@ describe('RoutineBuilderComponent', () => {
   describe('edicion de una rutina existente', () => {
     beforeEach(() => crear(RUTINA));
 
-    it('precarga la cabecera con la fecha en formato de campo', () => {
-      expect(builder.form.getRawValue()).toMatchObject({
-        name: 'Hipertrofia',
-        studentId: 'std-001',
-        startDate: '2026-09-01',
-        endDate: '2026-12-01',
-      });
+    it('precarga nombre y objetivo', () => {
+      expect(builder.form.getRawValue()).toEqual({ name: 'Hipertrofia', goal: RUTINA.goal });
     });
 
     it('precarga los dias con sus ejercicios', () => {
@@ -355,12 +324,6 @@ describe('RoutineBuilderComponent', () => {
       crear();
 
       expect(builder.id('nombre')).not.toBe(primero);
-    });
-  });
-
-  describe('nombreDe()', () => {
-    it('arma el nombre completo del alumno', () => {
-      expect(builder.nombreDe(ALUMNO)).toBe('Alejandra Acosta');
     });
   });
 });

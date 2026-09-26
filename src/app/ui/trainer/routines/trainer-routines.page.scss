@@ -75,6 +75,25 @@
   color: var(--nq-text-secondary);
 }
 
+.card-students {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nq-text);
+}
+
+// Cuantos alumnos la hacen. Teal si alguien la usa; gris si espera alumnos.
+.alumnos-badge {
+  flex-shrink: 0;
+  color: var(--nq-primary-strong);
+  background: rgba(var(--nq-primary-rgb), 0.12);
+
+  &.vacia {
+    color: var(--nq-text-secondary);
+    background: var(--nq-surface-2);
+  }
+}
+
 .card-actions {
   display: flex;
   gap: 16px;
@@ -91,10 +110,6 @@
   cursor: pointer;
   background: none;
   border: none;
-
-  &.danger {
-    color: var(--nq-danger);
-  }
 
   &:disabled {
     opacity: 0.5;
