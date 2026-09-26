@@ -65,6 +65,9 @@ export class SheetTrapDirective {
   readonly arrastrando = signal(false);
 
   constructor() {
+    // Enfocable por codigo pero fuera del orden de tabulacion: al abrir, el
+    // foco cae en el sheet y no en su primer control.
+    this.host.nativeElement.tabIndex = -1;
     inject(DestroyRef).onDestroy(() => this.clearFocusTimer());
   }
 
@@ -77,7 +80,11 @@ export class SheetTrapDirective {
     // `setTimeout` y no un microtask: el foco no entra en un elemento que
     // todavia esta en `visibility: hidden`, y la clase `.open` se aplica al
     // pintar, despues de este setter.
-    this.focusTimer = setTimeout(() => this.focusables()[0]?.focus(), 0);
+    //
+    // El foco va al sheet y no a su primer campo: en un movil enfocar un
+    // input abre el teclado, que tapa el formulario antes de que se vea.
+    // `Tab` desde aqui entra al primer control igual.
+    this.focusTimer = setTimeout(() => this.host.nativeElement.focus(), 0);
   }
 
   alEmpezar(event: TouchEvent): void {
@@ -135,7 +142,7 @@ export class SheetTrapDirective {
     }
 
     const active = document.activeElement;
-    if (event.shiftKey && active === first) {
+    if (event.shiftKey && (active === first || active === this.host.nativeElement)) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && active === last) {

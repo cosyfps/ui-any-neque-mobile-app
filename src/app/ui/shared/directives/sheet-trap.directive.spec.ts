@@ -48,18 +48,22 @@ describe('SheetTrapDirective', () => {
   });
 
   describe('foco al abrir', () => {
-    it('lleva el foco al primer control cuando se abre', () => {
+    it('lleva el foco al sheet y no a su primer control cuando se abre', () => {
       directive.nqSheetTrap = true;
       jest.runAllTimers();
 
-      expect(document.activeElement?.id).toBe('uno');
+      expect(document.activeElement).toBe(sheet);
+    });
+
+    it('deja el sheet fuera del orden de tabulacion', () => {
+      expect(sheet.tabIndex).toBe(-1);
     });
 
     it('no mueve el foco si sigue cerrado', () => {
       directive.nqSheetTrap = false;
       jest.runAllTimers();
 
-      expect(document.activeElement?.id).not.toBe('uno');
+      expect(document.activeElement).not.toBe(sheet);
     });
 
     it('cancela el foco pendiente si se cierra antes de aplicarse', () => {
@@ -67,7 +71,7 @@ describe('SheetTrapDirective', () => {
       directive.nqSheetTrap = false;
       jest.runAllTimers();
 
-      expect(document.activeElement?.id).not.toBe('uno');
+      expect(document.activeElement).not.toBe(sheet);
     });
   });
 
@@ -160,6 +164,16 @@ describe('SheetTrapDirective', () => {
 
     it('del primero con Shift salta al ultimo', () => {
       sheet.querySelector<HTMLElement>('#uno')?.focus();
+
+      const event = keydown('Tab', true);
+      directive.onKeydown(event);
+
+      expect(document.activeElement?.id).toBe('tres');
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('desde el sheet recien abierto, Shift salta al ultimo', () => {
+      sheet.focus();
 
       const event = keydown('Tab', true);
       directive.onKeydown(event);

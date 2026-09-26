@@ -450,6 +450,12 @@
   width: 100%;
   transform: translateY(100%);
   transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+
+  // Recibe el foco al abrirse (`nqSheetTrap`) solo para meterlo en el
+  // dialogo; no es un control, asi que no pinta anillo.
+  &:focus {
+    outline: none;
+  }
 }
 
 .nq-sheet-handle {
