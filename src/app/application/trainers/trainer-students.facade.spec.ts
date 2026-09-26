@@ -33,7 +33,7 @@ const alumno = (
 
 const CARTERA = [
   alumno('std-002', 'Camila', 'Soto', 'camila@neque.cl'),
-  alumno('std-001', 'Ana', 'Rojas', 'ana@neque.cl'),
+  alumno('std-001', 'Alejandra', 'Acosta', 'alejandra@neque.cl'),
   alumno('std-003', 'Diego', 'Paredes', 'diego@neque.cl', 'suspended'),
   alumno('std-004', 'Benjamín', 'Muñoz', 'benja@neque.cl'),
 ];
@@ -100,7 +100,7 @@ describe('TrainerStudentsFacade', () => {
     });
 
     it('ordena por nombre completo', () => {
-      expect(facade.visible()[0]?.firstName).toBe('Ana');
+      expect(facade.visible()[0]?.firstName).toBe('Alejandra');
     });
 
     it('cambia a los suspendidos', () => {
@@ -116,7 +116,7 @@ describe('TrainerStudentsFacade', () => {
     });
 
     it('busca por correo', () => {
-      facade.search('ana@neque');
+      facade.search('alejandra@neque');
 
       expect(facade.visible()[0]?.id).toBe('std-001');
     });

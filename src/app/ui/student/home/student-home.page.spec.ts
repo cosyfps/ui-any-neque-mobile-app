@@ -25,9 +25,9 @@ const STUDENT: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -142,7 +142,7 @@ describe('StudentHomePage', () => {
   describe('carga inicial', () => {
     it('queda en success con la ficha del alumno', () => {
       expect(page.profile.viewState()).toBe('success');
-      expect(page.profile.firstName()).toBe('Ana');
+      expect(page.profile.firstName()).toBe('Alejandra');
     });
 
     it('calcula el IMC desde la evaluacion', () => {

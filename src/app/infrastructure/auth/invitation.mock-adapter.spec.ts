@@ -139,7 +139,7 @@ describe('InvitationMockAdapter', () => {
       const { value } = resolve<InvitationDetails>(adapter.create('std-001'));
 
       expect(value?.status).toBe('pending');
-      expect(value?.email).toBe('ana@neque.cl');
+      expect(value?.email).toBe('alejandra@neque.cl');
       expect(value?.expiresAt).toBe(
         new Date(NOW.getTime() + INVITATION_TTL_HOURS * 60 * 60 * 1000).toISOString(),
       );

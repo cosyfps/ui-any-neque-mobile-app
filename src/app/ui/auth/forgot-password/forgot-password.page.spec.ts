@@ -16,7 +16,7 @@ const STUDENT_SESSION: AuthSession = {
     id: 'usr-1',
     email: 'kelvin@duocuc.cl',
     role: 'student',
-    displayName: 'Ana Rojas',
+    displayName: 'Alejandra Acosta',
     avatarUrl: null,
     profileId: 'std-001',
   },

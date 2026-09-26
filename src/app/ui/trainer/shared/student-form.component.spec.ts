@@ -8,9 +8,9 @@ const ALUMNO: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: '+56 9 1111 1111',
   avatarUrl: null,
   status: 'active',
@@ -125,8 +125,8 @@ describe('StudentFormComponent', () => {
 
     it('precarga los datos del alumno', () => {
       expect(form.form.getRawValue()).toMatchObject({
-        firstName: 'Ana',
-        lastName: 'Rojas',
+        firstName: 'Alejandra',
+        lastName: 'Acosta',
         phone: '+56 9 1111 1111',
         heightCm: 165,
       });
@@ -144,7 +144,7 @@ describe('StudentFormComponent', () => {
 
       form.onSubmit();
 
-      expect(emitido).toMatchObject({ goal: 'Bajar grasa', email: 'ana@neque.cl' });
+      expect(emitido).toMatchObject({ goal: 'Bajar grasa', email: 'alejandra@neque.cl' });
     });
   });
 

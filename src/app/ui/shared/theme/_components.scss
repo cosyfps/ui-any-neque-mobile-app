@@ -120,7 +120,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 32px;
+  // 16px a los lados y no 32: los botones son de ancho completo y el texto
+  // va centrado, asi que el padding lateral solo sirve para forzar saltos
+  // de linea. En pares de 2 columnas partia "Guardar e invitar" en dos.
+  padding: 16px;
   border-radius: var(--nq-radius-md);
   border: none;
   font-family: var(--nq-font-family);
@@ -386,7 +389,12 @@
   -webkit-tap-highlight-color: transparent;
 
   &.active {
-    background: var(--nq-text);
+    // Degradado fuerte: admite texto blanco encima y da el tono teal de marca.
+    background: linear-gradient(
+      135deg,
+      var(--nq-gradient-strong-start),
+      var(--nq-gradient-strong-end)
+    );
     color: var(--nq-text-inverse);
   }
 
@@ -439,12 +447,34 @@
 }
 
 .nq-sheet {
+  --nq-sheet-pb: 40px;
   background: var(--nq-bg);
   border-radius: var(--nq-radius-xl) var(--nq-radius-xl) 0 0;
-  padding: 12px var(--nq-page-px) 40px;
+  padding: 12px var(--nq-page-px) var(--nq-sheet-pb);
   width: 100%;
   transform: translateY(100%);
   transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+
+  // Recibe el foco al abrirse (`nqSheetTrap`) solo para meterlo en el
+  // dialogo; no es un control, asi que no pinta anillo.
+  &:focus {
+    outline: none;
+  }
+}
+
+// Botonera de un formulario largo dentro de un sheet con scroll: queda
+// fija al pie para que "Guardar" no exija bajar hasta el final. El fondo
+// tapa el contenido que pasa por debajo, y el padding inferior respeta el
+// indicador de inicio del iPhone. El `bottom` negativo compensa el padding
+// inferior del sheet: sin el, la botonera flota 40px arriba del borde y el
+// contenido se asoma por debajo.
+.nq-sheet-actions {
+  position: sticky;
+  bottom: calc(-1 * var(--nq-sheet-pb));
+  z-index: 1;
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom, 0px));
+  background: var(--nq-bg);
+  box-shadow: 0 -12px 12px -12px rgba(26, 43, 42, 0.12);
 }
 
 .nq-sheet-handle {

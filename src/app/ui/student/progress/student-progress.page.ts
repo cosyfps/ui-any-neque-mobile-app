@@ -255,7 +255,6 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   aria-label="Tomar o elegir foto de progreso"
                   [disabled]="uploading()"
                   (change)="onFile($event)"

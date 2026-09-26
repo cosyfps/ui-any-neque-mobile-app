@@ -1,7 +1,7 @@
 import { Anamnesis } from '@app/domain/students/model/anamnesis.model';
 
 /**
- * Anamnesis de Ana. Los otros dos alumnos semilla no la tienen, para que la
+ * Anamnesis de Alejandra. Los otros dos alumnos semilla no la tienen, para que la
  * ficha muestre el estado vacio sin necesidad de borrar nada.
  */
 export const SEED_ANAMNESIS: readonly Anamnesis[] = [
@@ -17,7 +17,7 @@ export const SEED_ANAMNESIS: readonly Anamnesis[] = [
     declaredGoal: 'Ganar masa muscular y mejorar postura',
     weeklyAvailability: [1, 2, 4, 5],
     emergencyContact: {
-      name: 'Marcela Rojas',
+      name: 'Marcela Acosta',
       phone: '+56 9 9876 5432',
       relation: 'Madre',
     },

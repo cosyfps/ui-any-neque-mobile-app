@@ -1,7 +1,7 @@
 import { Routine } from '@app/domain/routines/model/routine.model';
 
 /**
- * Rutina activa de Ana: cuatro dias (lunes, martes, jueves, viernes).
+ * Rutina activa de Alejandra: cuatro dias (lunes, martes, jueves, viernes).
  * Los `exerciseId` referencian el catalogo de `exercises.seed.ts`.
  */
 export const SEED_ROUTINES: readonly Routine[] = [

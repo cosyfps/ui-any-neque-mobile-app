@@ -310,7 +310,7 @@ const MINUTOS_POR_DEFECTO = 50;
         <p class="nq-field-error submit-error" role="alert">{{ error }}</p>
       }
 
-      <div class="form-actions">
+      <div class="form-actions nq-sheet-actions">
         <button class="nq-btn nq-btn-secondary" type="button" (click)="cancelled.emit()">
           Cancelar
         </button>

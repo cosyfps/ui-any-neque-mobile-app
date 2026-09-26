@@ -17,9 +17,9 @@ const ALUMNO: Student = {
   id: 'std-001',
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
-  firstName: 'Ana',
-  lastName: 'Rojas',
-  email: 'ana@neque.cl',
+  firstName: 'Alejandra',
+  lastName: 'Acosta',
+  email: 'alejandra@neque.cl',
   phone: null,
   avatarUrl: null,
   status: 'active',
@@ -114,8 +114,8 @@ describe('TrainerStudentDetailFacade', () => {
     });
 
     it('expone nombre e iniciales listos para mostrar', () => {
-      expect(facade.displayName()).toBe('Ana Rojas');
-      expect(facade.avatarInitials()).toBe('AR');
+      expect(facade.displayName()).toBe('Alejandra Acosta');
+      expect(facade.avatarInitials()).toBe('AA');
     });
 
     it('recuerda de quien es la ficha', () => {

@@ -13,9 +13,9 @@ import { StartPage } from './start.page';
 const STUDENT_SESSION: AuthSession = {
   user: {
     id: 'usr-1',
-    email: 'ana@neque.cl',
+    email: 'alejandra@neque.cl',
     role: 'student',
-    displayName: 'Ana Rojas',
+    displayName: 'Alejandra Acosta',
     avatarUrl: null,
     profileId: 'std-001',
   },

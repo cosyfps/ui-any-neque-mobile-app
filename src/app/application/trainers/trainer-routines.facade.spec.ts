@@ -16,7 +16,7 @@ const alumno = (id: string, firstName: string, status: Student['status'] = 'acti
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
   firstName,
-  lastName: 'Rojas',
+  lastName: 'Acosta',
   email: `${id}@neque.cl`,
   phone: null,
   avatarUrl: null,
@@ -96,7 +96,7 @@ describe('TrainerRoutinesFacade', () => {
           provide: STUDENTS_PORT,
           useValue: {
             listByTrainer: () =>
-              of([alumno('std-001', 'Ana'), alumno('std-002', 'Diego', 'suspended')]),
+              of([alumno('std-001', 'Alejandra'), alumno('std-002', 'Diego', 'suspended')]),
           },
         },
         {
@@ -135,7 +135,7 @@ describe('TrainerRoutinesFacade', () => {
     });
 
     it('resuelve el nombre del alumno de cada rutina', () => {
-      expect(facade.visible()[0]?.studentName).toBe('Ana Rojas');
+      expect(facade.visible()[0]?.studentName).toBe('Alejandra Acosta');
     });
   });
 

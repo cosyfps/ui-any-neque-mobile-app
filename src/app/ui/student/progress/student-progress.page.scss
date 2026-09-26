@@ -3,7 +3,7 @@
 }
 
 .page {
-  padding: 24px var(--nq-page-px) 0;
+  padding: var(--nq-page-pt) var(--nq-page-px) 0;
 }
 
 .head {
@@ -36,7 +36,7 @@
 .metric-value {
   font-size: 18px;
   font-weight: 700;
-  color: var(--nq-text);
+  color: var(--nq-primary-strong);
 }
 
 .metric-label {
@@ -58,8 +58,8 @@
   border-radius: var(--nq-radius-md);
 
   &.down {
-    color: var(--nq-success);
-    background: rgba(var(--nq-success-rgb), 0.08);
+    color: var(--nq-primary-strong);
+    background: rgba(var(--nq-primary-rgb), 0.12);
   }
 }
 
@@ -67,7 +67,7 @@
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: var(--nq-surface-2);
+  background: rgba(var(--nq-primary-rgb), 0.1);
   border-radius: var(--nq-radius-full);
 }
 
@@ -88,7 +88,7 @@
   -webkit-tap-highlight-color: transparent;
 
   &.active {
-    color: var(--nq-text);
+    color: var(--nq-primary-strong);
     background: var(--nq-bg);
     box-shadow: var(--nq-shadow-xs);
   }

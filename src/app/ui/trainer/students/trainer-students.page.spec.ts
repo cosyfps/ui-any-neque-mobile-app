@@ -23,7 +23,7 @@ const alumno = (
   trainerId: 'trn-001',
   trainerName: 'Kelvin Moreno',
   firstName,
-  lastName: 'Rojas',
+  lastName: 'Acosta',
   email: `${firstName.toLowerCase()}@neque.cl`,
   phone: null,
   avatarUrl: null,
@@ -34,7 +34,7 @@ const alumno = (
   joinedAt: '2026-01-10T00:00:00.000Z',
 });
 
-const CARTERA = [alumno('std-001', 'Ana'), alumno('std-003', 'Diego', 'suspended')];
+const CARTERA = [alumno('std-001', 'Alejandra'), alumno('std-003', 'Diego', 'suspended')];
 
 const AHORA = new Date('2026-09-20T10:00:00.000Z');
 
@@ -99,7 +99,7 @@ describe('TrainerStudentsPage', () => {
     });
 
     it('usa el plural con varios', () => {
-      page = createPage([alumno('std-001', 'Ana'), alumno('std-002', 'Camila')]);
+      page = createPage([alumno('std-001', 'Alejandra'), alumno('std-002', 'Camila')]);
 
       expect(page.resumen()).toBe('2 alumnos activos');
     });
@@ -109,9 +109,9 @@ describe('TrainerStudentsPage', () => {
     const evento = (value: string): Event => ({ target: { value } }) as unknown as Event;
 
     it('filtra con lo que se escribe', () => {
-      page.search(evento('ana'));
+      page.search(evento('alejandra'));
 
-      expect(page.facade.query()).toBe('ana');
+      expect(page.facade.query()).toBe('alejandra');
       expect(page.facade.visible()).toHaveLength(1);
     });
 
@@ -134,7 +134,7 @@ describe('TrainerStudentsPage', () => {
     });
 
     it('explica la pestana de suspendidos vacia', () => {
-      page = createPage([alumno('std-001', 'Ana')]);
+      page = createPage([alumno('std-001', 'Alejandra')]);
       page.facade.selectFilter('suspended');
 
       expect(page.vacioMensaje()).toContain('suspendidos');
@@ -158,10 +158,10 @@ describe('TrainerStudentsPage', () => {
 
   describe('helpers de plantilla', () => {
     it('arma el nombre completo y las iniciales', () => {
-      const student = alumno('std-001', 'Ana');
+      const student = alumno('std-001', 'Alejandra');
 
-      expect(page.nameOf(student)).toBe('Ana Rojas');
-      expect(page.initialsOf(student)).toBe('AR');
+      expect(page.nameOf(student)).toBe('Alejandra Acosta');
+      expect(page.initialsOf(student)).toBe('AA');
     });
   });
 
