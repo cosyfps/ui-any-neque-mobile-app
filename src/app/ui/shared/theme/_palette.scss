@@ -81,6 +81,9 @@
   --nq-tab-bottom: 16px;
   --nq-safe-bottom: calc(var(--nq-tab-height) + var(--nq-tab-bottom) + 16px);
   --nq-page-px: 20px;
+  // Aire sobre el contenido de una pestana. El shell ya suma el safe-area
+  // superior: con mas, el primer vistazo en un iPhone con notch se ve hundido.
+  --nq-page-pt: 8px;
 
   // ── Typography ──
   --nq-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
