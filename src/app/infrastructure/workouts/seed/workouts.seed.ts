@@ -1,5 +1,6 @@
 import { Routine, RoutineDay } from '@app/domain/routines/model/routine.model';
 import { addDays, startOfWeek, toIsoDate } from '@app/domain/shared/model/date';
+import { Id } from '@app/domain/shared/model/ids';
 import {
   WorkoutExerciseLog,
   WorkoutSession,
@@ -55,13 +56,13 @@ function seriesDe(
 }
 
 /**
- * Genera el historial de sesiones a partir de la rutina y del reloj.
+ * Genera el historial de sesiones de un alumno a partir de su rutina y del reloj.
  *
  * Se construye en tiempo de ejecucion y no como fechas fijas para que el
  * home siempre muestre "hoy" y "proximo" con sentido. Los tests inyectan un
  * reloj fijo, asi que el resultado sigue siendo determinista.
  */
-export function buildWorkoutSeed(routine: Routine, now: Date): WorkoutSession[] {
+export function buildWorkoutSeed(routine: Routine, studentId: Id, now: Date): WorkoutSession[] {
   const sessions: WorkoutSession[] = [];
   const currentWeekStart = startOfWeek(now);
   const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -97,7 +98,7 @@ export function buildWorkoutSeed(routine: Routine, now: Date): WorkoutSession[] 
 
       sessions.push({
         id: `wks-${String(index).padStart(3, '0')}`,
-        studentId: routine.studentId,
+        studentId,
         routineId: routine.id,
         routineDayId: day.id,
         title: day.title,

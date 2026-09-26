@@ -33,7 +33,7 @@ export const SEED_STUDENTS: readonly Student[] = [
     status: 'active',
     birthDate: null,
     heightCm: null,
-    goal: null,
+    goal: 'Ganar masa muscular',
     joinedAt: '2026-09-15T00:00:00.000Z',
   },
   {

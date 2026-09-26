@@ -4,9 +4,11 @@ import { Observable } from 'rxjs';
 import { Exercise, ExerciseInput } from '@app/domain/routines/model/exercise.model';
 import {
   Routine,
+  RoutineAssignment,
   RoutineDay,
   RoutineExercise,
   RoutineInput,
+  assignmentFor,
 } from '@app/domain/routines/model/routine.model';
 import { ExerciseCatalogPort, RoutinesPort } from '@app/domain/routines/port/routines.port';
 import { Id } from '@app/domain/shared/model/ids';
@@ -22,14 +24,8 @@ export class RoutinesMockAdapter implements RoutinesPort {
   private nextId = SEED_ROUTINES.length + 1;
 
   getActiveForStudent(studentId: Id): Observable<Routine | null> {
-    const active = this.routines.find(
-      routine => routine.studentId === studentId && routine.status === 'active',
-    );
+    const active = this.routines.find(routine => assignmentFor(routine, studentId) !== null);
     return simulate(active ?? null);
-  }
-
-  listByStudent(studentId: Id): Observable<Routine[]> {
-    return simulate(this.routines.filter(routine => routine.studentId === studentId));
   }
 
   listByTrainer(trainerId: Id): Observable<Routine[]> {
@@ -43,9 +39,8 @@ export class RoutinesMockAdapter implements RoutinesPort {
 
   create(input: RoutineInput): Observable<Routine> {
     const id = `rtn-${String(this.nextId++).padStart(3, '0')}`;
-    // Nace archivada: asignarla es un paso aparte, porque activar implica
-    // archivar la anterior del alumno.
-    const routine: Routine = { ...input, id, status: 'archived', days: this.conIds(id, input) };
+    // Nace sin alumnos: repartirla es un paso aparte.
+    const routine: Routine = { ...input, id, days: this.conIds(id, input), assignments: [] };
 
     this.routines = [...this.routines, routine];
 
@@ -62,7 +57,7 @@ export class RoutinesMockAdapter implements RoutinesPort {
       ...current,
       ...changes,
       id: current.id,
-      status: current.status,
+      assignments: current.assignments,
       days: this.conIds(current.id, changes),
     };
     this.routines = this.routines.map(item => (item.id === routineId ? updated : item));
@@ -71,40 +66,29 @@ export class RoutinesMockAdapter implements RoutinesPort {
   }
 
   /**
-   * Activa la rutina y archiva la anterior del mismo alumno.
+   * Deja la rutina con esos alumnos y los saca de la que hacian antes.
    *
-   * Las dos escrituras van juntas: si se hicieran por separado quedaria un
-   * instante con dos rutinas activas, que es justo lo que el indice unico
-   * parcial de la base va a rechazar.
+   * Todo en una escritura: por separado quedaria un instante con el alumno en
+   * dos rutinas, que es lo que la restriccion unica de la base va a rechazar.
    */
-  assign(routineId: Id): Observable<Routine> {
+  setAssignments(routineId: Id, assignments: readonly RoutineAssignment[]): Observable<Routine> {
     const objetivo = this.routines.find(item => item.id === routineId);
     if (objetivo === undefined) {
       return simulateError<Routine>('not_found');
     }
 
-    const activada: Routine = { ...objetivo, status: 'active' };
-    this.routines = this.routines.map(item => {
-      if (item.id === routineId) {
-        return activada;
-      }
-      const esLaAnterior = item.studentId === objetivo.studentId && item.status === 'active';
-      return esLaAnterior ? { ...item, status: 'archived' } : item;
-    });
+    const actualizada: Routine = { ...objetivo, assignments: [...assignments] };
+    const llegan = new Set(assignments.map(item => item.studentId));
+    this.routines = this.routines.map(item =>
+      item.id === routineId
+        ? actualizada
+        : {
+            ...item,
+            assignments: item.assignments.filter(asignacion => !llegan.has(asignacion.studentId)),
+          },
+    );
 
-    return simulate(activada);
-  }
-
-  archive(routineId: Id): Observable<Routine> {
-    const current = this.routines.find(item => item.id === routineId);
-    if (current === undefined) {
-      return simulateError<Routine>('not_found');
-    }
-
-    const archivada: Routine = { ...current, status: 'archived' };
-    this.routines = this.routines.map(item => (item.id === routineId ? archivada : item));
-
-    return simulate(archivada);
+    return simulate(actualizada);
   }
 
   /** El constructor manda dias y ejercicios sin id: aqui se les asigna uno. */

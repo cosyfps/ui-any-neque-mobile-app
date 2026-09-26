@@ -17,13 +17,10 @@ const NOW = new Date(2026, 8, 17, 10, 0, 0);
 
 const ROUTINE: Routine = {
   id: 'rtn-001',
-  studentId: 'std-001',
   trainerId: 'trn-001',
   name: 'Hipertrofia',
   goal: 'Masa muscular',
-  startDate: '2026-09-01T00:00:00.000Z',
-  endDate: null,
-  status: 'active',
+  assignments: [{ studentId: 'std-001', startDate: '2026-09-01T00:00:00.000Z', endDate: null }],
   days: [
     {
       id: 'day-001',
