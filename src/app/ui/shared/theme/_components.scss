@@ -120,7 +120,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 32px;
+  // 16px a los lados y no 32: los botones son de ancho completo y el texto
+  // va centrado, asi que el padding lateral solo sirve para forzar saltos
+  // de linea. En pares de 2 columnas partia "Guardar e invitar" en dos.
+  padding: 16px;
   border-radius: var(--nq-radius-md);
   border: none;
   font-family: var(--nq-font-family);
