@@ -14,7 +14,6 @@ import { CLOCK } from '@app/domain/shared/port/clock.port';
 import { SeriesPoint } from '@shared/components/chart/chart-math';
 import { LineChartComponent } from '@shared/components/chart/line-chart.component';
 import { PageStateComponent } from '@shared/components/page-state.component';
-import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 type ProgressTab = 'metrics' | 'photos';
@@ -27,7 +26,6 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
   standalone: true,
   imports: [
     PageStateComponent,
-    PullToRefreshDirective,
     SheetTrapDirective,
     LineChartComponent,
     LucideCamera,
@@ -37,12 +35,7 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
     LucideTrendingUp,
   ],
   template: `
-    <div
-      class="page"
-      nqPullToRefresh
-      [refreshing]="facade.assessments.loading()"
-      (refresh)="reload()"
-    >
+    <div class="page">
       <header class="head">
         <h1 class="nq-h2">Mi progreso</h1>
       </header>

@@ -15,7 +15,6 @@ import {
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
-import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 import { ExerciseFormComponent } from './exercise-form.component';
@@ -30,7 +29,6 @@ type Seccion = 'routines' | 'exercises';
   standalone: true,
   imports: [
     PageStateComponent,
-    PullToRefreshDirective,
     SheetTrapDirective,
     RoutineBuilderComponent,
     RoutineAssignComponent,
@@ -39,7 +37,7 @@ type Seccion = 'routines' | 'exercises';
   ],
   providers: [TrainerRoutinesFacade],
   template: `
-    <div class="page" nqPullToRefresh [refreshing]="facade.rows.loading()" (refresh)="reload()">
+    <div class="page">
       <header class="head">
         <div class="head-row">
           <h1 class="nq-h2">Rutinas</h1>
