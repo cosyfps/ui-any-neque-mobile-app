@@ -335,6 +335,25 @@ describe('StudentProgressPage', () => {
     });
   });
 
+  describe('photosEmpty()', () => {
+    it('es falso en la pestaña de mediciones', () => {
+      expect(page.photosEmpty()).toBe(false);
+    });
+
+    it('es falso en fotos si hay fotos', () => {
+      page.tab.set('photos');
+
+      expect(page.photosEmpty()).toBe(false);
+    });
+
+    it('es verdadero en fotos sin ninguna foto', () => {
+      page.tab.set('photos');
+      page.facade.photos.set([]);
+
+      expect(page.photosEmpty()).toBe(true);
+    });
+  });
+
   describe('selector de fotos del comparador', () => {
     it('formatShortDate() usa dd/mm/aaaa con ceros a la izquierda', () => {
       expect(page.formatShortDate('2026-03-05T09:00:00.000Z')).toBe('05/03/2026');

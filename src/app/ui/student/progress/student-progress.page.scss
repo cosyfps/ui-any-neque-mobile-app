@@ -1,9 +1,21 @@
+// Flex y no block: un `min-height: 100%` en `.page` no resuelve contra un
+// padre que solo tiene min-height; como item flex si puede estirarse.
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .page {
   padding: var(--nq-page-pt) var(--nq-page-px) 0;
+}
+
+// Solo con la pestaña de fotos vacia: la pagina ocupa todo el alto para que
+// el aviso pueda centrarse en lo que queda bajo "Agregar foto".
+.page-fill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .head {
@@ -433,10 +445,41 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.section-empty {
-  margin: 0;
-  font-size: 13px;
-  color: var(--nq-text-muted);
+// Sin fotos: el aviso toma el alto que sobra y se centra en el.
+.photos-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.photos-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  color: var(--nq-primary-strong);
+  background: rgba(var(--nq-primary-rgb), 0.12);
+  border-radius: 50%;
+}
+
+.photos-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--nq-text);
+}
+
+.photos-empty-desc {
+  max-width: 280px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--nq-text-secondary);
 }
 
 // ── Confirmacion de borrado ──

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import {
   LucideCamera,
   LucideChevronDown,
+  LucideImagePlus,
   LucideLoaderCircle,
   LucideTrash2,
   LucideTrendingDown,
@@ -34,13 +35,14 @@ type CompareSide = 'before' | 'after';
     LineChartComponent,
     LucideCamera,
     LucideChevronDown,
+    LucideImagePlus,
     LucideLoaderCircle,
     LucideTrash2,
     LucideTrendingDown,
     LucideTrendingUp,
   ],
   template: `
-    <div class="page">
+    <div class="page" [class.page-fill]="photosEmpty()">
       <header class="head">
         <h1 class="nq-h2">Mi progreso</h1>
       </header>
@@ -327,7 +329,16 @@ type CompareSide = 'before' | 'after';
                 </section>
               }
             } @else {
-              <p class="section-empty">Aún no subes fotos de progreso.</p>
+              <div class="photos-empty nq-ani nq-d2" role="status">
+                <div class="photos-empty-icon">
+                  <svg lucideImagePlus [size]="28" [strokeWidth]="1.6"></svg>
+                </div>
+                <h2 class="photos-empty-title">Aún no tienes fotos</h2>
+                <p class="photos-empty-desc">
+                  Sube una foto de frente, perfil o espalda. Con dos del mismo ángulo podrás
+                  comparar tu evolución.
+                </p>
+              </div>
             }
           }
         }
@@ -423,6 +434,17 @@ export class StudentProgressPage {
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly pendingRemoval = signal<string | null>(null);
+  /** Pestaña de fotos cargada y sin fotos: el aviso ocupa el resto de la pantalla. */
+  readonly photosEmpty = computed(() => {
+    const state = this.facade.photos.viewState();
+    return (
+      this.tab() === 'photos' &&
+      state !== 'loading' &&
+      state !== 'error' &&
+      this.facade.photoGroups().length === 0
+    );
+  });
+
   /** Lado del comparador que se esta eligiendo; null con la hoja cerrada. */
   readonly pickerSide = signal<CompareSide | null>(null);
 
