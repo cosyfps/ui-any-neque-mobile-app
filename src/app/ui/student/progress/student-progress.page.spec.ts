@@ -43,6 +43,8 @@ const photo = (id: string, angle: ProgressPhoto['angle'], takenAt: string): Prog
 const PHOTOS = [
   photo('p1', 'front', '2026-03-05T09:00:00.000Z'),
   photo('p2', 'front', '2026-09-07T09:00:00.000Z'),
+  photo('p3', 'front', '2026-06-04T09:00:00.000Z'),
+  photo('s1', 'side', '2026-06-04T09:01:00.000Z'),
 ];
 
 describe('StudentProgressPage', () => {
@@ -330,6 +332,51 @@ describe('StudentProgressPage', () => {
 
     it('describe la posicion para el lector de pantalla', () => {
       expect(page.divisorTexto()).toContain('50%');
+    });
+  });
+
+  describe('selector de fotos del comparador', () => {
+    it('formatShortDate() usa dd/mm/aaaa con ceros a la izquierda', () => {
+      expect(page.formatShortDate('2026-03-05T09:00:00.000Z')).toBe('05/03/2026');
+      expect(page.formatShortDate('2026-09-27T12:00:00.000Z')).toBe('27/09/2026');
+    });
+
+    it('arranca cerrado', () => {
+      expect(page.pickerSide()).toBeNull();
+    });
+
+    it('lista solo fotos del angulo actual, de la mas reciente a la mas antigua', () => {
+      page.openPicker('before');
+
+      expect(page.pickerOptions().map(o => o.photo.id)).toEqual(['p2', 'p3', 'p1']);
+    });
+
+    it('marca la foto actual del lado y bloquea la del otro lado', () => {
+      page.openPicker('before');
+
+      const byId = Object.fromEntries(page.pickerOptions().map(o => [o.photo.id, o]));
+      expect(byId['p1']?.current).toBe(true);
+      expect(byId['p2']?.inUse).toBe(true);
+      expect(byId['p3']?.inUse).toBe(false);
+    });
+
+    it('pick() reemplaza la foto de ese lado y cierra la hoja', () => {
+      page.openPicker('before');
+
+      page.pick('p3');
+
+      expect(page.facade.compareA()?.id).toBe('p3');
+      expect(page.facade.compareB()?.id).toBe('p2');
+      expect(page.pickerSide()).toBeNull();
+    });
+
+    it('closePicker() cierra sin cambiar el par', () => {
+      page.openPicker('after');
+
+      page.closePicker();
+
+      expect(page.pickerSide()).toBeNull();
+      expect(page.facade.compareB()?.id).toBe('p2');
     });
   });
 

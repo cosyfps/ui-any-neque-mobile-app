@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import {
   LucideCamera,
+  LucideChevronDown,
   LucideLoaderCircle,
   LucideTrash2,
   LucideTrendingDown,
@@ -8,7 +9,11 @@ import {
 } from '@lucide/angular';
 
 import { ProgressFacade } from '@app/application/progress/progress.facade';
-import { PhotoAngle, PHOTO_ANGLE_LABEL } from '@app/domain/progress/model/progress-photo.model';
+import {
+  PHOTO_ANGLE_LABEL,
+  PHOTO_ANGLES,
+  PhotoAngle,
+} from '@app/domain/progress/model/progress-photo.model';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { SeriesPoint } from '@shared/components/chart/chart-math';
@@ -18,8 +23,7 @@ import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 type ProgressTab = 'metrics' | 'photos';
 type MetricSeries = 'weight' | 'bmi';
-
-const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
+type CompareSide = 'before' | 'after';
 
 @Component({
   selector: 'app-student-progress',
@@ -29,6 +33,7 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
     SheetTrapDirective,
     LineChartComponent,
     LucideCamera,
+    LucideChevronDown,
     LucideLoaderCircle,
     LucideTrash2,
     LucideTrendingDown,
@@ -173,6 +178,23 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                   <h2 class="nq-section-title">Comparación</h2>
                 </div>
 
+                <!-- Solo se compara el mismo angulo: uno con menos de dos
+                     fotos no tiene con que compararse. -->
+                <div class="angle-row" role="group" aria-label="Ángulo a comparar">
+                  @for (angle of angles; track angle) {
+                    <button
+                      class="angle-btn"
+                      type="button"
+                      [class.active]="facade.compareAngle() === angle"
+                      [attr.aria-pressed]="facade.compareAngle() === angle"
+                      [disabled]="!facade.comparableAngles().includes(angle)"
+                      (click)="facade.selectCompareAngle(angle)"
+                    >
+                      {{ angleLabel(angle) }}
+                    </button>
+                  }
+                </div>
+
                 @if (facade.compareA(); as before) {
                   @if (facade.compareB(); as after) {
                     <!-- Las dos fotos se superponen y el divisor recorta la de
@@ -193,8 +215,28 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                         [style.clip-path]="'inset(0 0 0 ' + divisor() + '%)'"
                       />
 
-                      <span class="compare-date izquierda">{{ formatDate(before.takenAt) }}</span>
-                      <span class="compare-date derecha">{{ formatDate(after.takenAt) }}</span>
+                      <!-- pointerdown propio: sin cortarlo, tocar la fecha
+                           tambien movia el divisor hasta ahi. -->
+                      <button
+                        class="compare-date izquierda"
+                        type="button"
+                        [attr.aria-label]="'Cambiar foto anterior, ' + formatDate(before.takenAt)"
+                        (pointerdown)="$event.stopPropagation()"
+                        (click)="openPicker('before')"
+                      >
+                        {{ formatShortDate(before.takenAt) }}
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="2.5"></svg>
+                      </button>
+                      <button
+                        class="compare-date derecha"
+                        type="button"
+                        [attr.aria-label]="'Cambiar foto reciente, ' + formatDate(after.takenAt)"
+                        (pointerdown)="$event.stopPropagation()"
+                        (click)="openPicker('after')"
+                      >
+                        {{ formatShortDate(after.takenAt) }}
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="2.5"></svg>
+                      </button>
 
                       <button
                         class="compare-handle"
@@ -209,6 +251,7 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                         (keydown)="alTeclearDivisor($event)"
                       ></button>
                     </figure>
+                    <p class="compare-hint">Toca una fecha para elegir otra foto.</p>
                   }
                 }
               </section>
@@ -291,6 +334,44 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
       }
     </div>
 
+    <!-- Selector de foto del comparador: solo fotos del angulo actual. -->
+    <div class="nq-overlay" [class.open]="pickerSide() !== null" (click)="closePicker()">
+      <div
+        class="nq-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pick-photo-title"
+        [nqSheetTrap]="pickerSide() !== null"
+        (dismissed)="closePicker()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="nq-sheet-handle"></div>
+        <h2 class="nq-sheet-title" id="pick-photo-title">
+          {{ pickerSide() === 'before' ? 'Elegir foto anterior' : 'Elegir foto reciente' }}
+        </h2>
+        <p class="picker-desc">Fotos de {{ angleLabel(facade.compareAngle()) }}</p>
+
+        <div class="picker-grid">
+          @for (option of pickerOptions(); track option.photo.id) {
+            <button
+              class="pick"
+              type="button"
+              [class.current]="option.current"
+              [attr.aria-pressed]="option.current"
+              [disabled]="option.inUse"
+              (click)="pick(option.photo.id)"
+            >
+              <img [src]="option.photo.url" alt="" />
+              <span class="pick-date">{{ formatShortDate(option.photo.takenAt) }}</span>
+              @if (option.inUse) {
+                <span class="pick-tag">En el otro lado</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
     <!-- Borrar una foto no tiene vuelta atras: se confirma. El overlay vive
          siempre en el DOM y solo conmuta la clase open, que es como el design
          system lo anima. -->
@@ -331,7 +412,7 @@ export class StudentProgressPage {
 
   private readonly clock = inject(CLOCK);
 
-  readonly angles = ANGLES;
+  readonly angles = PHOTO_ANGLES;
   readonly tab = signal<ProgressTab>('metrics');
   readonly series = signal<MetricSeries>('weight');
   readonly selectedAngle = signal<PhotoAngle>('front');
@@ -342,6 +423,20 @@ export class StudentProgressPage {
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly pendingRemoval = signal<string | null>(null);
+  /** Lado del comparador que se esta eligiendo; null con la hoja cerrada. */
+  readonly pickerSide = signal<CompareSide | null>(null);
+
+  /** Candidatos para el lado abierto, del mas reciente al mas antiguo. */
+  readonly pickerOptions = computed(() => {
+    const side = this.pickerSide();
+    const current = side === 'before' ? this.facade.compareA() : this.facade.compareB();
+    const other = side === 'before' ? this.facade.compareB() : this.facade.compareA();
+    return [...this.facade.compareCandidates()].reverse().map(photo => ({
+      photo,
+      current: photo.id === current?.id,
+      inUse: photo.id === other?.id,
+    }));
+  });
   readonly removing = signal(false);
 
   /** Sin evaluacion el valor es un guion, no un " kg" con el numero en blanco. */
@@ -435,6 +530,14 @@ export class StudentProgressPage {
     }).format(new Date(iso));
   }
 
+  /** "05/03/2026": ancho fijo, las dos fechas del comparador se ven parejas. */
+  formatShortDate(iso: string): string {
+    const date = new Date(iso);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${date.getFullYear()}`;
+  }
+
   /** Lee el archivo como data-URL: el adapter mock guarda la imagen en memoria. */
   onFile(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -469,6 +572,22 @@ export class StudentProgressPage {
       });
     };
     reader.readAsDataURL(file);
+  }
+
+  openPicker(side: CompareSide): void {
+    this.pickerSide.set(side);
+  }
+
+  closePicker(): void {
+    this.pickerSide.set(null);
+  }
+
+  pick(photoId: string): void {
+    const side = this.pickerSide();
+    if (side !== null) {
+      this.facade.replaceCompare(side, photoId);
+    }
+    this.closePicker();
   }
 
   askRemove(photoId: string): void {
