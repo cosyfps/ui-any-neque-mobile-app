@@ -1,5 +1,7 @@
 import {
   Component,
+  Injector,
+  afterNextRender,
   computed,
   signal,
   DestroyRef,
@@ -98,7 +100,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
             </p>
           </div>
           <div class="action-group">
-            <button class="btn-login" (click)="showLogin = true">Ingresar</button>
+            <button #loginButton class="btn-login" (click)="openLogin()">Ingresar</button>
             <p class="help-text">¿No tienes acceso? Habla con tu entrenador.</p>
           </div>
         </div>
@@ -106,11 +108,17 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
 
       <!-- Cerrado sigue en el DOM, trasladado fuera de pantalla: sin inert el
            foco de teclado y VoiceOver llegaban a sus campos invisibles. -->
-      <div class="login-panel" [class.open]="showLogin" [attr.inert]="showLogin ? null : ''">
+      <div
+        class="login-panel"
+        [class.open]="showLogin"
+        [attr.inert]="showLogin ? null : ''"
+        (transitionend)="onPanelTransitionEnd($event)"
+        (keydown.escape)="closeLogin()"
+      >
         <div class="form-section">
           <div class="form-header">
             <h1 class="form-title">Ingresar</h1>
-            <button class="back-btn" (click)="showLogin = false" aria-label="Cerrar">
+            <button class="back-btn" (click)="closeLogin()" aria-label="Cerrar">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M18 6L6 18M6 6l12 12"
@@ -147,7 +155,9 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   />
                 </svg>
                 <input
+                  #emailInput
                   id="email"
+                  name="email"
                   type="email"
                   formControlName="email"
                   placeholder="tu.correo&#64;ejemplo.com"
@@ -227,6 +237,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                 <input
                   #passwordInput
                   id="password"
+                  name="password"
                   [type]="showPassword ? 'text' : 'password'"
                   formControlName="password"
                   placeholder="Tu contraseña"
@@ -268,6 +279,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   }
                 </ul>
               }
+              <p class="nq-visually-hidden" aria-live="polite">{{ requirementsSummary() }}</p>
             </div>
 
             @if (loginError(); as error) {
@@ -291,8 +303,9 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
             <button
               class="btn-submit"
               type="submit"
-              [class.disabled]="!formValid() || isSubmitting()"
-              [disabled]="!formValid() || isSubmitting()"
+              [class.disabled]="isSubmitting()"
+              [disabled]="isSubmitting()"
+              [attr.aria-busy]="isSubmitting()"
             >
               @if (isSubmitting()) {
                 <svg class="btn-spinner" lucideLoaderCircle [size]="20" [strokeWidth]="2"></svg>
@@ -320,9 +333,12 @@ export class StartPage {
   showPassword = false;
 
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly session = inject(SessionFacade);
   private readonly fb = new FormBuilder();
+  private readonly loginButton = viewChild<ElementRef<HTMLButtonElement>>('loginButton');
+  private readonly emailInput = viewChild<ElementRef<HTMLInputElement>>('emailInput');
   private readonly passwordInput = viewChild<ElementRef<HTMLInputElement>>('passwordInput');
 
   /** Error de credenciales devuelto por el backend, para `.nq-field-error`. */
@@ -369,6 +385,16 @@ export class StartPage {
     () => this.passwordFocused() || (this.passwordTouched() && !this.passwordValid()),
   );
 
+  /**
+   * Resumen para lectores de pantalla: la lista solo se lee al enfocar el
+   * campo, esto avisa cuando cambia la cantidad de requisitos cumplidos.
+   */
+  readonly requirementsSummary = computed(() => {
+    if (!this.passwordFocused()) return '';
+    const met = this.pwdRequirements().filter(req => req.met).length;
+    return `${met} de ${this.pwdRequirements().length} requisitos cumplidos`;
+  });
+
   readonly formValid = computed(() => this._emailValid() && this.passwordValid());
 
   constructor() {
@@ -383,6 +409,32 @@ export class StartPage {
         this._password.set(v);
         this.session.clearError();
       });
+  }
+
+  openLogin(): void {
+    this.showLogin = true;
+  }
+
+  /**
+   * El foco pasa al correo cuando el panel termina de subir: hacerlo antes
+   * movia la vista a mitad de la animacion.
+   */
+  onPanelTransitionEnd(event: TransitionEvent): void {
+    if (!this.showLogin || event.target !== event.currentTarget) return;
+    if (event.propertyName !== 'transform') return;
+    this.emailInput()?.nativeElement.focus();
+  }
+
+  /** Cierra el panel, descarta el error del backend y devuelve el foco. */
+  closeLogin(): void {
+    if (!this.showLogin) return;
+    this.showLogin = false;
+    this.showPassword = false;
+    this.session.clearError();
+    // El hero sigue inert hasta el proximo render: enfocarlo antes no hace nada.
+    afterNextRender(() => this.loginButton()?.nativeElement.focus(), {
+      injector: this.injector,
+    });
   }
 
   markEmailTouched(): void {
@@ -409,16 +461,25 @@ export class StartPage {
     this.router.navigate(['/forgot-password']);
   }
 
+  /**
+   * El boton queda habilitado: con campos invalidos marca ambos como tocados
+   * y lleva el foco al primero con error, en vez de no responder.
+   */
   async onLogin(): Promise<void> {
-    if (!this.formValid() || this.isSubmitting()) return;
+    if (this.isSubmitting()) return;
 
-    this.emailTouched.set(true);
-    this.passwordTouched.set(true);
+    this.markEmailTouched();
+    this.markPasswordTouched();
+
+    if (!this.formValid()) {
+      this.focusFirstInvalid();
+      return;
+    }
 
     this.isSubmitting.set(true);
 
     const route = await this.session.login({
-      email: this.form.controls.email.value.trim(),
+      email: this.form.controls.email.value.trim().toLowerCase(),
       password: this.form.controls.password.value,
     });
 
@@ -426,6 +487,20 @@ export class StartPage {
 
     if (route !== null) {
       await this.router.navigate([route]);
+      return;
     }
+
+    // Con credenciales incorrectas lo habitual es reescribir la contrasena:
+    // queda enfocada y seleccionada, y el correo se conserva.
+    if (this.session.loginError()?.code === 'invalid_credentials') {
+      const input = this.passwordInput()?.nativeElement;
+      input?.focus();
+      input?.select();
+    }
+  }
+
+  private focusFirstInvalid(): void {
+    const target = this.form.controls.email.invalid ? this.emailInput() : this.passwordInput();
+    target?.nativeElement.focus();
   }
 }

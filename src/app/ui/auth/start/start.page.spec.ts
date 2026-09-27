@@ -198,12 +198,24 @@ describe('StartPage', () => {
       page.form.controls.password.setValue('Abcdefg1!');
     };
 
-    it('no hace nada si el formulario es invalido', async () => {
+    it('con el formulario invalido marca los campos y no envia', async () => {
       await page.onLogin();
 
       expect(page.isSubmitting()).toBe(false);
-      expect(page.emailTouched()).toBe(false);
+      expect(page.emailTouched()).toBe(true);
+      expect(page.passwordTouched()).toBe(true);
+      expect(page.emailError()).toBe('El correo es obligatorio');
+      expect(page.showRequirements()).toBe(true);
       expect(login).not.toHaveBeenCalled();
+    });
+
+    it('envia el correo en minusculas', async () => {
+      fillValidForm();
+      page.form.controls.email.setValue('Kelvin@DuocUC.cl');
+
+      await page.onLogin();
+
+      expect(login).toHaveBeenCalledWith({ email: 'kelvin@duocuc.cl', password: 'Abcdefg1!' });
     });
 
     it('marca ambos campos como tocados y llama al puerto', async () => {
@@ -272,6 +284,57 @@ describe('StartPage', () => {
 
         expect(page.loginError()).toBeNull();
       });
+    });
+  });
+
+  describe('requirementsSummary()', () => {
+    it('queda vacio sin foco en la contrasena', () => {
+      page.form.controls.password.setValue('Abc');
+
+      expect(page.requirementsSummary()).toBe('');
+    });
+
+    it('cuenta los requisitos cumplidos mientras se escribe', () => {
+      page.passwordFocused.set(true);
+      page.form.controls.password.setValue('Abcdefgh');
+
+      expect(page.requirementsSummary()).toBe('2 de 4 requisitos cumplidos');
+    });
+  });
+
+  describe('panel de ingreso', () => {
+    it('openLogin() abre el panel', () => {
+      page.openLogin();
+
+      expect(page.showLogin).toBe(true);
+    });
+
+    it('closeLogin() lo cierra, oculta la contrasena y descarta el error', async () => {
+      login.mockReturnValue(throwError(() => domainError('invalid_credentials')));
+      page.form.controls.email.setValue('kelvin@duocuc.cl');
+      page.form.controls.password.setValue('Abcdefg1!');
+      page.openLogin();
+      page.showPassword = true;
+      await page.onLogin();
+      expect(page.loginError()).not.toBeNull();
+
+      page.closeLogin();
+
+      expect(page.showLogin).toBe(false);
+      expect(page.showPassword).toBe(false);
+      expect(page.loginError()).toBeNull();
+    });
+
+    it('muestra el mensaje de bloqueo por intentos', async () => {
+      login.mockReturnValue(throwError(() => domainError('too_many_attempts')));
+      page.form.controls.email.setValue('kelvin@duocuc.cl');
+      page.form.controls.password.setValue('Abcdefg1!');
+
+      await page.onLogin();
+
+      expect(page.loginError()).toBe(
+        'Demasiados intentos fallidos. Espera unos minutos e intenta de nuevo.',
+      );
     });
   });
 
