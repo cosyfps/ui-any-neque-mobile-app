@@ -87,4 +87,8 @@
 
   // ── Typography ──
   --nq-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  // Minimo para campos de texto: por debajo de 16px iOS amplia la pagina al
+  // enfocarlos, y el viewport ya no bloquea el zoom para no quitarselo a quien
+  // lo necesita.
+  --nq-font-input: 16px;
 }

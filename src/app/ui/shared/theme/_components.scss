@@ -89,7 +89,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 15px;
+    font-size: var(--nq-font-input);
     font-family: var(--nq-font-family);
     color: var(--nq-text);
     min-width: 0;
