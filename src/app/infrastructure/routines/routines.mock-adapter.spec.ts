@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 
 import { Exercise } from '@app/domain/routines/model/exercise.model';
-import { Routine, RoutineInput } from '@app/domain/routines/model/routine.model';
+import { Routine, RoutineAssignment, RoutineInput } from '@app/domain/routines/model/routine.model';
 import { DomainError } from '@app/domain/shared/model/app-error';
 
 import { ExerciseCatalogMockAdapter, RoutinesMockAdapter } from './routines.mock-adapter';
@@ -29,22 +29,12 @@ describe('RoutinesMockAdapter', () => {
   describe('getActiveForStudent()', () => {
     it('devuelve la rutina vigente del alumno', () => {
       const routine = resolve(adapter.getActiveForStudent('std-001')).value;
-      expect(routine?.status).toBe('active');
+      expect(routine?.id).toBe('rtn-001');
       expect(routine?.days.length).toBe(4);
     });
 
     it('devuelve null para un alumno sin rutina', () => {
       expect(resolve(adapter.getActiveForStudent('std-999')).value).toBeNull();
-    });
-  });
-
-  describe('listByStudent()', () => {
-    it('devuelve las rutinas del alumno', () => {
-      expect(resolve(adapter.listByStudent('std-001')).value).toHaveLength(1);
-    });
-
-    it('devuelve vacio para otro alumno', () => {
-      expect(resolve(adapter.listByStudent('std-999')).value).toEqual([]);
     });
   });
 
@@ -63,12 +53,9 @@ describe('RoutinesMockAdapter — escritura del entrenador', () => {
   let adapter: RoutinesMockAdapter;
 
   const borrador: RoutineInput = {
-    studentId: 'std-002',
     trainerId: 'trn-001',
     name: 'Full body inicial',
     goal: 'Adaptacion',
-    startDate: '2026-10-01T00:00:00.000Z',
-    endDate: null,
     days: [
       {
         weekday: 1,
@@ -98,13 +85,18 @@ describe('RoutinesMockAdapter — escritura del entrenador', () => {
 
   afterEach(() => jest.useRealTimers());
 
+  const asignacion = (studentId: string): RoutineAssignment => ({
+    studentId,
+    startDate: '2026-10-01T00:00:00.000Z',
+    endDate: null,
+  });
+
   describe('create()', () => {
-    // Nace archivada: activarla implica archivar la anterior del alumno.
-    it('crea la rutina en borrador', () => {
+    it('crea la rutina como plantilla, sin alumnos', () => {
       const { value } = resolve<Routine>(adapter.create(borrador));
 
       expect(value?.id).toMatch(/^rtn-/);
-      expect(value?.status).toBe('archived');
+      expect(value?.assignments).toEqual([]);
     });
 
     it('asigna id a cada dia y a cada ejercicio', () => {
@@ -115,72 +107,65 @@ describe('RoutinesMockAdapter — escritura del entrenador', () => {
     });
   });
 
-  describe('assign()', () => {
-    it('activa la rutina', () => {
+  describe('setAssignments()', () => {
+    it('la misma rutina la hacen varios alumnos', () => {
       const creada = resolve<Routine>(adapter.create(borrador)).value as Routine;
 
-      const { value } = resolve<Routine>(adapter.assign(creada.id));
+      resolve<Routine>(
+        adapter.setAssignments(creada.id, [asignacion('std-002'), asignacion('std-003')]),
+      );
 
-      expect(value?.status).toBe('active');
+      expect(resolve(adapter.getActiveForStudent('std-002')).value?.id).toBe(creada.id);
+      expect(resolve(adapter.getActiveForStudent('std-003')).value?.id).toBe(creada.id);
     });
 
-    // La base tendra un indice unico parcial: dos activas no pueden existir.
-    it('archiva la anterior del mismo alumno', () => {
-      const previa = resolve<Routine | null>(adapter.getActiveForStudent('std-001')).value;
-      const nueva = resolve<Routine>(adapter.create({ ...borrador, studentId: 'std-001' }))
-        .value as Routine;
+    // Un alumno hace una sola rutina: la restriccion unica de la base.
+    it('saca al alumno de la rutina que hacia antes', () => {
+      const creada = resolve<Routine>(adapter.create(borrador)).value as Routine;
 
-      resolve<Routine>(adapter.assign(nueva.id));
+      resolve<Routine>(adapter.setAssignments(creada.id, [asignacion('std-001')]));
 
-      const vigente = resolve<Routine | null>(adapter.getActiveForStudent('std-001')).value;
-      expect(vigente?.id).toBe(nueva.id);
-      expect(vigente?.id).not.toBe((previa as Routine | null)?.id);
+      const anterior = resolve<Routine>(adapter.getById('rtn-001')).value;
+      expect(anterior?.assignments.some(item => item.studentId === 'std-001')).toBe(false);
+      expect(resolve(adapter.getActiveForStudent('std-001')).value?.id).toBe(creada.id);
     });
 
-    it('no toca las rutinas de otro alumno', () => {
-      const deAna = resolve<Routine | null>(adapter.getActiveForStudent('std-001')).value;
-      const nueva = resolve<Routine>(adapter.create(borrador)).value as Routine;
+    it('no toca a los alumnos de otras rutinas', () => {
+      const creada = resolve<Routine>(adapter.create(borrador)).value as Routine;
 
-      resolve<Routine>(adapter.assign(nueva.id));
+      resolve<Routine>(adapter.setAssignments(creada.id, [asignacion('std-002')]));
 
-      const sigue = resolve<Routine | null>(adapter.getActiveForStudent('std-001')).value;
-      expect(sigue?.id).toBe((deAna as Routine | null)?.id);
+      expect(resolve(adapter.getActiveForStudent('std-001')).value?.id).toBe('rtn-001');
+    });
+
+    it('con la lista vacia deja la rutina sin alumnos', () => {
+      const { value } = resolve<Routine>(adapter.setAssignments('rtn-001', []));
+
+      expect(value?.assignments).toEqual([]);
+      expect(resolve(adapter.getActiveForStudent('std-001')).value).toBeNull();
     });
 
     it('falla con un id desconocido', () => {
-      const { error } = resolve<Routine>(adapter.assign('rtn-999'));
+      const { error } = resolve<Routine>(adapter.setAssignments('rtn-999', []));
 
       expect(error?.code).toBe('not_found');
     });
   });
 
-  describe('update() y archive()', () => {
-    it('actualiza conservando id y estado', () => {
-      const creada = resolve<Routine>(adapter.create(borrador)).value as Routine;
-
+  describe('update()', () => {
+    // Editar la plantilla no la quita a quienes ya la hacen.
+    it('actualiza conservando id y alumnos', () => {
       const { value } = resolve<Routine>(
-        adapter.update(creada.id, { ...borrador, name: 'Renombrada' }),
+        adapter.update('rtn-001', { ...borrador, name: 'Renombrada' }),
       );
 
-      expect(value?.id).toBe(creada.id);
+      expect(value?.id).toBe('rtn-001');
       expect(value?.name).toBe('Renombrada');
-      expect(value?.status).toBe(creada.status);
+      expect(value?.assignments.map(item => item.studentId)).toEqual(['std-001']);
     });
 
-    it('archiva una rutina activa', () => {
-      const creada = resolve<Routine>(adapter.create(borrador)).value as Routine;
-      resolve<Routine>(adapter.assign(creada.id));
-
-      const { value } = resolve<Routine>(adapter.archive(creada.id));
-
-      expect(value?.status).toBe('archived');
-    });
-
-    it.each([
-      ['update', () => adapter.update('rtn-999', borrador)],
-      ['archive', () => adapter.archive('rtn-999')],
-    ])('%s falla con un id desconocido', (_nombre, llamada) => {
-      expect(resolve<Routine>(llamada()).error?.code).toBe('not_found');
+    it('falla con un id desconocido', () => {
+      expect(resolve<Routine>(adapter.update('rtn-999', borrador)).error?.code).toBe('not_found');
     });
   });
 

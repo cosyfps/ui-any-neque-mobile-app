@@ -1,6 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import {
   LucideCamera,
+  LucideChevronDown,
+  LucideImagePlus,
   LucideLoaderCircle,
   LucideTrash2,
   LucideTrendingDown,
@@ -8,41 +10,39 @@ import {
 } from '@lucide/angular';
 
 import { ProgressFacade } from '@app/application/progress/progress.facade';
-import { PhotoAngle, PHOTO_ANGLE_LABEL } from '@app/domain/progress/model/progress-photo.model';
+import {
+  PHOTO_ANGLE_LABEL,
+  PHOTO_ANGLES,
+  PhotoAngle,
+} from '@app/domain/progress/model/progress-photo.model';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { SeriesPoint } from '@shared/components/chart/chart-math';
 import { LineChartComponent } from '@shared/components/chart/line-chart.component';
 import { PageStateComponent } from '@shared/components/page-state.component';
-import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 type ProgressTab = 'metrics' | 'photos';
 type MetricSeries = 'weight' | 'bmi';
-
-const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
+type CompareSide = 'before' | 'after';
 
 @Component({
   selector: 'app-student-progress',
   standalone: true,
   imports: [
     PageStateComponent,
-    PullToRefreshDirective,
     SheetTrapDirective,
     LineChartComponent,
     LucideCamera,
+    LucideChevronDown,
+    LucideImagePlus,
     LucideLoaderCircle,
     LucideTrash2,
     LucideTrendingDown,
     LucideTrendingUp,
   ],
   template: `
-    <div
-      class="page"
-      nqPullToRefresh
-      [refreshing]="facade.assessments.loading()"
-      (refresh)="reload()"
-    >
+    <div class="page" [class.page-fill]="photosEmpty()">
       <header class="head">
         <h1 class="nq-h2">Mi progreso</h1>
       </header>
@@ -180,6 +180,23 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                   <h2 class="nq-section-title">Comparación</h2>
                 </div>
 
+                <!-- Solo se compara el mismo angulo: uno con menos de dos
+                     fotos no tiene con que compararse. -->
+                <div class="angle-row" role="group" aria-label="Ángulo a comparar">
+                  @for (angle of angles; track angle) {
+                    <button
+                      class="angle-btn"
+                      type="button"
+                      [class.active]="facade.compareAngle() === angle"
+                      [attr.aria-pressed]="facade.compareAngle() === angle"
+                      [disabled]="!facade.comparableAngles().includes(angle)"
+                      (click)="facade.selectCompareAngle(angle)"
+                    >
+                      {{ angleLabel(angle) }}
+                    </button>
+                  }
+                </div>
+
                 @if (facade.compareA(); as before) {
                   @if (facade.compareB(); as after) {
                     <!-- Las dos fotos se superponen y el divisor recorta la de
@@ -200,8 +217,28 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                         [style.clip-path]="'inset(0 0 0 ' + divisor() + '%)'"
                       />
 
-                      <span class="compare-date izquierda">{{ formatDate(before.takenAt) }}</span>
-                      <span class="compare-date derecha">{{ formatDate(after.takenAt) }}</span>
+                      <!-- pointerdown propio: sin cortarlo, tocar la fecha
+                           tambien movia el divisor hasta ahi. -->
+                      <button
+                        class="compare-date izquierda"
+                        type="button"
+                        [attr.aria-label]="'Cambiar foto anterior, ' + formatDate(before.takenAt)"
+                        (pointerdown)="$event.stopPropagation()"
+                        (click)="openPicker('before')"
+                      >
+                        {{ formatShortDate(before.takenAt) }}
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="1.8"></svg>
+                      </button>
+                      <button
+                        class="compare-date derecha"
+                        type="button"
+                        [attr.aria-label]="'Cambiar foto reciente, ' + formatDate(after.takenAt)"
+                        (pointerdown)="$event.stopPropagation()"
+                        (click)="openPicker('after')"
+                      >
+                        {{ formatShortDate(after.takenAt) }}
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="1.8"></svg>
+                      </button>
 
                       <button
                         class="compare-handle"
@@ -216,6 +253,7 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                         (keydown)="alTeclearDivisor($event)"
                       ></button>
                     </figure>
+                    <p class="compare-hint">Toca una fecha para elegir otra foto.</p>
                   }
                 }
               </section>
@@ -291,11 +329,58 @@ const ANGLES: readonly PhotoAngle[] = ['front', 'side', 'back'];
                 </section>
               }
             } @else {
-              <p class="section-empty">Aún no subes fotos de progreso.</p>
+              <div class="photos-empty nq-ani nq-d2" role="status">
+                <div class="photos-empty-icon">
+                  <svg lucideImagePlus [size]="28" [strokeWidth]="1.6"></svg>
+                </div>
+                <h2 class="photos-empty-title">Aún no tienes fotos</h2>
+                <p class="photos-empty-desc">
+                  Sube una foto de frente, perfil o espalda. Con dos del mismo ángulo podrás
+                  comparar tu evolución.
+                </p>
+              </div>
             }
           }
         }
       }
+    </div>
+
+    <!-- Selector de foto del comparador: solo fotos del angulo actual. -->
+    <div class="nq-overlay" [class.open]="pickerSide() !== null" (click)="closePicker()">
+      <div
+        class="nq-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pick-photo-title"
+        [nqSheetTrap]="pickerSide() !== null"
+        (dismissed)="closePicker()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="nq-sheet-handle"></div>
+        <h2 class="nq-sheet-title" id="pick-photo-title">
+          {{ pickerSide() === 'before' ? 'Elegir foto anterior' : 'Elegir foto reciente' }}
+        </h2>
+        <p class="picker-desc">Fotos de {{ angleLabel(facade.compareAngle()) }}</p>
+
+        <div class="picker-grid">
+          @for (option of pickerOptions(); track option.photo.id) {
+            <button
+              class="pick"
+              type="button"
+              [class.current]="option.current"
+              [attr.aria-pressed]="option.current"
+              [disabled]="option.inUse"
+              (click)="pick(option.photo.id)"
+            >
+              <img [src]="option.photo.url" alt="" />
+              <span class="pick-date">{{ formatShortDate(option.photo.takenAt) }}</span>
+              @if (option.inUse) {
+                <span class="pick-tag">En uso</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
     </div>
 
     <!-- Borrar una foto no tiene vuelta atras: se confirma. El overlay vive
@@ -338,7 +423,7 @@ export class StudentProgressPage {
 
   private readonly clock = inject(CLOCK);
 
-  readonly angles = ANGLES;
+  readonly angles = PHOTO_ANGLES;
   readonly tab = signal<ProgressTab>('metrics');
   readonly series = signal<MetricSeries>('weight');
   readonly selectedAngle = signal<PhotoAngle>('front');
@@ -349,6 +434,31 @@ export class StudentProgressPage {
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly pendingRemoval = signal<string | null>(null);
+  /** Pestaña de fotos cargada y sin fotos: el aviso ocupa el resto de la pantalla. */
+  readonly photosEmpty = computed(() => {
+    const state = this.facade.photos.viewState();
+    return (
+      this.tab() === 'photos' &&
+      state !== 'loading' &&
+      state !== 'error' &&
+      this.facade.photoGroups().length === 0
+    );
+  });
+
+  /** Lado del comparador que se esta eligiendo; null con la hoja cerrada. */
+  readonly pickerSide = signal<CompareSide | null>(null);
+
+  /** Candidatos para el lado abierto, del mas reciente al mas antiguo. */
+  readonly pickerOptions = computed(() => {
+    const side = this.pickerSide();
+    const current = side === 'before' ? this.facade.compareA() : this.facade.compareB();
+    const other = side === 'before' ? this.facade.compareB() : this.facade.compareA();
+    return [...this.facade.compareCandidates()].reverse().map(photo => ({
+      photo,
+      current: photo.id === current?.id,
+      inUse: photo.id === other?.id,
+    }));
+  });
   readonly removing = signal(false);
 
   /** Sin evaluacion el valor es un guion, no un " kg" con el numero en blanco. */
@@ -442,6 +552,14 @@ export class StudentProgressPage {
     }).format(new Date(iso));
   }
 
+  /** "05/03/2026": ancho fijo, las dos fechas del comparador se ven parejas. */
+  formatShortDate(iso: string): string {
+    const date = new Date(iso);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${date.getFullYear()}`;
+  }
+
   /** Lee el archivo como data-URL: el adapter mock guarda la imagen en memoria. */
   onFile(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -476,6 +594,22 @@ export class StudentProgressPage {
       });
     };
     reader.readAsDataURL(file);
+  }
+
+  openPicker(side: CompareSide): void {
+    this.pickerSide.set(side);
+  }
+
+  closePicker(): void {
+    this.pickerSide.set(null);
+  }
+
+  pick(photoId: string): void {
+    const side = this.pickerSide();
+    if (side !== null) {
+      this.facade.replaceCompare(side, photoId);
+    }
+    this.closePicker();
   }
 
   askRemove(photoId: string): void {

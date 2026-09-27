@@ -89,7 +89,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 15px;
+    font-size: var(--nq-font-input);
     font-family: var(--nq-font-family);
     color: var(--nq-text);
     min-width: 0;
@@ -528,37 +528,6 @@
   color: var(--nq-text-secondary);
   line-height: 1.5;
   max-width: 260px;
-}
-
-// ══════════════════════════════════════
-//  PULL TO REFRESH
-// ══════════════════════════════════════
-
-// La directiva `nqPullToRefresh` no pinta nada: expone `--nq-pull` y conmuta
-// estas clases. El indicador se dibuja aqui para que viva con el resto del
-// design system y no duplicado en cada pagina.
-.nq-pulling,
-.nq-refreshing {
-  position: relative;
-
-  &::before {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 24px;
-    height: 24px;
-    margin-top: -32px;
-    content: '';
-    border: 2.5px solid var(--nq-border-solid);
-    border-top-color: var(--nq-primary-strong);
-    border-radius: 50%;
-    transform: translate(-50%, var(--nq-pull, 0px));
-  }
-}
-
-.nq-refreshing::before {
-  transform: translate(-50%, 48px);
-  animation: nq-spin 0.7s linear infinite;
 }
 
 // ══════════════════════════════════════

@@ -11,7 +11,6 @@ import { INVITATION_TTL_HOURS } from '@app/domain/auth/port/invitation.port';
 import { Student, fullName, initials } from '@app/domain/students/model/student.model';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
-import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
 
 import { InvitationPanelComponent } from '../shared/invitation-panel.component';
@@ -22,7 +21,6 @@ import { StudentFormComponent, StudentFormValue } from '../shared/student-form.c
   standalone: true,
   imports: [
     PageStateComponent,
-    PullToRefreshDirective,
     SheetTrapDirective,
     InvitationPanelComponent,
     StudentFormComponent,
@@ -32,7 +30,7 @@ import { StudentFormComponent, StudentFormValue } from '../shared/student-form.c
   ],
   providers: [TrainerStudentsFacade, TrainerInvitationFacade],
   template: `
-    <div class="page" nqPullToRefresh [refreshing]="facade.all.loading()" (refresh)="reload()">
+    <div class="page">
       <header class="head">
         <div class="head-row">
           <h1 class="nq-h2">Alumnos</h1>

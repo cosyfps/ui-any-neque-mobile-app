@@ -5,18 +5,20 @@ import { AuthSession, PasswordResetTicket } from '@app/domain/auth/model/auth-us
 import { DomainError } from '@app/domain/shared/model/app-error';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
-import { AuthMockAdapter } from './auth.mock-adapter';
+import { AuthMockAdapter, LOGIN_LOCK_MINUTES, MAX_LOGIN_ATTEMPTS } from './auth.mock-adapter';
 import { SEED_OTP_CODE } from './seed/accounts.seed';
 
 const NOW = new Date('2026-09-17T10:00:00.000Z');
 
 describe('AuthMockAdapter', () => {
   let adapter: AuthMockAdapter;
+  let now: Date;
 
   beforeEach(() => {
     jest.useFakeTimers();
+    now = NOW;
     TestBed.configureTestingModule({
-      providers: [AuthMockAdapter, { provide: CLOCK, useValue: { now: () => NOW } }],
+      providers: [AuthMockAdapter, { provide: CLOCK, useValue: { now: () => now } }],
     });
     adapter = TestBed.inject(AuthMockAdapter);
   });
@@ -87,6 +89,59 @@ describe('AuthMockAdapter', () => {
       );
 
       expect(error?.code).toBe('invalid_credentials');
+    });
+
+    describe('bloqueo por intentos fallidos', () => {
+      const fail = (email = 'alejandra@neque.cl'): DomainError | undefined =>
+        resolve<AuthSession>(adapter.login({ email, password: 'incorrecta' })).error;
+
+      const failUntilLocked = (): void => {
+        for (let i = 0; i < MAX_LOGIN_ATTEMPTS - 1; i++) fail();
+      };
+
+      it('bloquea el correo al llegar al tope de intentos', () => {
+        failUntilLocked();
+
+        expect(fail()?.code).toBe('too_many_attempts');
+      });
+
+      it('rechaza incluso la contrasena correcta mientras dura el bloqueo', () => {
+        failUntilLocked();
+        fail();
+
+        const { error } = resolve<AuthSession>(
+          adapter.login({ email: 'ALEJANDRA@neque.cl', password: 'Alumno1234!' }),
+        );
+
+        expect(error?.code).toBe('too_many_attempts');
+      });
+
+      it('libera el correo cuando vence el bloqueo', () => {
+        failUntilLocked();
+        fail();
+        now = new Date(NOW.getTime() + LOGIN_LOCK_MINUTES * 60_000);
+
+        const { value } = resolve<AuthSession>(
+          adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
+        );
+
+        expect(value?.user.role).toBe('student');
+      });
+
+      it('un ingreso correcto reinicia el contador', () => {
+        failUntilLocked();
+        resolve<AuthSession>(
+          adapter.login({ email: 'alejandra@neque.cl', password: 'Alumno1234!' }),
+        );
+
+        expect(fail()?.code).toBe('invalid_credentials');
+      });
+
+      it('cuenta los intentos por correo', () => {
+        failUntilLocked();
+
+        expect(fail('kelvin@neque.cl')?.code).toBe('invalid_credentials');
+      });
     });
   });
 

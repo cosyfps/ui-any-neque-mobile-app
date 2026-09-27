@@ -31,7 +31,11 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
 
   constructor() {
     const routine = cloneSeed(SEED_ROUTINES)[0];
-    this.sessions = routine === undefined ? [] : buildWorkoutSeed(routine, this.clock.now());
+    const alumno = routine?.assignments[0]?.studentId;
+    this.sessions =
+      routine === undefined || alumno === undefined
+        ? []
+        : buildWorkoutSeed(routine, alumno, this.clock.now());
   }
 
   listByStudent(studentId: Id, range?: DateRange): Observable<WorkoutSession[]> {

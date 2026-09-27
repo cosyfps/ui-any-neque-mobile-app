@@ -5,21 +5,14 @@ import { LucideChevronRight, LucideDumbbell, LucideUserPlus } from '@lucide/angu
 import { TrainerHomeFacade } from '@app/application/trainers/trainer-home.facade';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
-import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 
 @Component({
   selector: 'app-trainer-home',
   standalone: true,
-  imports: [
-    PageStateComponent,
-    PullToRefreshDirective,
-    LucideUserPlus,
-    LucideDumbbell,
-    LucideChevronRight,
-  ],
+  imports: [PageStateComponent, LucideUserPlus, LucideDumbbell, LucideChevronRight],
   providers: [TrainerHomeFacade],
   template: `
-    <div class="page" nqPullToRefresh [refreshing]="facade.cartera.loading()" (refresh)="reload()">
+    <div class="page">
       <header class="head">
         <h1 class="nq-h2">Inicio</h1>
         <p class="greeting">{{ facade.greeting() }}, {{ facade.trainerFirstName() }}</p>

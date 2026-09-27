@@ -1,19 +1,23 @@
 import { Routine } from '@app/domain/routines/model/routine.model';
 
 /**
- * Rutina activa de Alejandra: cuatro dias (lunes, martes, jueves, viernes).
+ * Plantilla de hipertrofia que hace Alejandra: cuatro dias (lunes, martes,
+ * jueves, viernes).
  * Los `exerciseId` referencian el catalogo de `exercises.seed.ts`.
  */
 export const SEED_ROUTINES: readonly Routine[] = [
   {
     id: 'rtn-001',
-    studentId: 'std-001',
     trainerId: 'trn-001',
     name: 'Hipertrofia — Bloque 2',
     goal: 'Ganar masa muscular y mejorar postura',
-    startDate: '2026-09-01T00:00:00.000Z',
-    endDate: '2026-11-30T00:00:00.000Z',
-    status: 'active',
+    assignments: [
+      {
+        studentId: 'std-001',
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-11-30T00:00:00.000Z',
+      },
+    ],
     days: [
       {
         id: 'day-001',
