@@ -1,18 +1,40 @@
-import { Component, computed, signal, DestroyRef, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  signal,
+  DestroyRef,
+  ElementRef,
+  inject,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LucideCircleAlert, LucideEye, LucideEyeOff, LucideLoaderCircle } from '@lucide/angular';
+import {
+  LucideCheck,
+  LucideCircleAlert,
+  LucideEye,
+  LucideEyeOff,
+  LucideLoaderCircle,
+} from '@lucide/angular';
 
 import { SessionFacade } from '@app/application/auth/session.facade';
+import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/password-rules';
 
 @Component({
   selector: 'app-start',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideCircleAlert, LucideEye, LucideEyeOff, LucideLoaderCircle],
+  imports: [
+    ReactiveFormsModule,
+    LucideCheck,
+    LucideCircleAlert,
+    LucideEye,
+    LucideEyeOff,
+    LucideLoaderCircle,
+  ],
   template: `
     <div class="nq-screen">
-      <div class="start-container">
+      <div class="start-container" [attr.inert]="showLogin ? '' : null">
         <div class="hero">
           <svg class="lotus" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="120" cy="60" rx="18" ry="55" fill="rgba(255,255,255,0.30)" />
@@ -82,7 +104,9 @@ import { SessionFacade } from '@app/application/auth/session.facade';
         </div>
       </div>
 
-      <div class="login-panel" [class.open]="showLogin">
+      <!-- Cerrado sigue en el DOM, trasladado fuera de pantalla: sin inert el
+           foco de teclado y VoiceOver llegaban a sus campos invisibles. -->
+      <div class="login-panel" [class.open]="showLogin" [attr.inert]="showLogin ? null : ''">
         <div class="form-section">
           <div class="form-header">
             <h1 class="form-title">Ingresar</h1>
@@ -127,9 +151,13 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                   type="email"
                   formControlName="email"
                   placeholder="tu.correo&#64;ejemplo.com"
-                  autocomplete="email"
+                  autocomplete="username"
+                  autocapitalize="none"
+                  spellcheck="false"
                   inputmode="email"
                   enterkeyhint="next"
+                  maxlength="254"
+                  (keydown.enter)="focusPassword($event)"
                   [attr.aria-describedby]="emailTouched() && emailError() ? 'email-error' : null"
                   (blur)="markEmailTouched()"
                 />
@@ -148,10 +176,10 @@ import { SessionFacade } from '@app/application/auth/session.facade';
             </div>
 
             <!-- Password -->
-            <div class="field" [class.has-error]="passwordError() !== null">
+            <div class="field" [class.has-error]="passwordTouched() && !passwordValid()">
               <label class="nq-field-label" for="password">Contraseña</label>
               <div class="nq-field-input">
-                @if (passwordFilled()) {
+                @if (passwordValid()) {
                   <svg
                     class="nq-field-icon valid"
                     width="20"
@@ -197,14 +225,20 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                   </svg>
                 }
                 <input
+                  #passwordInput
                   id="password"
                   [type]="showPassword ? 'text' : 'password'"
                   formControlName="password"
                   placeholder="Tu contraseña"
                   autocomplete="current-password"
-                  enterkeyhint="done"
-                  [attr.aria-describedby]="passwordError() ? 'password-error' : null"
-                  (blur)="markPasswordTouched()"
+                  autocapitalize="none"
+                  autocorrect="off"
+                  spellcheck="false"
+                  enterkeyhint="go"
+                  maxlength="128"
+                  aria-describedby="pwd-reqs"
+                  (focus)="passwordFocused.set(true)"
+                  (blur)="passwordFocused.set(false); markPasswordTouched()"
                 />
                 <button
                   class="toggle-password"
@@ -220,8 +254,19 @@ import { SessionFacade } from '@app/application/auth/session.facade';
                 </button>
               </div>
 
-              @if (passwordError(); as error) {
-                <span class="nq-field-error" id="password-error">{{ error }}</span>
+              @if (showRequirements()) {
+                <ul class="pwd-requirements" id="pwd-reqs">
+                  @for (req of pwdRequirements(); track req.label) {
+                    <li [class.met]="req.met">
+                      @if (req.met) {
+                        <svg lucideCheck [size]="14" [strokeWidth]="2.5"></svg>
+                      } @else {
+                        <svg lucideCircleAlert [size]="14" [strokeWidth]="1.8"></svg>
+                      }
+                      {{ req.label }}
+                    </li>
+                  }
+                </ul>
               }
             </div>
 
@@ -278,6 +323,7 @@ export class StartPage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly session = inject(SessionFacade);
   private readonly fb = new FormBuilder();
+  private readonly passwordInput = viewChild<ElementRef<HTMLInputElement>>('passwordInput');
 
   /** Error de credenciales devuelto por el backend, para `.nq-field-error`. */
   readonly loginError = computed(() => this.session.loginError()?.message ?? null);
@@ -287,10 +333,12 @@ export class StartPage {
       '',
       [
         Validators.required,
-        Validators.pattern(/^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/),
+        // Tolera espacios en los bordes: la sugerencia del teclado de iOS agrega
+        // uno al final y el correo se envia recortado de todas formas.
+        Validators.pattern(/^\s*[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\s*$/),
       ],
     ],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', Validators.required],
   });
 
   readonly emailTouched = signal(false);
@@ -310,27 +358,18 @@ export class StartPage {
   });
 
   readonly passwordValue = this._password.asReadonly();
+  readonly passwordFocused = signal(false);
 
-  readonly passwordFilled = computed(() => this._password() !== '');
+  /** Las cuatro reglas de contrasena, las mismas de /invite y recuperacion. */
+  readonly pwdRequirements = computed(() => passwordRules(this._password()));
+  readonly passwordValid = computed(() => isPasswordValid(this._password()));
 
-  /**
-   * El login NO valida composicion de contrasena: la de un alumno puede ser
-   * anterior a las reglas vigentes y bloquearle el boton lo dejaria fuera de
-   * su propia cuenta. Quien decide si la credencial sirve es el backend. Las
-   * reglas viven donde se crea una contrasena nueva: /invite y recuperacion.
-   */
-  readonly passwordError = computed((): string | null => {
-    this._password();
-    if (!this.passwordTouched()) return null;
-    const ctrl = this.form.controls.password;
-    if (ctrl.hasError('required')) return 'La contraseña es obligatoria';
-    if (ctrl.hasError('minlength')) return 'Debe tener al menos 8 caracteres';
-    return null;
-  });
+  /** La lista se ve mientras se escribe, o despues si quedo incompleta. */
+  readonly showRequirements = computed(
+    () => this.passwordFocused() || (this.passwordTouched() && !this.passwordValid()),
+  );
 
-  private readonly _passwordValid = signal(false);
-
-  readonly formValid = computed(() => this._emailValid() && this._passwordValid());
+  readonly formValid = computed(() => this._emailValid() && this.passwordValid());
 
   constructor() {
     this.form.controls.email.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(v => {
@@ -342,13 +381,24 @@ export class StartPage {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(v => {
         this._password.set(v);
-        this._passwordValid.set(this.form.controls.password.valid);
         this.session.clearError();
       });
   }
 
   markEmailTouched(): void {
     this.emailTouched.set(true);
+    const ctrl = this.form.controls.email;
+    const trimmed = ctrl.value.trim();
+    if (trimmed !== ctrl.value) ctrl.setValue(trimmed);
+  }
+
+  /**
+   * "Siguiente" del teclado en el correo. Sin esto el Enter dispara el envio
+   * implicito del formulario y el foco nunca pasa a la contrasena.
+   */
+  focusPassword(event: Event): void {
+    event.preventDefault();
+    this.passwordInput()?.nativeElement.focus();
   }
 
   markPasswordTouched(): void {
@@ -368,7 +418,7 @@ export class StartPage {
     this.isSubmitting.set(true);
 
     const route = await this.session.login({
-      email: this.form.controls.email.value,
+      email: this.form.controls.email.value.trim(),
       password: this.form.controls.password.value,
     });
 

@@ -236,3 +236,31 @@
 .login-error {
   margin: 0 0 4px;
 }
+
+// Requisitos de contraseña: rojo pendiente, verde cumplido.
+.pwd-requirements {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--nq-danger);
+    transition: color 0.2s ease;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &.met {
+      color: var(--nq-success);
+    }
+  }
+}
