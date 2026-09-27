@@ -17,6 +17,17 @@ import { SEED_ACCOUNTS, SEED_OTP_CODE, SeedAccount } from './seed/accounts.seed'
 /** Duracion de la sesion simulada, en dias. */
 const SESSION_DAYS = 7;
 
+/** Intentos fallidos seguidos que bloquean el correo. */
+export const MAX_LOGIN_ATTEMPTS = 5;
+
+/** Minutos que dura el bloqueo por intentos fallidos. */
+export const LOGIN_LOCK_MINUTES = 5;
+
+interface FailedLogins {
+  count: number;
+  lockedUntil: number | null;
+}
+
 /**
  * Adapter de autenticacion contra cuentas en memoria.
  *
@@ -29,14 +40,28 @@ export class AuthMockAdapter implements AuthPort {
   private readonly accounts: SeedAccount[] = cloneSeed(SEED_ACCOUNTS) as SeedAccount[];
   /** Tickets de recuperacion vivos. Estado por instancia, nunca modulo-global. */
   private readonly resetTickets = new Set<string>();
+  /** Intentos fallidos seguidos por correo normalizado. */
+  private readonly failedLogins = new Map<string, FailedLogins>();
 
   login(credentials: Credentials): Observable<AuthSession> {
+    const key = credentials.email.trim().toLowerCase();
+    const now = this.clock.now().getTime();
+    const lockedUntil = this.failedLogins.get(key)?.lockedUntil ?? null;
+
+    if (lockedUntil !== null) {
+      if (lockedUntil > now) {
+        return simulateError<AuthSession>('too_many_attempts');
+      }
+      this.failedLogins.delete(key);
+    }
+
     const account = this.findByEmail(credentials.email);
 
     if (account === undefined || account.password !== credentials.password) {
-      return simulateError<AuthSession>('invalid_credentials');
+      return simulateError<AuthSession>(this.registerFailure(key, now));
     }
 
+    this.failedLogins.delete(key);
     return simulate(this.buildSession(account));
   }
 
@@ -92,6 +117,17 @@ export class AuthMockAdapter implements AuthPort {
     account.password = newPassword;
 
     return simulate(this.buildSession(account));
+  }
+
+  /** Suma un intento fallido y bloquea el correo al llegar al tope. */
+  private registerFailure(key: string, now: number): 'invalid_credentials' | 'too_many_attempts' {
+    const count = (this.failedLogins.get(key)?.count ?? 0) + 1;
+    if (count >= MAX_LOGIN_ATTEMPTS) {
+      this.failedLogins.set(key, { count, lockedUntil: now + LOGIN_LOCK_MINUTES * 60_000 });
+      return 'too_many_attempts';
+    }
+    this.failedLogins.set(key, { count, lockedUntil: null });
+    return 'invalid_credentials';
   }
 
   private findByEmail(email: string): SeedAccount | undefined {

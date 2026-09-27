@@ -3,6 +3,7 @@ export type DomainErrorCode =
   | 'not_found'
   | 'unauthorized'
   | 'invalid_credentials'
+  | 'too_many_attempts'
   | 'invalid_invitation'
   | 'conflict'
   | 'network'
@@ -29,6 +30,7 @@ const DEFAULT_MESSAGES: Record<DomainErrorCode, string> = {
   not_found: 'No encontramos lo que buscabas.',
   unauthorized: 'Tu sesión expiró. Vuelve a ingresar.',
   invalid_credentials: 'Correo o contraseña incorrectos.',
+  too_many_attempts: 'Demasiados intentos fallidos. Espera unos minutos e intenta de nuevo.',
   invalid_invitation: 'Esta invitación no es válida o ya fue utilizada.',
   conflict: 'Ya existe un registro con esos datos.',
   network: 'No pudimos conectarnos. Revisa tu conexión.',
