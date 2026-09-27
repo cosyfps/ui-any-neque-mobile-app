@@ -35,6 +35,7 @@
 
   // ── Text ──
   --nq-text: #1a2b2a;
+  --nq-text-rgb: 26, 43, 42;
   --nq-text-secondary: #5a706d;
   // 4.73:1 sobre `--nq-surface`, que es el fondo real de las pantallas del
   // alumno y no el blanco puro. El #94a8a5 anterior daba 2.50:1; medido
@@ -88,7 +89,7 @@
   // ── Typography ──
   --nq-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   // Minimo para campos de texto: por debajo de 16px iOS amplia la pagina al
-  // enfocarlos, y el viewport ya no bloquea el zoom para no quitarselo a quien
-  // lo necesita.
+  // enfocarlos. No depende del `maximum-scale=1` del viewport, que sigue ahi
+  // porque la app no admite zoom.
   --nq-font-input: 16px;
 }

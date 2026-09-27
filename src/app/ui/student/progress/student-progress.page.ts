@@ -227,7 +227,7 @@ type CompareSide = 'before' | 'after';
                         (click)="openPicker('before')"
                       >
                         {{ formatShortDate(before.takenAt) }}
-                        <svg lucideChevronDown [size]="14" [strokeWidth]="2.5"></svg>
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="1.8"></svg>
                       </button>
                       <button
                         class="compare-date derecha"
@@ -237,7 +237,7 @@ type CompareSide = 'before' | 'after';
                         (click)="openPicker('after')"
                       >
                         {{ formatShortDate(after.takenAt) }}
-                        <svg lucideChevronDown [size]="14" [strokeWidth]="2.5"></svg>
+                        <svg lucideChevronDown [size]="14" [strokeWidth]="1.8"></svg>
                       </button>
 
                       <button
@@ -375,7 +375,7 @@ type CompareSide = 'before' | 'after';
               <img [src]="option.photo.url" alt="" />
               <span class="pick-date">{{ formatShortDate(option.photo.takenAt) }}</span>
               @if (option.inUse) {
-                <span class="pick-tag">En el otro lado</span>
+                <span class="pick-tag">En uso</span>
               }
             </button>
           }

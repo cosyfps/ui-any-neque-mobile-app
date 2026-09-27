@@ -240,7 +240,7 @@
   align-items: flex-start;
   gap: 8px;
   margin: 0 0 4px;
-  padding: 10px 12px;
+  padding: 12px;
   line-height: 1.4;
   background: rgba(var(--nq-danger-rgb), 0.08);
   border-radius: var(--nq-radius-md);
@@ -258,12 +258,12 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 
   li {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 12px;
     font-weight: 500;
     color: var(--nq-danger);

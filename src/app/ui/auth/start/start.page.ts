@@ -169,6 +169,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   maxlength="254"
                   (keydown.enter)="focusPassword($event)"
                   [attr.aria-describedby]="emailTouched() && emailError() ? 'email-error' : null"
+                  [attr.aria-invalid]="emailError() !== null"
                   (blur)="markEmailTouched()"
                 />
                 @if (emailTouched() && emailError()) {
@@ -247,7 +248,8 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   spellcheck="false"
                   enterkeyhint="go"
                   maxlength="128"
-                  aria-describedby="pwd-reqs"
+                  [attr.aria-describedby]="showRequirements() ? 'pwd-reqs' : null"
+                  [attr.aria-invalid]="passwordTouched() && !passwordValid()"
                   (focus)="passwordFocused.set(true)"
                   (blur)="passwordFocused.set(false); markPasswordTouched()"
                 />
@@ -270,7 +272,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   @for (req of pwdRequirements(); track req.label) {
                     <li [class.met]="req.met">
                       @if (req.met) {
-                        <svg lucideCheck [size]="14" [strokeWidth]="2.5"></svg>
+                        <svg lucideCheck [size]="14" [strokeWidth]="1.8"></svg>
                       } @else {
                         <svg lucideCircleAlert [size]="14" [strokeWidth]="1.8"></svg>
                       }
@@ -288,7 +290,7 @@ import { isPasswordValid, passwordRules } from '@app/ui/shared/validators/passwo
                   class="nq-field-error-icon"
                   lucideCircleAlert
                   [size]="14"
-                  [strokeWidth]="2"
+                  [strokeWidth]="1.8"
                 ></svg>
                 {{ error }}
               </p>

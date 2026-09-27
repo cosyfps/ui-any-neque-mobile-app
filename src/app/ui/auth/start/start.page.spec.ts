@@ -309,6 +309,36 @@ describe('StartPage', () => {
       expect(page.showLogin).toBe(true);
     });
 
+    describe('onPanelTransitionEnd()', () => {
+      const panel = document.createElement('div');
+      const transition = (propertyName: string, target: EventTarget = panel): TransitionEvent =>
+        ({ propertyName, target, currentTarget: panel }) as unknown as TransitionEvent;
+
+      it('enfoca el correo al terminar de subir el panel', () => {
+        page.openLogin();
+
+        expect(() => page.onPanelTransitionEnd(transition('transform'))).not.toThrow();
+      });
+
+      it.each([
+        ['el panel esta cerrado', false, transition('transform')],
+        [
+          'la transicion es de un hijo',
+          true,
+          transition('transform', document.createElement('input')),
+        ],
+        ['la propiedad no es transform', true, transition('opacity')],
+      ])('no hace nada si %s', (_caso, abierto, event) => {
+        page.showLogin = abierto;
+        const focus = jest.spyOn(HTMLElement.prototype, 'focus');
+
+        page.onPanelTransitionEnd(event);
+
+        expect(focus).not.toHaveBeenCalled();
+        focus.mockRestore();
+      });
+    });
+
     it('closeLogin() lo cierra, oculta la contrasena y descarta el error', async () => {
       login.mockReturnValue(throwError(() => domainError('invalid_credentials')));
       page.form.controls.email.setValue('kelvin@duocuc.cl');
