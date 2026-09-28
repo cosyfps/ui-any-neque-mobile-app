@@ -9,6 +9,7 @@ import { Routine } from '@app/domain/routines/model/routine.model';
 import { ROUTINES_PORT } from '@app/domain/routines/port/routines.port';
 import { domainError } from '@app/domain/shared/model/app-error';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { PUBLIC_APP_URL } from '@app/domain/shared/port/public-url.port';
 import { Anamnesis } from '@app/domain/students/model/anamnesis.model';
 import { Assessment } from '@app/domain/students/model/assessment.model';
 import { Student } from '@app/domain/students/model/student.model';
@@ -70,6 +71,7 @@ describe('StudentDetailPage', () => {
   let edit: jest.Mock;
   let save: jest.Mock;
   let createAssessment: jest.Mock;
+  let accionPedida: string | null;
 
   const createPage = (
     alumno: Student = ALUMNO,
@@ -93,10 +95,16 @@ describe('StudentDetailPage', () => {
         // La pagina las declara en sus `providers`; aqui hay que darlas a mano.
         TrainerStudentDetailFacade,
         TrainerInvitationFacade,
+        { provide: PUBLIC_APP_URL, useValue: 'https://neque.vercel.app' },
         { provide: CLOCK, useValue: { now: () => AHORA } },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: { get: () => 'std-001' } } },
+          useValue: {
+            snapshot: {
+              paramMap: { get: () => 'std-001' },
+              queryParamMap: { get: () => accionPedida },
+            },
+          },
         },
         {
           provide: STUDENTS_PORT,
@@ -117,7 +125,50 @@ describe('StudentDetailPage', () => {
   };
 
   beforeEach(() => {
+    accionPedida = null;
     page = createPage();
+  });
+
+  // El inicio del entrenador llega con ?accion= para resolver un pendiente.
+  describe('accion pedida por el inicio', () => {
+    it('?accion=anamnesis abre la hoja de anamnesis al cargar', () => {
+      accionPedida = 'anamnesis';
+      page = createPage();
+      TestBed.flushEffects();
+
+      expect(page.editingAnamnesis()).toBe(true);
+      expect(page.addingAssessment()).toBe(false);
+    });
+
+    it('?accion=evaluacion abre la hoja de evaluacion al cargar', () => {
+      accionPedida = 'evaluacion';
+      page = createPage();
+      TestBed.flushEffects();
+
+      expect(page.addingAssessment()).toBe(true);
+    });
+
+    it('una accion desconocida no abre nada', () => {
+      accionPedida = 'borrar';
+      page = createPage();
+      TestBed.flushEffects();
+
+      expect(page.editingAnamnesis()).toBe(false);
+      expect(page.addingAssessment()).toBe(false);
+    });
+
+    // Cerrarla no la vuelve a abrir: la accion se atiende una sola vez.
+    it('se abre una sola vez', () => {
+      accionPedida = 'anamnesis';
+      page = createPage();
+      TestBed.flushEffects();
+
+      page.closeAnamnesis();
+      page.reload();
+      TestBed.flushEffects();
+
+      expect(page.editingAnamnesis()).toBe(false);
+    });
   });
 
   describe('carga inicial', () => {
