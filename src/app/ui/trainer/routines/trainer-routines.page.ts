@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
-import { LucidePlus } from '@lucide/angular';
 
 import {
+  RoutineRow,
   RoutinesFilter,
   TrainerRoutinesFacade,
 } from '@app/application/trainers/trainer-routines.facade';
@@ -16,6 +16,7 @@ import { CLOCK } from '@app/domain/shared/port/clock.port';
 
 import { PageStateComponent } from '@shared/components/page-state.component';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
+import { useFab } from '@shared/navigation/fab';
 
 import { ExerciseFormComponent } from './exercise-form.component';
 import { RoutineAssignComponent } from './routine-assign.component';
@@ -33,18 +34,12 @@ type Seccion = 'routines' | 'exercises';
     RoutineBuilderComponent,
     RoutineAssignComponent,
     ExerciseFormComponent,
-    LucidePlus,
   ],
   providers: [TrainerRoutinesFacade],
   template: `
     <div class="page">
       <header class="head">
-        <div class="head-row">
-          <h1 class="nq-h2">Rutinas</h1>
-          <button class="add" type="button" [attr.aria-label]="addLabel()" (click)="openCreate()">
-            <svg lucidePlus [size]="20" [strokeWidth]="2"></svg>
-          </button>
-        </div>
+        <h1 class="nq-h2">Rutinas</h1>
       </header>
 
       <div class="nq-tabs" role="tablist" aria-label="Secciones">
@@ -124,6 +119,15 @@ type Seccion = 'routines' | 'exercises';
                     >
                       Asignar alumnos
                     </button>
+                    <button
+                      class="text-btn danger"
+                      type="button"
+                      [attr.aria-label]="'Eliminar ' + row.routine.name"
+                      [disabled]="facade.busy()"
+                      (click)="askRemove(row)"
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 </li>
               }
@@ -145,7 +149,7 @@ type Seccion = 'routines' | 'exercises';
               }
             </ul>
           } @else {
-            <p class="empty-text">
+            <p class="nq-empty-inline">
               Todavía no tienes ejercicios propios. Los que crees solo los verás tú.
             </p>
           }
@@ -222,6 +226,45 @@ type Seccion = 'routines' | 'exercises';
       </div>
     </div>
 
+    <!-- Eliminar no tiene vuelta atras y puede dejar alumnos sin rutina: se
+         confirma nombrando a quienes afecta. -->
+    <div class="nq-overlay" [class.open]="removing() !== null" (click)="cancelRemove()">
+      <div
+        class="nq-sheet confirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="eliminar-title"
+        aria-describedby="eliminar-desc"
+        [nqSheetTrap]="removing() !== null"
+        (dismissed)="cancelRemove()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="nq-sheet-handle"></div>
+        <h2 class="nq-sheet-title" id="eliminar-title">
+          ¿Eliminar «{{ removing()?.routine?.name }}»?
+        </h2>
+        <p class="confirm-desc" id="eliminar-desc">{{ removeWarning() }}</p>
+
+        @if (facade.actionError(); as error) {
+          <p class="nq-field-error" role="alert">{{ error.message }}</p>
+        }
+
+        <div class="confirm-actions">
+          <button class="nq-btn nq-btn-secondary" type="button" (click)="cancelRemove()">
+            Cancelar
+          </button>
+          <button
+            class="nq-btn danger-confirm"
+            type="button"
+            [disabled]="facade.busy()"
+            (click)="confirmRemove()"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="nq-overlay" [class.open]="creatingExercise()" (click)="closeExercise()">
       <div
         class="nq-sheet form-sheet"
@@ -269,6 +312,18 @@ export class TrainerRoutinesPage {
   readonly creatingExercise = signal(false);
   readonly editing = signal<Routine | null>(null);
   readonly assigning = signal<Routine | null>(null);
+  /** Rutina que se esta por eliminar; null con la confirmacion cerrada. */
+  readonly removing = signal<RoutineRow | null>(null);
+
+  /** Nombra a los alumnos que quedan sin rutina: es lo que el entrenador pierde. */
+  readonly removeWarning = computed(() => {
+    const nombres = this.removing()?.studentNames ?? [];
+    if (nombres.length === 0) {
+      return 'No se puede deshacer.';
+    }
+    const quedan = nombres.length === 1 ? 'quedará sin rutina' : 'quedarán sin rutina';
+    return `${this.listar(nombres)} ${quedan}. No se puede deshacer.`;
+  });
 
   /** Inicio que se propone al marcar un alumno, en `yyyy-MM-dd` local. */
   readonly today = this.fechaLocal(inject(CLOCK).now());
@@ -304,6 +359,10 @@ export class TrainerRoutinesPage {
 
   constructor() {
     this.facade.load();
+    useFab(
+      () => this.addLabel(),
+      () => this.openCreate(),
+    );
   }
 
   alumnos(total: number): string {
@@ -335,7 +394,7 @@ export class TrainerRoutinesPage {
     if (this.seccion() === 'routines') {
       this.editing.set(null);
       this.building.set(true);
-      this.builder()?.reset();
+      this.builder()?.reset(null);
       return;
     }
     this.creatingExercise.set(true);
@@ -346,7 +405,8 @@ export class TrainerRoutinesPage {
     this.facade.clearActionError();
     this.editing.set(routine);
     this.building.set(true);
-    this.builder()?.reset();
+    // Se le pasa la rutina: el input todavia no la recibe.
+    this.builder()?.reset(routine);
   }
 
   closeBuilder(): void {
@@ -399,6 +459,25 @@ export class TrainerRoutinesPage {
     }
   }
 
+  askRemove(row: RoutineRow): void {
+    this.facade.clearActionError();
+    this.removing.set(row);
+  }
+
+  cancelRemove(): void {
+    this.removing.set(null);
+  }
+
+  async confirmRemove(): Promise<void> {
+    const row = this.removing();
+    if (row === null) {
+      return;
+    }
+    if (await this.facade.remove(row.routine.id)) {
+      this.removing.set(null);
+    }
+  }
+
   closeExercise(): void {
     this.creatingExercise.set(false);
   }
@@ -407,6 +486,14 @@ export class TrainerRoutinesPage {
     if ((await this.facade.createExercise(value)) !== null) {
       this.creatingExercise.set(false);
     }
+  }
+
+  /** "Ana", "Ana y Luis", "Ana, Luis y Sofía". */
+  private listar(nombres: readonly string[]): string {
+    if (nombres.length === 1) {
+      return nombres[0] ?? '';
+    }
+    return `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`;
   }
 
   private fechaLocal(date: Date): string {

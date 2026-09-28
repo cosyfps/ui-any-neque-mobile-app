@@ -1,4 +1,4 @@
-@use '../../shared/theme/mixins' as *;
+@use '../../theme/mixins' as *;
 
 :host {
   display: block;
@@ -95,6 +95,12 @@
   color: var(--nq-primary-strong);
   background: rgba(var(--nq-primary-rgb), 0.1);
   border-radius: var(--nq-radius-full);
+
+  // Dolor o riesgo de un alumno: lo que el entrenador no debe pasar por alto.
+  &[data-kind='alert'] {
+    color: var(--nq-warning);
+    background: rgba(var(--nq-warning-rgb), 0.12);
+  }
 }
 
 .body {

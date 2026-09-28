@@ -188,6 +188,29 @@ describe('AuthMockAdapter', () => {
     });
   });
 
+  describe('changePassword()', () => {
+    it('cambia la contrasena si la actual coincide', () => {
+      const { error } = resolve<void>(
+        adapter.changePassword('alejandra@neque.cl', 'Alumno1234!', 'Nueva5678!'),
+      );
+      expect(error).toBeUndefined();
+
+      const { value } = resolve<AuthSession>(
+        adapter.login({ email: 'alejandra@neque.cl', password: 'Nueva5678!' }),
+      );
+      expect(value?.user.role).toBe('student');
+    });
+
+    it('rechaza una contrasena actual incorrecta', () => {
+      const { error } = resolve<void>(
+        adapter.changePassword('alejandra@neque.cl', 'Otra1234!', 'Nueva5678!'),
+      );
+
+      expect(error?.code).toBe('invalid_credentials');
+      expect(error?.message).toBe('La contraseña actual no es correcta.');
+    });
+  });
+
   describe('resetPassword()', () => {
     const ticketFor = (email: string): PasswordResetTicket => {
       const { value } = resolve<PasswordResetTicket>(adapter.verifyOtp(email, SEED_OTP_CODE));

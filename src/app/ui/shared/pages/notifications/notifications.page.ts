@@ -1,15 +1,19 @@
 import { Location } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   LucideArrowLeft,
   LucideBell,
   LucideCalendarDays,
   LucideClipboardList,
+  LucideMail,
   LucideMessageCircle,
+  LucideTriangleAlert,
 } from '@lucide/angular';
 
+import { SessionFacade } from '@app/application/auth/session.facade';
 import { NotificationsFacade } from '@app/application/notifications/notifications.facade';
+import { homeRouteForRole } from '@app/domain/auth/model/auth-user.model';
 import { AppNotification } from '@app/domain/notifications/model/notification.model';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
@@ -18,8 +22,14 @@ import { notificationRoute } from '@shared/navigation/notification-target';
 
 const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
 
+/**
+ * Notificaciones, compartida por alumno y entrenador.
+ *
+ * Lo unico que cambia por rol es a donde lleva cada una, a donde vuelve y el
+ * texto del vacio: el resto es la misma lista.
+ */
 @Component({
-  selector: 'app-student-notifications',
+  selector: 'app-notifications',
   standalone: true,
   imports: [
     PageStateComponent,
@@ -27,7 +37,9 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
     LucideBell,
     LucideCalendarDays,
     LucideClipboardList,
+    LucideMail,
     LucideMessageCircle,
+    LucideTriangleAlert,
   ],
   template: `
     <div class="page">
@@ -49,11 +61,7 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
           <nq-page-state type="error" [retry]="reload" />
         }
         @case ('empty') {
-          <nq-page-state
-            type="empty"
-            title="Sin notificaciones"
-            message="Te avisaremos cuando tu entrenador publique algo nuevo."
-          />
+          <nq-page-state type="empty" title="Sin notificaciones" [message]="emptyMessage()" />
         }
         @case ('success') {
           @for (group of facade.groups(); track group.label) {
@@ -79,6 +87,12 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
                           }
                           @case ('message') {
                             <svg lucideMessageCircle [size]="17" [strokeWidth]="1.8"></svg>
+                          }
+                          @case ('alert') {
+                            <svg lucideTriangleAlert [size]="17" [strokeWidth]="1.8"></svg>
+                          }
+                          @case ('invitation') {
+                            <svg lucideMail [size]="17" [strokeWidth]="1.8"></svg>
                           }
                           @default {
                             <svg lucideBell [size]="17" [strokeWidth]="1.8"></svg>
@@ -107,10 +121,21 @@ const RELATIVE = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
       }
     </div>
   `,
-  styleUrl: './student-notifications.page.scss',
+  styleUrl: './notifications.page.scss',
 })
-export class StudentNotificationsPage {
+export class NotificationsPage {
   readonly facade = inject(NotificationsFacade);
+
+  /** Sin rol conocido se comporta como la app del alumno, la de siempre. */
+  private readonly role = computed(() => this.session.role() ?? 'student');
+
+  readonly emptyMessage = computed(() =>
+    this.role() === 'trainer'
+      ? 'Te avisaremos cuando tus alumnos entrenen o necesiten atención.'
+      : 'Te avisaremos cuando tu entrenador publique algo nuevo.',
+  );
+
+  private readonly session = inject(SessionFacade);
 
   private readonly router = inject(Router);
   private readonly clock = inject(CLOCK);
@@ -141,7 +166,7 @@ export class StudentNotificationsPage {
     if (notification.readAt === null) {
       await this.facade.markRead(notification.id);
     }
-    const ruta = notificationRoute(notification.targetType, notification.targetId);
+    const ruta = notificationRoute(notification.targetType, notification.targetId, this.role());
     if (ruta !== null) {
       await this.router.navigate(ruta);
     }
@@ -152,14 +177,14 @@ export class StudentNotificationsPage {
   }
 
   /**
-   * Vuelve a donde estaba el alumno, no siempre a Home: esta pantalla se
-   * alcanza desde la campanita del Home y desde el menu del Perfil.
+   * Vuelve a donde estaba, no siempre al inicio: esta pantalla se alcanza
+   * desde la campana del inicio, el perfil y la actividad reciente.
    */
   goBack(): void {
     if (this.location.getState() !== null && history.length > 1) {
       this.location.back();
       return;
     }
-    void this.router.navigate(['/student/home']);
+    void this.router.navigate([homeRouteForRole(this.role())]);
   }
 }

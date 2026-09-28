@@ -8,6 +8,7 @@ import { TrainerStudentsFacade } from '@app/application/trainers/trainer-student
 import { INVITATION_PORT } from '@app/domain/auth/port/invitation.port';
 import { domainError } from '@app/domain/shared/model/app-error';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { PUBLIC_APP_URL } from '@app/domain/shared/port/public-url.port';
 import { Student } from '@app/domain/students/model/student.model';
 import { STUDENTS_PORT } from '@app/domain/students/port/students.port';
 
@@ -64,6 +65,7 @@ describe('TrainerStudentsPage', () => {
         // La pagina las declara en sus `providers`; aqui hay que darlas a mano.
         TrainerStudentsFacade,
         TrainerInvitationFacade,
+        { provide: PUBLIC_APP_URL, useValue: 'https://neque.vercel.app' },
         { provide: SessionFacade, useValue: { profileId: () => 'trn-001' } },
         { provide: CLOCK, useValue: { now: () => AHORA } },
         { provide: STUDENTS_PORT, useValue: { listByTrainer: () => of(cartera), create } },

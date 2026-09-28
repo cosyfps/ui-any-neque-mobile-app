@@ -24,7 +24,7 @@ interface Fechas {
          nativo recarga la pagina. -->
     <form class="form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
       @if (options().length === 0) {
-        <p class="hint">Todavía no tienes alumnos activos a quienes asignarla.</p>
+        <p class="nq-empty-inline">Todavía no tienes alumnos activos a quienes asignarla.</p>
       } @else {
         <p class="hint">Los alumnos con un objetivo parecido aparecen primero.</p>
       }

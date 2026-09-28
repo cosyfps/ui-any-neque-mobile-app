@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { TrainerInvitationFacade } from '@app/application/trainers/trainer-invitation.facade';
 import { INVITATION_PORT, InvitationDetails } from '@app/domain/auth/port/invitation.port';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { PUBLIC_APP_URL } from '@app/domain/shared/port/public-url.port';
 
 import { InvitationPanelComponent } from './invitation-panel.component';
 
@@ -42,6 +43,7 @@ describe('InvitationPanelComponent', () => {
       imports: [InvitationPanelComponent],
       providers: [
         TrainerInvitationFacade,
+        { provide: PUBLIC_APP_URL, useValue: 'https://neque.vercel.app' },
         { provide: CLOCK, useValue: { now: () => AHORA } },
         {
           provide: INVITATION_PORT,
@@ -63,7 +65,7 @@ describe('InvitationPanelComponent', () => {
     it('muestra el enlace', () => {
       const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-      expect(texto).toContain('/invite/inv-abc');
+      expect(texto).toContain('https://neque.vercel.app/i/inv-abc');
     });
 
     it('anuncia la vigencia en horas', () => {
@@ -147,7 +149,7 @@ describe('InvitationPanelComponent', () => {
 
       await panel.copy();
 
-      expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/invite/inv-abc`);
+      expect(writeText).toHaveBeenCalledWith('https://neque.vercel.app/i/inv-abc');
       expect(panel.copied()).toBe(true);
     });
   });
@@ -165,7 +167,7 @@ describe('InvitationPanelComponent', () => {
       await panel.share();
 
       expect(share).toHaveBeenCalledWith(
-        expect.objectContaining({ url: `${window.location.origin}/invite/inv-abc` }),
+        expect.objectContaining({ url: 'https://neque.vercel.app/i/inv-abc' }),
       );
     });
 

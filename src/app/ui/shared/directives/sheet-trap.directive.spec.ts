@@ -7,6 +7,10 @@ import { SheetTrapDirective } from './sheet-trap.directive';
 function createSheet(): HTMLElement {
   const sheet = document.createElement('div');
   sheet.innerHTML = `
+    <div class="nq-sheet-handle"></div>
+    <h2 class="nq-sheet-title">Titulo</h2>
+    <p id="cuerpo">Cuerpo</p>
+    <select id="lista" disabled><option>A</option></select>
     <button id="uno" type="button">Uno</button>
     <button id="dos" type="button">Dos</button>
     <button id="tres" type="button">Tres</button>
@@ -89,8 +93,43 @@ describe('SheetTrapDirective', () => {
   });
 
   describe('arrastre para descartar', () => {
+    const asa = (): Element | null => sheet.querySelector('.nq-sheet-handle');
+
+    it('tambien arranca desde el titulo', () => {
+      directive.alEmpezar(toque(100, sheet.querySelector('.nq-sheet-title')));
+      directive.alMover(toque(150));
+
+      expect(directive.arrastre()).toBe(50);
+    });
+
+    // El cuerpo desplaza el formulario: un arrastre desde ahi cerraba el
+    // sheet al intentar volver arriba.
+    it.each([
+      ['el cuerpo', '#cuerpo'],
+      ['un select', '#lista'],
+    ])('no arranca desde %s', (_caso, selector) => {
+      directive.alEmpezar(toque(0, sheet.querySelector(selector)));
+      directive.alMover(toque(200));
+      directive.alSoltar();
+
+      expect(directive.arrastre()).toBe(0);
+      expect(directive.arrastrando()).toBe(false);
+    });
+
+    it('no arranca si el sheet no esta arriba del todo', () => {
+      const dismissed = jest.fn();
+      directive.dismissed.subscribe(dismissed);
+      Object.defineProperty(sheet, 'scrollTop', { value: 40, configurable: true });
+
+      directive.alEmpezar(toque(0, asa()));
+      directive.alMover(toque(200));
+      directive.alSoltar();
+
+      expect(dismissed).not.toHaveBeenCalled();
+    });
+
     it('sigue al dedo hacia abajo', () => {
-      directive.alEmpezar(toque(100, sheet));
+      directive.alEmpezar(toque(100, asa()));
       directive.alMover(toque(180));
 
       expect(directive.arrastre()).toBe(80);
@@ -98,7 +137,7 @@ describe('SheetTrapDirective', () => {
     });
 
     it('no se estira hacia arriba', () => {
-      directive.alEmpezar(toque(100, sheet));
+      directive.alEmpezar(toque(100, asa()));
       directive.alMover(toque(40));
 
       expect(directive.arrastre()).toBe(0);
@@ -108,7 +147,7 @@ describe('SheetTrapDirective', () => {
       const dismissed = jest.fn();
       directive.dismissed.subscribe(dismissed);
 
-      directive.alEmpezar(toque(0, sheet));
+      directive.alEmpezar(toque(0, asa()));
       directive.alMover(toque(140));
       directive.alSoltar();
 
@@ -120,7 +159,7 @@ describe('SheetTrapDirective', () => {
       const dismissed = jest.fn();
       directive.dismissed.subscribe(dismissed);
 
-      directive.alEmpezar(toque(0, sheet));
+      directive.alEmpezar(toque(0, asa()));
       directive.alMover(toque(40));
       directive.alSoltar();
 
@@ -142,7 +181,7 @@ describe('SheetTrapDirective', () => {
       const dismissed = jest.fn();
       directive.dismissed.subscribe(dismissed);
 
-      directive.alEmpezar(toque(0, sheet));
+      directive.alEmpezar(toque(0, asa()));
       directive.alMover(toque(200));
       directive.cancelarArrastre();
 

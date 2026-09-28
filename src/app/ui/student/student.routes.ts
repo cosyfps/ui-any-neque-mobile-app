@@ -46,8 +46,8 @@ export const STUDENT_ROUTES: Routes = [
           {
             path: 'notifications',
             loadComponent: () =>
-              import('./notifications/student-notifications.page').then(
-                m => m.StudentNotificationsPage,
+              import('../shared/pages/notifications/notifications.page').then(
+                m => m.NotificationsPage,
               ),
           },
           {

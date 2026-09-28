@@ -148,7 +148,7 @@ const DAY_FORMAT = new Intl.DateTimeFormat('es-CL', {
                 }
               </ul>
             } @else {
-              <p class="day-empty">No tienes nada agendado este día.</p>
+              <p class="nq-empty-inline">No tienes nada agendado este día.</p>
             }
           }
         }

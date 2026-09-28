@@ -201,14 +201,7 @@ type CompareSide = 'before' | 'after';
                   @if (facade.compareB(); as after) {
                     <!-- Las dos fotos se superponen y el divisor recorta la de
                          arriba. Una al lado de otra no deja ver el cambio. -->
-                    <figure
-                      class="compare"
-                      #comparador
-                      (pointerdown)="alTomarDivisor($event, comparador)"
-                      (pointermove)="alArrastrarDivisor($event, comparador)"
-                      (pointerup)="alSoltarDivisor()"
-                      (pointercancel)="alSoltarDivisor()"
-                    >
+                    <figure class="compare" #comparador>
                       <img class="compare-img" [src]="before.url" alt="Foto anterior" />
                       <img
                         class="compare-img compare-after"
@@ -217,13 +210,10 @@ type CompareSide = 'before' | 'after';
                         [style.clip-path]="'inset(0 0 0 ' + divisor() + '%)'"
                       />
 
-                      <!-- pointerdown propio: sin cortarlo, tocar la fecha
-                           tambien movia el divisor hasta ahi. -->
                       <button
                         class="compare-date izquierda"
                         type="button"
                         [attr.aria-label]="'Cambiar foto anterior, ' + formatDate(before.takenAt)"
-                        (pointerdown)="$event.stopPropagation()"
                         (click)="openPicker('before')"
                       >
                         {{ formatShortDate(before.takenAt) }}
@@ -233,13 +223,15 @@ type CompareSide = 'before' | 'after';
                         class="compare-date derecha"
                         type="button"
                         [attr.aria-label]="'Cambiar foto reciente, ' + formatDate(after.takenAt)"
-                        (pointerdown)="$event.stopPropagation()"
                         (click)="openPicker('after')"
                       >
                         {{ formatShortDate(after.takenAt) }}
                         <svg lucideChevronDown [size]="14" [strokeWidth]="1.8"></svg>
                       </button>
 
+                      <span class="compare-line" [style.left.%]="divisor()"></span>
+                      <!-- Solo la agarradera mueve el divisor: tocar la foto no
+                           hace nada, asi un toque al pasar no cambia la comparacion. -->
                       <button
                         class="compare-handle"
                         type="button"
@@ -251,6 +243,10 @@ type CompareSide = 'before' | 'after';
                         [attr.aria-valuetext]="divisorTexto()"
                         [style.left.%]="divisor()"
                         (keydown)="alTeclearDivisor($event)"
+                        (pointerdown)="alTomarDivisor($event)"
+                        (pointermove)="alArrastrarDivisor($event, comparador)"
+                        (pointerup)="alSoltarDivisor()"
+                        (pointercancel)="alSoltarDivisor()"
                       ></button>
                     </figure>
                     <p class="compare-hint">Toca una fecha para elegir otra foto.</p>
@@ -329,12 +325,12 @@ type CompareSide = 'before' | 'after';
                 </section>
               }
             } @else {
-              <div class="photos-empty nq-ani nq-d2" role="status">
-                <div class="photos-empty-icon">
+              <div class="nq-state photos-empty nq-ani nq-d2" role="status">
+                <div class="nq-state-icon">
                   <svg lucideImagePlus [size]="28" [strokeWidth]="1.6"></svg>
                 </div>
-                <h2 class="photos-empty-title">Aún no tienes fotos</h2>
-                <p class="photos-empty-desc">
+                <h2 class="nq-state-title">Aún no tienes fotos</h2>
+                <p class="nq-state-desc">
                   Sube una foto de frente, perfil o espalda. Con dos del mismo ángulo podrás
                   comparar tu evolución.
                 </p>
@@ -494,9 +490,15 @@ export class StudentProgressPage {
     return `${this.divisor()}% de la foto reciente a la vista`;
   }
 
-  alTomarDivisor(event: PointerEvent, contenedor: HTMLElement): void {
+  /**
+   * Toma la agarradera sin moverla: el divisor se desplaza recien al
+   * arrastrar. La captura mantiene el arrastre aunque el dedo salga del
+   * circulo.
+   */
+  alTomarDivisor(event: PointerEvent): void {
     this.arrastrandoDivisor = true;
-    this.moverDivisor(event, contenedor);
+    const agarradera = event.currentTarget as HTMLElement | null;
+    agarradera?.setPointerCapture?.(event.pointerId);
   }
 
   alArrastrarDivisor(event: PointerEvent, contenedor: HTMLElement): void {

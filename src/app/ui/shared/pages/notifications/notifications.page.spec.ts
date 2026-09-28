@@ -9,7 +9,7 @@ import { NOTIFICATIONS_PORT } from '@app/domain/notifications/port/notifications
 import { addDays, toIsoDate } from '@app/domain/shared/model/date';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
 
-import { StudentNotificationsPage } from './student-notifications.page';
+import { NotificationsPage } from './notifications.page';
 
 const NOW = new Date(2026, 8, 17, 12, 0, 0);
 
@@ -33,20 +33,21 @@ const notification = (
 
 const ITEMS = [notification('n1', 25, false, 'routine', 'rtn-1'), notification('n2', 180, true)];
 
-describe('StudentNotificationsPage', () => {
-  let page: StudentNotificationsPage;
+describe('NotificationsPage', () => {
+  let page: NotificationsPage;
+  let role: 'student' | 'trainer';
   let router: Router;
   let markRead: jest.Mock;
   let markAllRead: jest.Mock;
 
-  const createPage = (items = ITEMS): StudentNotificationsPage => {
+  const createPage = (items = ITEMS): NotificationsPage => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         NotificationsFacade,
         { provide: CLOCK, useValue: { now: () => NOW } },
-        { provide: SessionFacade, useValue: { user: () => ({ id: 'usr-1' }) } },
+        { provide: SessionFacade, useValue: { user: () => ({ id: 'usr-1' }), role: () => role } },
         {
           provide: NOTIFICATIONS_PORT,
           useValue: { listByUser: () => of(items), markRead, markAllRead },
@@ -55,11 +56,12 @@ describe('StudentNotificationsPage', () => {
     });
     router = TestBed.inject(Router);
     jest.spyOn(router, 'navigate').mockResolvedValue(true);
-    return TestBed.runInInjectionContext(() => new StudentNotificationsPage());
+    return TestBed.runInInjectionContext(() => new NotificationsPage());
   };
 
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(NOW);
+    role = 'student';
     markRead = jest
       .fn()
       .mockImplementation((id: string) =>
@@ -138,6 +140,33 @@ describe('StudentNotificationsPage', () => {
   describe('reload', () => {
     it('es un campo arrow invocable', () => {
       expect(() => page.reload()).not.toThrow();
+    });
+  });
+
+  describe('entrenador', () => {
+    const alumno = notification('n3', 10, false, 'student', 'std-002');
+
+    beforeEach(() => {
+      role = 'trainer';
+      page = createPage([alumno]);
+    });
+
+    it('una notificacion de un alumno abre su ficha', async () => {
+      markRead.mockReturnValue(of({ ...alumno, readAt: toIsoDate(NOW) }));
+
+      await page.open(alumno);
+
+      expect(router.navigate).toHaveBeenCalledWith(['/trainer/students', 'std-002']);
+    });
+
+    it('vuelve al inicio del entrenador', () => {
+      page.goBack();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/trainer/home']);
+    });
+
+    it('el vacio habla de sus alumnos', () => {
+      expect(page.emptyMessage()).toContain('tus alumnos');
     });
   });
 });

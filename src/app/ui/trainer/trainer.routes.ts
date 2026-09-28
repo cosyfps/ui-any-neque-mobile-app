@@ -41,6 +41,14 @@ export const TRAINER_ROUTES: Routes = [
               import('./routines/trainer-routines.page').then(m => m.TrainerRoutinesPage),
           },
           {
+            // Fuera de las pestanas pero dentro del shell, como en el alumno.
+            path: 'notifications',
+            loadComponent: () =>
+              import('../shared/pages/notifications/notifications.page').then(
+                m => m.NotificationsPage,
+              ),
+          },
+          {
             path: 'profile',
             loadComponent: () =>
               import('./profile/trainer-profile.page').then(m => m.TrainerProfilePage),

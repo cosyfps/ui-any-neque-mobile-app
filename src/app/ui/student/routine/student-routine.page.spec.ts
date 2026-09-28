@@ -233,6 +233,97 @@ describe('StudentRoutinePage', () => {
     });
   });
 
+  describe('celebracion una sola vez', () => {
+    // Marcar el ultimo ejercicio completa la sesion: se celebra.
+    it('toggle() que completa la sesion celebra', async () => {
+      markExercise.mockReturnValue(of(sessionWith(true, 'completed')));
+
+      await page.toggle(EXERCISE);
+
+      expect(page.showCelebration()).toBe(true);
+    });
+
+    it('desmarcar y volver a marcar no repite la celebracion', async () => {
+      markExercise.mockReturnValue(of(sessionWith(true, 'completed')));
+      await page.toggle(EXERCISE);
+      page.dismissCelebration();
+
+      markExercise.mockReturnValue(of(sessionWith(false, 'in_progress')));
+      await page.toggle(EXERCISE);
+      markExercise.mockReturnValue(of(sessionWith(true, 'completed')));
+      await page.toggle(EXERCISE);
+
+      expect(page.showCelebration()).toBe(false);
+    });
+
+    it('marcar sin completar la sesion no celebra', async () => {
+      markExercise.mockReturnValue(of(sessionWith(true, 'in_progress')));
+
+      await page.toggle(EXERCISE);
+
+      expect(page.showCelebration()).toBe(false);
+    });
+  });
+
+  describe('banner de sesion completada', () => {
+    it('sin saltos invita a sumar la semana', () => {
+      page = createPage(sessionWith(true, 'completed'));
+
+      expect(page.doneSubtitle()).toBe('Sumaste una sesión a tu semana.');
+    });
+
+    it('con saltos dice cuantos', () => {
+      const base = sessionWith(false, 'completed');
+      page = createPage({
+        ...base,
+        exercises: base.exercises.map(item => ({ ...item, skipped: true })),
+      });
+
+      expect(page.doneSubtitle()).toBe('1 ejercicio saltado.');
+    });
+  });
+
+  describe('ejercicio saltado', () => {
+    const saltada = (skipReason: 'pain' | null): WorkoutSession => {
+      const base = sessionWith(false, 'in_progress');
+      return {
+        ...base,
+        exercises: base.exercises.map(item => ({ ...item, skipped: true, skipReason })),
+      };
+    };
+
+    it('muestra el motivo', () => {
+      page = createPage(saltada('pain'));
+
+      expect(page.skipLabel('rex-009')).toBe('Saltado · Molestia o dolor');
+    });
+
+    it('sin motivo solo dice saltado', () => {
+      page = createPage(saltada(null));
+
+      expect(page.skipLabel('rex-009')).toBe('Saltado');
+    });
+
+    it('no marca un ejercicio que no se salto', () => {
+      expect(page.skipLabel('rex-009')).toBeNull();
+    });
+  });
+
+  describe('prescripcion()', () => {
+    it.each([
+      [{ weightKg: 30 }, '4 × 8 · 30 kg'],
+      [{ weightKg: null }, '4 × 8 · Peso corporal'],
+      [{ weightKg: 10, load: 'weighted_bodyweight' as const }, '4 × 8 · peso extra · 10kg'],
+      [
+        { weightKg: null, measure: 'time' as const, durationSeconds: 45, sets: 3 },
+        '3 × 45 s · Peso corporal',
+      ],
+      [{ weightKg: null, load: 'weight' as const }, '4 × 8'],
+    ])('%o → %s', (cambios, texto) => {
+      expect(page.prescripcion({ ...EXERCISE, ...cambios })).toBe(texto);
+    });
+  });
+
   describe('startWorkout()', () => {
     it('navega al runner con el id de la sesion', () => {
       page.startWorkout();

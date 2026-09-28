@@ -91,6 +91,15 @@ export class RoutinesMockAdapter implements RoutinesPort {
     return simulate(actualizada);
   }
 
+  /** Sale de la biblioteca y con ella sus asignaciones: sus alumnos quedan libres. */
+  remove(routineId: Id): Observable<void> {
+    if (!this.routines.some(item => item.id === routineId)) {
+      return simulateError<void>('not_found');
+    }
+    this.routines = this.routines.filter(item => item.id !== routineId);
+    return simulate<void>(undefined);
+  }
+
   /** El constructor manda dias y ejercicios sin id: aqui se les asigna uno. */
   private conIds(routineId: Id, input: RoutineInput): RoutineDay[] {
     return input.days.map((day, indiceDia) => ({

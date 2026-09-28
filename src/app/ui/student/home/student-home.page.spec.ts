@@ -6,6 +6,7 @@ import { SessionFacade } from '@app/application/auth/session.facade';
 import { NotificationsFacade } from '@app/application/notifications/notifications.facade';
 import { StudentProfileFacade } from '@app/application/students/student-profile.facade';
 import { WorkoutFacade } from '@app/application/workouts/workout.facade';
+import { AUTH_PORT } from '@app/domain/auth/port/auth.port';
 import { AppNotification } from '@app/domain/notifications/model/notification.model';
 import { NOTIFICATIONS_PORT } from '@app/domain/notifications/port/notifications.port';
 import { toIsoDate } from '@app/domain/shared/model/date';
@@ -90,6 +91,8 @@ describe('StudentHomePage', () => {
         WorkoutFacade,
         NotificationsFacade,
         { provide: CLOCK, useValue: { now: () => now } },
+        // El perfil lo pide para cambiar la contrasena; el home no lo usa.
+        { provide: AUTH_PORT, useValue: { changePassword: jest.fn() } },
         {
           provide: SessionFacade,
           useValue: { profileId: () => 'std-001', user: () => ({ id: 'usr-1' }) },

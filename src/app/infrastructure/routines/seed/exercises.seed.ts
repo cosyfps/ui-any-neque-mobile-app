@@ -99,6 +99,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja controlando hasta extender los brazos.',
     ],
     ownerTrainerId: null,
+    defaultLoad: 'bodyweight',
   },
   {
     id: 'ex-008',
@@ -197,6 +198,8 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Respira sin dejar caer la cadera.',
     ],
     ownerTrainerId: null,
+    defaultLoad: 'bodyweight',
+    defaultMeasure: 'time',
   },
   {
     id: 'ex-015',
@@ -211,5 +214,7 @@ export const SEED_EXERCISES: readonly Exercise[] = [
       'Baja el ritmo dos minutos antes de terminar.',
     ],
     ownerTrainerId: null,
+    defaultLoad: 'bodyweight',
+    defaultMeasure: 'time',
   },
 ];
