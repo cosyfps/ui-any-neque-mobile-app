@@ -154,9 +154,18 @@
   margin: 0;
   overflow: hidden;
   border-radius: var(--nq-radius-md);
-  // El dedo arrastra el divisor; sin esto el navegador desplaza la pagina.
-  touch-action: none;
   user-select: none;
+}
+
+// Linea del divisor: solo se ve, no se toca.
+.compare-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  background: var(--nq-text-inverse);
+  transform: translateX(-50%);
 }
 
 .compare-img {
@@ -288,29 +297,25 @@
 
 .compare-handle {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 50%;
   width: 44px;
+  height: 44px;
   padding: 0;
   cursor: col-resize;
   background: none;
   border: none;
-  transform: translateX(-50%);
+  border-radius: 50%;
+  // El dedo arrastra el divisor; sin esto el navegador desplaza la pagina.
+  touch-action: none;
+  transform: translate(-50%, -50%);
   -webkit-tap-highlight-color: transparent;
 
-  // La linea visible es de 2px; el boton mide 44 para poder agarrarlo.
-  &::before {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 2px;
-    content: '';
-    background: var(--nq-text-inverse);
-    transform: translateX(-50%);
+  &:focus-visible {
+    outline: 2px solid var(--nq-primary-strong);
+    outline-offset: 2px;
   }
 
-  // Agarradera circular al centro, como en las referencias.
+  // Circulo de 32px; el boton mide 44 para poder agarrarlo.
   &::after {
     position: absolute;
     top: 50%;
@@ -445,41 +450,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-// Sin fotos: el aviso toma el alto que sobra y se centra en el.
+// Sin fotos: el estado vacio global (`.nq-state`) toma el alto que sobra y
+// se centra en el.
 .photos-empty {
-  display: flex;
   flex: 1;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  text-align: center;
-}
-
-.photos-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  margin-bottom: 8px;
-  color: var(--nq-primary-strong);
-  background: rgba(var(--nq-primary-rgb), 0.12);
-  border-radius: 50%;
-}
-
-.photos-empty-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--nq-text);
-}
-
-.photos-empty-desc {
-  max-width: 280px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--nq-text-secondary);
 }
 
 // ── Confirmacion de borrado ──

@@ -262,6 +262,12 @@ describe('StudentProgressPage', () => {
 
     const puntero = (x: number): PointerEvent => ({ clientX: x }) as PointerEvent;
 
+    /** Toma la agarradera y la arrastra hasta x. */
+    const arrastrarA = (x: number, caja = contenedor()): void => {
+      page.alTomarDivisor(puntero(200));
+      page.alArrastrarDivisor(puntero(x), caja);
+    };
+
     const tecla = (key: string): KeyboardEvent =>
       new KeyboardEvent('keydown', { key, cancelable: true });
 
@@ -269,21 +275,37 @@ describe('StudentProgressPage', () => {
       expect(page.divisor()).toBe(50);
     });
 
-    it('al tomarlo salta a donde se toco', () => {
-      page.alTomarDivisor(puntero(150), contenedor());
+    it('tomar la agarradera no la mueve', () => {
+      page.alTomarDivisor(puntero(150));
 
-      expect(page.divisor()).toBe(25);
+      expect(page.divisor()).toBe(50);
+    });
+
+    it('captura el puntero para no perder el arrastre fuera del circulo', () => {
+      const setPointerCapture = jest.fn();
+      page.alTomarDivisor({
+        pointerId: 7,
+        currentTarget: { setPointerCapture },
+      } as unknown as PointerEvent);
+
+      expect(setPointerCapture).toHaveBeenCalledWith(7);
+    });
+
+    it('sin tomarla, mover el puntero no hace nada', () => {
+      page.alArrastrarDivisor(puntero(260), contenedor());
+
+      expect(page.divisor()).toBe(50);
     });
 
     it('sigue al puntero mientras se arrastra', () => {
-      page.alTomarDivisor(puntero(150), contenedor());
+      arrastrarA(150);
       page.alArrastrarDivisor(puntero(260), contenedor());
 
       expect(page.divisor()).toBe(80);
     });
 
     it('deja de seguir al soltar', () => {
-      page.alTomarDivisor(puntero(200), contenedor());
+      page.alTomarDivisor(puntero(200));
       page.alSoltarDivisor();
       page.alArrastrarDivisor(puntero(300), contenedor());
 
@@ -291,10 +313,10 @@ describe('StudentProgressPage', () => {
     });
 
     it('recorta fuera de los bordes', () => {
-      page.alTomarDivisor(puntero(0), contenedor());
+      arrastrarA(0);
       expect(page.divisor()).toBe(0);
 
-      page.alTomarDivisor(puntero(9999), contenedor());
+      arrastrarA(9999);
       expect(page.divisor()).toBe(100);
     });
 
@@ -303,7 +325,7 @@ describe('StudentProgressPage', () => {
         getBoundingClientRect: () => ({ left: 0, width: 0 }),
       } as unknown as HTMLElement;
 
-      page.alTomarDivisor(puntero(50), vacio);
+      arrastrarA(50, vacio);
 
       expect(page.divisor()).toBe(50);
     });
