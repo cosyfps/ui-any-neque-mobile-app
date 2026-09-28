@@ -1,6 +1,8 @@
 import { Provider } from '@angular/core';
 
+import { NotificationsFacade } from '@app/application/notifications/notifications.facade';
 import { INVITATION_PORT } from '@app/domain/auth/port/invitation.port';
+import { NOTIFICATIONS_PORT } from '@app/domain/notifications/port/notifications.port';
 import { EXERCISE_CATALOG_PORT, ROUTINES_PORT } from '@app/domain/routines/port/routines.port';
 import { SCHEDULE_PORT } from '@app/domain/schedule/port/schedule.port';
 import { ANAMNESIS_PORT } from '@app/domain/students/port/anamnesis.port';
@@ -10,6 +12,7 @@ import { TRAINERS_PORT } from '@app/domain/trainers/port/trainers.port';
 import { WORKOUTS_PORT } from '@app/domain/workouts/port/workouts.port';
 
 import { InvitationMockAdapter } from './auth/invitation.mock-adapter';
+import { TrainerNotificationsMockAdapter } from './notifications/trainer-notifications.mock-adapter';
 import { ExerciseCatalogMockAdapter, RoutinesMockAdapter } from './routines/routines.mock-adapter';
 import { ScheduleMockAdapter } from './schedule/schedule.mock-adapter';
 import { AnamnesisMockAdapter } from './students/anamnesis.mock-adapter';
@@ -41,6 +44,10 @@ export function provideTrainerMockData(): Provider[] {
     ExerciseCatalogMockAdapter,
     WorkoutsMockAdapter,
     ScheduleMockAdapter,
+    TrainerNotificationsMockAdapter,
+    // Una sola instancia para el inicio (la campana) y la pantalla de
+    // notificaciones: leer en una se ve en la otra.
+    NotificationsFacade,
 
     { provide: TRAINERS_PORT, useExisting: TrainersMockAdapter },
     { provide: STUDENTS_PORT, useExisting: StudentsMockAdapter },
@@ -51,5 +58,6 @@ export function provideTrainerMockData(): Provider[] {
     { provide: EXERCISE_CATALOG_PORT, useExisting: ExerciseCatalogMockAdapter },
     { provide: WORKOUTS_PORT, useExisting: WorkoutsMockAdapter },
     { provide: SCHEDULE_PORT, useExisting: ScheduleMockAdapter },
+    { provide: NOTIFICATIONS_PORT, useExisting: TrainerNotificationsMockAdapter },
   ];
 }
