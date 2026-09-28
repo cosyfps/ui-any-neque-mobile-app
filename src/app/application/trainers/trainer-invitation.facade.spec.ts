@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 
 import { INVITATION_PORT, InvitationDetails } from '@app/domain/auth/port/invitation.port';
 import { CLOCK } from '@app/domain/shared/port/clock.port';
+import { PUBLIC_APP_URL } from '@app/domain/shared/port/public-url.port';
 
 import { TrainerInvitationFacade } from './trainer-invitation.facade';
 
@@ -41,6 +42,7 @@ describe('TrainerInvitationFacade', () => {
     TestBed.configureTestingModule({
       providers: [
         TrainerInvitationFacade,
+        { provide: PUBLIC_APP_URL, useValue: 'https://neque.vercel.app' },
         { provide: INVITATION_PORT, useValue: port },
         { provide: CLOCK, useValue: { now: () => AHORA } },
       ],
@@ -83,7 +85,7 @@ describe('TrainerInvitationFacade', () => {
     it('arma la ruta publica de la invitacion', () => {
       facade.load('std-009');
 
-      expect(facade.link()).toBe(`${window.location.origin}/invite/inv-abc`);
+      expect(facade.link()).toBe('https://neque.vercel.app/i/inv-abc');
     });
   });
 
