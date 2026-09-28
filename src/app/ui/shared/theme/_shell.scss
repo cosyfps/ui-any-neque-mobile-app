@@ -54,7 +54,8 @@
   // Con un sheet abierto el tab bar se retira. En iOS el `.nq-overlay` de la
   // pagina queda atrapado dentro del contenedor con scroll y no logra pasar
   // por encima del tab bar, que es su hermano: tapaba los botones del sheet.
-  .layout:has(.nq-overlay.open) .tab-bar {
+  .layout:has(.nq-overlay.open) .tab-bar,
+  .layout:has(.nq-overlay.open) .nq-fab {
     visibility: hidden;
     opacity: 0;
     transform: translateY(16px);

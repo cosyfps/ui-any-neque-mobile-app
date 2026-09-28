@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { LucidePlus, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideSearch, LucideX } from '@lucide/angular';
 
 import { TrainerInvitationFacade } from '@app/application/trainers/trainer-invitation.facade';
 import {
@@ -12,6 +12,7 @@ import { Student, fullName, initials } from '@app/domain/students/model/student.
 
 import { PageStateComponent } from '@shared/components/page-state.component';
 import { SheetTrapDirective } from '@shared/directives/sheet-trap.directive';
+import { useFab } from '@shared/navigation/fab';
 
 import { InvitationPanelComponent } from '../shared/invitation-panel.component';
 import { StudentFormComponent, StudentFormValue } from '../shared/student-form.component';
@@ -26,18 +27,12 @@ import { StudentFormComponent, StudentFormValue } from '../shared/student-form.c
     StudentFormComponent,
     LucideSearch,
     LucideX,
-    LucidePlus,
   ],
   providers: [TrainerStudentsFacade, TrainerInvitationFacade],
   template: `
     <div class="page">
       <header class="head">
-        <div class="head-row">
-          <h1 class="nq-h2">Alumnos</h1>
-          <button class="add" type="button" aria-label="Dar de alta un alumno" (click)="openForm()">
-            <svg lucidePlus [size]="20" [strokeWidth]="2"></svg>
-          </button>
-        </div>
+        <h1 class="nq-h2">Alumnos</h1>
         <p class="nq-caption">{{ resumen() }}</p>
       </header>
 
@@ -213,6 +208,10 @@ export class TrainerStudentsPage {
 
   constructor() {
     this.facade.load();
+    useFab(
+      () => 'Dar de alta un alumno',
+      () => this.openForm(),
+    );
   }
 
   openForm(): void {

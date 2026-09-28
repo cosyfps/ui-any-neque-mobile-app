@@ -12,6 +12,9 @@ import {
 /** Arrastre a partir del cual soltar cierra el sheet. */
 const UMBRAL_CIERRE_PX = 96;
 
+/** Unicas zonas desde las que el dedo arrastra el sheet en vez de desplazarlo. */
+const ZONA_ARRASTRE = '.nq-sheet-handle, .nq-sheet-title';
+
 /** Lo que el navegador considera enfocable dentro del sheet. */
 const FOCUSABLE = [
   'button:not([disabled])',
@@ -89,10 +92,17 @@ export class SheetTrapDirective {
 
   alEmpezar(event: TouchEvent): void {
     const toque = event.touches[0];
-    // Solo desde el asa o la cabecera: desde el cuerpo el dedo podria estar
-    // desplazando el contenido del sheet.
+    // Solo desde el asa o el titulo, y con el sheet arriba del todo. Antes
+    // arrancaba desde cualquier punto que no fuera un control: al desplazar
+    // un formulario largo hacia arriba el gesto se leia como "cerrar" y el
+    // formulario se perdia con lo escrito.
     const origen = event.target as HTMLElement | null;
-    if (toque === undefined || origen === null || origen.closest('button, input, a') !== null) {
+    if (
+      toque === undefined ||
+      origen === null ||
+      origen.closest(ZONA_ARRASTRE) === null ||
+      this.host.nativeElement.scrollTop > 0
+    ) {
       this.inicioY = null;
       return;
     }
