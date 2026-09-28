@@ -9,8 +9,14 @@ import {
   WorkoutCompletion,
   WorkoutExerciseLog,
   WorkoutSession,
+  isResolved,
+  withDerivedStatus,
 } from '@app/domain/workouts/model/workout-session.model';
-import { WorkoutSet, WorkoutSetInput } from '@app/domain/workouts/model/workout-set.model';
+import {
+  SkipReason,
+  WorkoutSet,
+  WorkoutSetInput,
+} from '@app/domain/workouts/model/workout-set.model';
 import { WorkoutsPort } from '@app/domain/workouts/port/workouts.port';
 
 import { SEED_ROUTINES } from '../routines/seed/routines.seed';
@@ -63,15 +69,17 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
   markExercise(sessionId: Id, routineExerciseId: Id, done: boolean): Observable<WorkoutSession> {
     return this.mutate(sessionId, session => ({
       ...session,
-      status: session.status === 'scheduled' ? 'in_progress' : session.status,
       exercises: session.exercises.map(exercise =>
         exercise.routineExerciseId === routineExerciseId
           ? {
               ...exercise,
               done,
+              // Marcar a mano un ejercicio saltado lo da por hecho.
+              skipped: false,
+              skipReason: null,
               completedSets: done ? exercise.targetSets : 0,
               // Desmarcar borra lo registrado: no queda serie huerfana.
-              sets: done ? exercise.sets : [],
+              sets: done ? exercise.sets.filter(item => item.skipped !== true) : [],
             }
           : exercise,
       ),
@@ -81,24 +89,57 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
   logSet(sessionId: Id, routineExerciseId: Id, set: WorkoutSetInput): Observable<WorkoutSession> {
     return this.mutate(sessionId, session => ({
       ...session,
-      status: session.status === 'scheduled' ? 'in_progress' : session.status,
       exercises: session.exercises.map(exercise =>
         exercise.routineExerciseId === routineExerciseId ? this.withSet(exercise, set) : exercise,
       ),
     }));
   }
 
+  /** Registra como saltadas las series que faltan, sin tocar las ya hechas. */
+  skipExercise(
+    sessionId: Id,
+    routineExerciseId: Id,
+    reason: SkipReason | null,
+  ): Observable<WorkoutSession> {
+    return this.mutate(sessionId, session => ({
+      ...session,
+      exercises: session.exercises.map(exercise => {
+        if (exercise.routineExerciseId !== routineExerciseId) {
+          return exercise;
+        }
+        const registradas = new Set(exercise.sets.map(item => item.setNumber));
+        let actualizado = exercise;
+        for (let numero = 1; numero <= exercise.targetSets; numero++) {
+          if (!registradas.has(numero)) {
+            actualizado = this.withSet(actualizado, {
+              setNumber: numero,
+              reps: null,
+              weightKg: null,
+              skipped: true,
+              skipReason: reason,
+            });
+          }
+        }
+        return actualizado;
+      }),
+    }));
+  }
+
+  /**
+   * Cierra la sesion: lo que quedaba pendiente se da por hecho y lo saltado
+   * sigue saltado, asi el entrenador ve que se omitio.
+   */
   complete(sessionId: Id, completion: WorkoutCompletion): Observable<WorkoutSession> {
     return this.mutate(sessionId, session => ({
       ...session,
       status: 'completed',
       completedAt: toIsoDate(this.clock.now()),
       durationMinutes: completion.durationMinutes,
-      exercises: session.exercises.map(exercise => ({
-        ...exercise,
-        done: true,
-        completedSets: exercise.targetSets,
-      })),
+      exercises: session.exercises.map(exercise =>
+        isResolved(exercise)
+          ? exercise
+          : { ...exercise, done: true, completedSets: exercise.targetSets },
+      ),
     }));
   }
 
@@ -110,23 +151,33 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
    */
   private withSet(exercise: WorkoutExerciseLog, input: WorkoutSetInput): WorkoutExerciseLog {
     const setNumber = Math.max(1, Math.min(input.setNumber, exercise.targetSets));
+    const saltada = input.skipped === true;
     const registrada: WorkoutSet = {
       id: `wst-${exercise.routineExerciseId}-${setNumber}`,
       setNumber,
-      reps: input.reps,
-      weightKg: input.weightKg,
+      reps: saltada ? null : input.reps,
+      weightKg: saltada ? null : input.weightKg,
+      durationSeconds: saltada ? null : (input.durationSeconds ?? null),
+      skipped: saltada,
+      skipReason: saltada ? (input.skipReason ?? null) : null,
       completedAt: toIsoDate(this.clock.now()),
     };
 
     const sets = [...exercise.sets.filter(item => item.setNumber !== setNumber), registrada].sort(
       (a, b) => a.setNumber - b.setNumber,
     );
+    const hechas = sets.filter(item => item.skipped !== true).length;
+    const completas = sets.length >= exercise.targetSets;
+    const ultimoSalto = [...sets].reverse().find(item => item.skipped === true);
 
     return {
       ...exercise,
       sets,
-      completedSets: sets.length,
-      done: sets.length >= exercise.targetSets,
+      completedSets: hechas,
+      // Con todas registradas: hecho si se hizo al menos una, saltado si ninguna.
+      done: completas && hechas > 0,
+      skipped: completas && hechas === 0,
+      skipReason: completas && hechas === 0 ? (ultimoSalto?.skipReason ?? null) : null,
     };
   }
 
@@ -139,7 +190,8 @@ export class WorkoutsMockAdapter implements WorkoutsPort {
       return simulateError<WorkoutSession>('not_found');
     }
 
-    const updated = change(current);
+    // Toda mutacion recalcula el estado: desmarcar reabre una sesion cerrada.
+    const updated = withDerivedStatus(change(current), toIsoDate(this.clock.now()));
     this.sessions = this.sessions.map(item => (item.id === sessionId ? updated : item));
 
     return simulate(updated);

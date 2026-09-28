@@ -28,6 +28,9 @@ function logsFor(
     targetReps: exercise.reps,
     restSeconds: exercise.restSeconds,
     weightKg: exercise.weightKg,
+    load: exercise.load,
+    measure: exercise.measure,
+    durationSeconds: exercise.durationSeconds ?? null,
     completedSets: done ? exercise.sets : 0,
     done,
     sets: done && completedAt !== null ? seriesDe(exercise.id, exercise, completedAt) : [],
@@ -49,8 +52,9 @@ function seriesDe(
   return Array.from({ length: exercise.sets }, (_unused, index) => ({
     id: `wst-${routineExerciseId}-${index + 1}`,
     setNumber: index + 1,
-    reps: exercise.reps,
+    reps: exercise.measure === 'time' ? null : exercise.reps,
     weightKg: exercise.weightKg,
+    durationSeconds: exercise.durationSeconds ?? null,
     completedAt,
   }));
 }

@@ -265,6 +265,127 @@ describe('WorkoutsMockAdapter', () => {
     });
   });
 
+  describe('estado derivado', () => {
+    const abierta = (): WorkoutSession =>
+      allSessions().find(item => item.status === 'scheduled') as WorkoutSession;
+
+    const marcarTodo = (session: WorkoutSession, done: boolean): WorkoutSession | undefined => {
+      let ultima: WorkoutSession | undefined;
+      for (const exercise of session.exercises) {
+        ultima = resolve(adapter.markExercise(session.id, exercise.routineExerciseId, done)).value;
+      }
+      return ultima;
+    };
+
+    it('marcar todos los ejercicios completa la sesion', () => {
+      expect(marcarTodo(abierta(), true)?.status).toBe('completed');
+    });
+
+    // El bug reportado: seguia "completada" con 0%.
+    it('desmarcar uno reabre la sesion', () => {
+      const session = abierta();
+      marcarTodo(session, true);
+      const primero = session.exercises[0]?.routineExerciseId ?? '';
+
+      const reabierta = resolve(adapter.markExercise(session.id, primero, false)).value;
+
+      expect(reabierta?.status).toBe('in_progress');
+      expect(reabierta?.completedAt).toBeNull();
+    });
+  });
+
+  describe('saltar', () => {
+    const abierta = (): WorkoutSession =>
+      allSessions().find(item => item.status === 'scheduled') as WorkoutSession;
+
+    it('logSet() registra una serie saltada con su motivo y sin datos', () => {
+      const session = abierta();
+      const exerciseId = session.exercises[0]?.routineExerciseId ?? '';
+
+      const updated = resolve(
+        adapter.logSet(session.id, exerciseId, {
+          setNumber: 1,
+          reps: 8,
+          weightKg: 40,
+          skipped: true,
+          skipReason: 'equipment_busy',
+        }),
+      ).value;
+      const serie = updated?.exercises[0]?.sets[0];
+
+      expect(serie).toMatchObject({ skipped: true, skipReason: 'equipment_busy', reps: null });
+      expect(updated?.exercises[0]?.completedSets).toBe(0);
+    });
+
+    it('skipExercise() salta lo que falta y conserva lo ya hecho', () => {
+      const session = abierta();
+      const exercise = session.exercises[0];
+      if (exercise === undefined) {
+        throw new Error('sin ejercicios');
+      }
+      resolve(
+        adapter.logSet(session.id, exercise.routineExerciseId, {
+          setNumber: 1,
+          reps: 8,
+          weightKg: 40,
+        }),
+      );
+
+      const updated = resolve(
+        adapter.skipExercise(session.id, exercise.routineExerciseId, 'pain'),
+      ).value;
+      const target = updated?.exercises[0];
+
+      expect(target?.sets).toHaveLength(exercise.targetSets);
+      expect(target?.completedSets).toBe(1);
+      // Se hizo una serie: cuenta como hecho, no como saltado.
+      expect(target?.done).toBe(true);
+      expect(target?.skipped).toBe(false);
+    });
+
+    it('skipExercise() sin series hechas deja el ejercicio saltado con motivo', () => {
+      const session = abierta();
+      const exerciseId = session.exercises[0]?.routineExerciseId ?? '';
+
+      const target = resolve(adapter.skipExercise(session.id, exerciseId, 'no_time')).value
+        ?.exercises[0];
+
+      expect(target?.skipped).toBe(true);
+      expect(target?.done).toBe(false);
+      expect(target?.skipReason).toBe('no_time');
+    });
+
+    it('marcar a mano un ejercicio saltado lo da por hecho', () => {
+      const session = abierta();
+      const exerciseId = session.exercises[0]?.routineExerciseId ?? '';
+      resolve(adapter.skipExercise(session.id, exerciseId, null));
+
+      const target = resolve(adapter.markExercise(session.id, exerciseId, true)).value
+        ?.exercises[0];
+
+      expect(target?.done).toBe(true);
+      expect(target?.skipped).toBe(false);
+    });
+
+    it('complete() deja lo saltado como saltado', () => {
+      const session = abierta();
+      const exerciseId = session.exercises[0]?.routineExerciseId ?? '';
+      resolve(adapter.skipExercise(session.id, exerciseId, null));
+
+      const cerrada = resolve(
+        adapter.complete(session.id, { durationMinutes: 30, note: null }),
+      ).value;
+
+      expect(cerrada?.status).toBe('completed');
+      expect(cerrada?.exercises[0]?.skipped).toBe(true);
+      expect(cerrada?.exercises.slice(1).every(item => item.done)).toBe(true);
+    });
+
+    it('skipExercise() falla con un id desconocido', () => {
+      expect(resolve(adapter.skipExercise('wks-999', 'x', null)).error?.code).toBe('not_found');
+    });
+  });
+
   describe('complete()', () => {
     it('cierra la sesion y marca todo como hecho', () => {
       const session = allSessions().find(item => item.status === 'scheduled') as WorkoutSession;
