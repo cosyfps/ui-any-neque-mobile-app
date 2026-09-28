@@ -130,6 +130,19 @@ export class AuthMockAdapter implements AuthPort {
     return 'invalid_credentials';
   }
 
+  changePassword(email: string, currentPassword: string, newPassword: string): Observable<void> {
+    const account = this.findByEmail(email);
+    if (account === undefined || account.password !== currentPassword) {
+      return simulateError<void>(
+        'invalid_credentials',
+        MOCK_LATENCY_MS,
+        'La contraseña actual no es correcta.',
+      );
+    }
+    account.password = newPassword;
+    return simulate<void>(undefined);
+  }
+
   private findByEmail(email: string): SeedAccount | undefined {
     const normalized = email.trim().toLowerCase();
     return this.accounts.find(account => account.user.email === normalized);

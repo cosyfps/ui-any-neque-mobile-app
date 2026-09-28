@@ -154,7 +154,7 @@ const TIME_FORMAT = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: 
                 (action)="goToRoutine()"
               />
             } @else {
-              <p class="section-empty">Todavía no completas tu primera sesión.</p>
+              <p class="nq-empty-inline">Todavía no completas tu primera sesión.</p>
             }
           </section>
 
@@ -180,7 +180,7 @@ const TIME_FORMAT = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: 
                 }
               </div>
             } @else {
-              <p class="section-empty">No tienes sesiones agendadas por ahora.</p>
+              <p class="nq-empty-inline">No tienes sesiones agendadas por ahora.</p>
             }
           </section>
         }

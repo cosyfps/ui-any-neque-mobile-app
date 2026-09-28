@@ -77,9 +77,9 @@ describe('StudentsMockAdapter', () => {
     });
 
     it('conserva los campos no enviados', () => {
-      const { value } = resolve(adapter.update('std-001', { heightCm: 170 }));
+      const { value } = resolve(adapter.update('std-001', { lastName: 'Soto' }));
       expect(value?.firstName).toBe('Alejandra');
-      expect(value?.heightCm).toBe(170);
+      expect(value?.lastName).toBe('Soto');
     });
 
     it('falla con un id desconocido', () => {
