@@ -24,6 +24,13 @@ export interface RoutinesPort {
    * tiene dos rutinas o ninguna.
    */
   setAssignments(routineId: Id, assignments: readonly RoutineAssignment[]): Observable<Routine>;
+  /**
+   * Elimina la plantilla y libera a sus alumnos, que quedan sin rutina.
+   *
+   * Las sesiones que ya entrenaron con ella no se tocan: el BFF la marca con
+   * `deletedAt` en vez de borrar la fila, asi el historial sigue resolviendo.
+   */
+  remove(routineId: Id): Observable<void>;
 }
 
 export const ROUTINES_PORT = new InjectionToken<RoutinesPort>('RoutinesPort');

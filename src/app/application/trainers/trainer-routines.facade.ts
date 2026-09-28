@@ -184,6 +184,38 @@ export class TrainerRoutinesFacade {
     );
   }
 
+  /**
+   * Elimina la rutina aunque tenga alumnos: quedan sin rutina hasta que se les
+   * asigne otra. La pantalla confirma antes nombrando a quienes afecta.
+   */
+  remove(routineId: string): Promise<boolean> {
+    const trainerId = this.session.profileId();
+    if (trainerId === null || this._busy()) {
+      return Promise.resolve(false);
+    }
+
+    this._busy.set(true);
+    this._actionError.set(null);
+
+    return new Promise(resolve => {
+      this.routines
+        .remove(routineId)
+        .pipe(switchMap(() => this.cargarBiblioteca(trainerId)))
+        .subscribe({
+          next: rows => {
+            this.rows.set(rows);
+            this._busy.set(false);
+            resolve(true);
+          },
+          error: (cause: unknown) => {
+            this._actionError.set(toDomainError(cause));
+            this._busy.set(false);
+            resolve(false);
+          },
+        });
+    });
+  }
+
   /** Alta de un ejercicio propio. Queda privado del entrenador que lo crea. */
   createExercise(input: Omit<ExerciseInput, 'ownerTrainerId'>): Promise<Exercise | null> {
     const trainerId = this.session.profileId();

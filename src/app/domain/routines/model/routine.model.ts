@@ -2,6 +2,7 @@ import { Weekday } from '@app/domain/shared/model/date';
 import { Id, IsoDateString } from '@app/domain/shared/model/ids';
 
 import { MuscleGroup } from './exercise.model';
+import { ExerciseLoad, ExerciseMeasure } from './prescription';
 
 /** Un ejercicio dentro de un dia de rutina, con su prescripcion. */
 export interface RoutineExercise {
@@ -12,8 +13,15 @@ export interface RoutineExercise {
   readonly sets: number;
   readonly reps: number;
   readonly restSeconds: number;
+  /** Kg de la carga, o del peso extra con `weighted_bodyweight`. Null sin peso. */
   readonly weightKg: number | null;
   readonly notes: string | null;
+  /** Sin dato se deduce de `weightKg`: ver `loadOf()`. */
+  readonly load?: ExerciseLoad;
+  /** Sin dato, repeticiones: ver `measureOf()`. */
+  readonly measure?: ExerciseMeasure;
+  /** Segundos por serie cuando `measure` es `time`; ahi `reps` no aplica. */
+  readonly durationSeconds?: number | null;
 }
 
 /** Un dia de entrenamiento dentro de la rutina. */

@@ -69,6 +69,7 @@ describe('TrainerRoutinesFacade', () => {
   let create: jest.Mock;
   let update: jest.Mock;
   let setAssignments: jest.Mock;
+  let remove: jest.Mock;
   let createExercise: jest.Mock;
 
   const createFacade = (
@@ -83,6 +84,7 @@ describe('TrainerRoutinesFacade', () => {
     create = jest.fn().mockReturnValue(of(rutina('rtn-nueva', 'Nueva')));
     update = jest.fn().mockReturnValue(of(rutina('rtn-001', 'Alfa', ['std-001'])));
     setAssignments = jest.fn().mockReturnValue(of(rutina('rtn-003', 'Libre', ['std-003'])));
+    remove = jest.fn().mockReturnValue(of(undefined));
     createExercise = jest.fn().mockReturnValue(of(ejercicio('ex-901', 'Zancada', 'trn-001')));
 
     TestBed.resetTestingModule();
@@ -92,7 +94,7 @@ describe('TrainerRoutinesFacade', () => {
         { provide: SessionFacade, useValue: { profileId: () => trainerId } },
         {
           provide: ROUTINES_PORT,
-          useValue: { listByTrainer, create, update, setAssignments },
+          useValue: { listByTrainer, create, update, setAssignments, remove },
         },
         {
           provide: STUDENTS_PORT,
@@ -273,6 +275,37 @@ describe('TrainerRoutinesFacade', () => {
 
       expect(await facade.saveAssignments('rtn-003', [])).toBe(false);
       expect(facade.actionError()?.code).toBe('conflict');
+    });
+  });
+
+  describe('remove()', () => {
+    it('elimina y relee la biblioteca sin la rutina', async () => {
+      listByTrainer.mockReturnValue(
+        of([rutina('rtn-002', 'Zeta', ['std-002']), rutina('rtn-003', 'Libre')]),
+      );
+
+      expect(await facade.remove('rtn-001')).toBe(true);
+
+      expect(remove).toHaveBeenCalledWith('rtn-001');
+      expect(facade.rows.data()?.map(row => row.routine.id)).toEqual(['rtn-002', 'rtn-003']);
+      expect(facade.busy()).toBe(false);
+    });
+
+    it('expone el error y no toca la lista si el puerto rechaza', async () => {
+      remove.mockReturnValue(throwError(() => domainError('not_found')));
+
+      expect(await facade.remove('rtn-001')).toBe(false);
+
+      expect(facade.actionError()?.code).toBe('not_found');
+      expect(facade.rows.data()).toHaveLength(3);
+      expect(facade.busy()).toBe(false);
+    });
+
+    it('no hace nada sin entrenador en sesion', async () => {
+      facade = createFacade(null);
+
+      expect(await facade.remove('rtn-001')).toBe(false);
+      expect(remove).not.toHaveBeenCalled();
     });
   });
 

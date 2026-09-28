@@ -169,6 +169,26 @@ describe('RoutinesMockAdapter — escritura del entrenador', () => {
     });
   });
 
+  describe('remove()', () => {
+    it('saca la rutina de la biblioteca', () => {
+      expect(resolve<void>(adapter.remove('rtn-001')).error).toBeUndefined();
+
+      const { error } = resolve<Routine>(adapter.getById('rtn-001'));
+      expect(error?.code).toBe('not_found');
+    });
+
+    // Eliminar una rutina con alumnos los deja sin rutina, no en una fantasma.
+    it('deja a sus alumnos sin rutina', () => {
+      resolve<void>(adapter.remove('rtn-001'));
+
+      expect(resolve<Routine | null>(adapter.getActiveForStudent('std-001')).value).toBeNull();
+    });
+
+    it('falla con un id desconocido', () => {
+      expect(resolve<void>(adapter.remove('rtn-999')).error?.code).toBe('not_found');
+    });
+  });
+
   describe('listByTrainer()', () => {
     it('devuelve las rutinas del entrenador', () => {
       const { value } = resolve<Routine[]>(adapter.listByTrainer('trn-001'));

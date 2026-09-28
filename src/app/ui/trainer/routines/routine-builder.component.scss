@@ -181,10 +181,35 @@
   }
 }
 
+// Cuatro o cinco celdas segun carga y medida: se reparten el ancho.
 .prescription {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
   gap: 8px;
+}
+
+.kind-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kind {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+  .nq-field-input {
+    height: 44px;
+    padding: 0 12px;
+  }
+}
+
+.kind-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nq-text-secondary);
 }
 
 // El `<label>` envuelve el campo: toda la celda es area de toque aunque el

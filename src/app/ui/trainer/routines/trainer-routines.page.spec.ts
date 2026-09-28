@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { SessionFacade } from '@app/application/auth/session.facade';
-import { TrainerRoutinesFacade } from '@app/application/trainers/trainer-routines.facade';
+import {
+  RoutineRow,
+  TrainerRoutinesFacade,
+} from '@app/application/trainers/trainer-routines.facade';
 import { Exercise } from '@app/domain/routines/model/exercise.model';
 import { Routine, RoutineAssignment } from '@app/domain/routines/model/routine.model';
 import { EXERCISE_CATALOG_PORT, ROUTINES_PORT } from '@app/domain/routines/port/routines.port';
@@ -65,6 +68,7 @@ describe('TrainerRoutinesPage', () => {
   let create: jest.Mock;
   let update: jest.Mock;
   let setAssignments: jest.Mock;
+  let remove: jest.Mock;
   let createExercise: jest.Mock;
 
   const createPage = (
@@ -88,6 +92,7 @@ describe('TrainerRoutinesPage', () => {
     create = jest.fn().mockReturnValue(of(rutina('rtn-nueva', 'Nueva')));
     update = jest.fn().mockReturnValue(of(rutina('rtn-001', 'Editada', ['std-001'])));
     setAssignments = jest.fn().mockReturnValue(of(rutina('rtn-001', 'Hipertrofia', ['std-001'])));
+    remove = jest.fn().mockReturnValue(of(undefined));
     createExercise = jest.fn().mockReturnValue(of(ejercicio('ex-901', 'Zancada', 'trn-001')));
 
     TestBed.resetTestingModule();
@@ -104,6 +109,7 @@ describe('TrainerRoutinesPage', () => {
             create,
             update,
             setAssignments,
+            remove,
           },
         },
         { provide: STUDENTS_PORT, useValue: { listByTrainer: () => of(cartera) } },
@@ -286,6 +292,81 @@ describe('TrainerRoutinesPage', () => {
       page.closeBuilder();
 
       expect(page.building()).toBe(false);
+    });
+  });
+
+  describe('eliminar rutina', () => {
+    const fila = (): RoutineRow => {
+      const row = page.facade.visible()[0];
+      if (row === undefined) {
+        throw new Error('sin filas');
+      }
+      return row;
+    };
+
+    it('askRemove() abre la confirmacion con esa rutina', () => {
+      page.askRemove(fila());
+
+      expect(page.removing()?.routine.id).toBe('rtn-001');
+    });
+
+    it('avisa que sus alumnos quedan sin rutina', () => {
+      page.askRemove(fila());
+
+      expect(page.removeWarning()).toBe(
+        'Alejandra Acosta quedará sin rutina. No se puede deshacer.',
+      );
+    });
+
+    it('junta varios nombres con coma y "y"', () => {
+      page = createPage({
+        rutinas: [rutina('rtn-001', 'Hipertrofia', ['std-001', 'std-002', 'std-003'])],
+        cartera: [alumno('std-001', 'Ana'), alumno('std-002', 'Luis'), alumno('std-003', 'Sofía')],
+      });
+
+      page.askRemove(fila());
+
+      expect(page.removeWarning()).toBe(
+        'Ana Acosta, Luis Acosta y Sofía Acosta quedarán sin rutina. No se puede deshacer.',
+      );
+    });
+
+    it('sin alumnos solo avisa que no se puede deshacer', () => {
+      page = createPage({ rutinas: [rutina('rtn-009', 'Libre')] });
+      page.facade.selectFilter('unassigned');
+
+      page.askRemove(fila());
+
+      expect(page.removeWarning()).toBe('No se puede deshacer.');
+    });
+
+    it('confirmRemove() elimina y cierra la confirmacion', async () => {
+      page.askRemove(fila());
+
+      await page.confirmRemove();
+
+      expect(remove).toHaveBeenCalledWith('rtn-001');
+      expect(page.removing()).toBeNull();
+    });
+
+    it('si falla deja la confirmacion abierta con el error', async () => {
+      remove.mockReturnValue(throwError(() => domainError('network')));
+      page.askRemove(fila());
+
+      await page.confirmRemove();
+
+      expect(page.removing()).not.toBeNull();
+      expect(page.facade.actionError()?.code).toBe('network');
+    });
+
+    it('cancelRemove() cierra sin eliminar', async () => {
+      page.askRemove(fila());
+
+      page.cancelRemove();
+      await page.confirmRemove();
+
+      expect(page.removing()).toBeNull();
+      expect(remove).not.toHaveBeenCalled();
     });
   });
 
